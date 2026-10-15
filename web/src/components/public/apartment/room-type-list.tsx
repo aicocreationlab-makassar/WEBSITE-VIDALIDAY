@@ -24,7 +24,7 @@ export function RoomTypeList({ types, apartmentName }: Props) {
           <li key={type.id}>
             <Link
               href={type.href}
-              className="group flex h-full gap-3.5 rounded-card bg-white p-3 shadow-card ring-1 ring-line/80 transition-[box-shadow,transform] duration-200 ease-out outline-none focus-visible:ring-3 focus-visible:ring-brand-500/40 md:flex-col md:gap-0 md:overflow-hidden md:p-0 md:hover:-translate-y-0.5 md:hover:shadow-card-hover"
+              className="group flex h-full gap-3.5 rounded-card bg-white p-3 shadow-card ring-1 ring-line/80 transition-[box-shadow,transform] duration-200 ease-out focus-visible:ring-3 focus-visible:ring-brand-500/40 md:flex-col md:gap-0 md:overflow-hidden md:p-0 md:hover:-translate-y-0.5 md:hover:shadow-card-hover"
             >
               <div className="relative min-h-24 w-24 shrink-0 self-stretch overflow-hidden rounded-control bg-surface-2 md:aspect-[4/3] md:min-h-0 md:w-full md:rounded-none">
                 {type.photo ? (

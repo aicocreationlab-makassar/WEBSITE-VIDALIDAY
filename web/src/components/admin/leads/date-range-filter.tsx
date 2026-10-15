@@ -43,7 +43,7 @@ export function DateRangeFields({ kind, label, value, onChange, onPreset }: Fiel
               aria-pressed={selected}
               onClick={() => (onPreset ? onPreset(preset) : onChange({ from: preset.from, to: preset.to }))}
               className={cn(
-                "inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20",
+                "inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                 selected ? "border-brand-200 bg-brand-50 text-brand-700" : "border-line bg-white text-ink-2 hover:bg-surface-2",
               )}
             >
@@ -117,7 +117,7 @@ export function DateRangePopover({ kind, label, from, to, onApply }: PopoverProp
           type="button"
           aria-label={`${label}: ${summary ?? "semua tanggal"}`}
           className={cn(
-            "glass-input inline-flex h-11 max-w-full min-w-0 items-center gap-2 rounded-control px-3.5 text-[15px] text-ink-2 outline-none hover:bg-surface",
+            "glass-input inline-flex h-11 max-w-full min-w-0 items-center gap-2 rounded-control px-3.5 text-[15px] text-ink-2 hover:bg-surface",
             summary && "ring-2 ring-brand-200",
           )}
         >

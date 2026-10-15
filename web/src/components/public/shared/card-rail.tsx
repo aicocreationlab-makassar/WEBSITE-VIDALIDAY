@@ -2,6 +2,7 @@
 
 import { Children, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -39,7 +40,7 @@ export function CardRail({ children, label, itemClassName, className }: Props) {
   const scroll = (direction: 1 | -1) => {
     const el = track.current;
     if (!el) return;
-    el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: "smooth" });
+    el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: scrollBehavior() });
   };
 
   const items = Children.toArray(children);

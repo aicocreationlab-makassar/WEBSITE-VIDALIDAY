@@ -11,7 +11,7 @@ const badgeVariants = cva(
       variant: {
         promo: "border-brand-200 bg-brand-50 text-brand-700",
         brand: "border-transparent bg-brand-600 text-white",
-        success: "border-emerald-200 bg-emerald-50 text-success",
+        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
         warning: "border-amber-200 bg-amber-50 text-[#b45309]",
         neutral: "border-line bg-surface-2 text-ink-2",
         outline: "border-line bg-white text-ink-2",

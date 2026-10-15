@@ -80,7 +80,7 @@ export function NumberInput({ value, onChange, decimal = false, suffix, classNam
           onBlur?.(event);
         }}
         className={cn(
-          "glass-input h-12 w-full min-w-0 rounded-control px-3.5 text-base text-ink tabular-nums outline-none aria-invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-2",
+          "glass-input h-12 w-full min-w-0 rounded-control px-3.5 text-base text-ink tabular-nums aria-invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-2",
           suffix && "pr-12",
           className,
         )}
@@ -105,7 +105,7 @@ export function GuestStepper({ value, onChange, min = 1, max = 30, disabled, ...
     onChange(Math.min(max, Math.max(min, base + delta)));
   };
   const button =
-    "inline-flex size-12 shrink-0 items-center justify-center rounded-control border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40 focus-visible:ring-3 focus-visible:ring-brand-500/20 outline-none";
+    "inline-flex size-12 shrink-0 items-center justify-center rounded-control border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40 focus-visible:ring-3 focus-visible:ring-brand-500/20";
 
   return (
     <div className="flex items-center gap-2">

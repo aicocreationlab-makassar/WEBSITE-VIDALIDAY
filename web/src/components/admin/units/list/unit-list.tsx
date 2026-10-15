@@ -247,7 +247,7 @@ export function UnitList({ result, filter, locations }: UnitListProps) {
               aria-pressed={active}
               onClick={() => update(chipChanges(active && key !== "semua" ? "semua" : key))}
               className={cn(
-                "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20",
+                "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                 active
                   ? "border-brand-200 bg-brand-50 text-brand-700"
                   : "border-line bg-white text-ink-2 hover:bg-surface-2",

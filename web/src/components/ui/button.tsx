@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // DESIGN 4.4: primary (satu aksi utama per layar), secondary, ghost, icon.
 // Ukuran md 44px, lg 52px (CTA mobile). Kalimat biasa, bukan huruf kapital semua.
 const buttonVariants = cva(
-  "group/button relative inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out select-none outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20 active:not-disabled:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-danger [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  "group/button relative inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out select-none focus-visible:ring-3 focus-visible:ring-brand-500/20 active:not-disabled:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-danger [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {

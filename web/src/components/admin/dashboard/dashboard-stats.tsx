@@ -57,7 +57,7 @@ export async function DashboardStats({ units, leadCounts }: Props) {
       {stats && stats.needsCheck > 0 ? (
         <Link
           href="/admin/units?cek=1"
-          className="group flex min-h-16 items-center gap-3 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 transition-colors hover:border-amber-300 focus-visible:ring-3 focus-visible:ring-brand-500/20 focus-visible:outline-none"
+          className="group flex min-h-16 items-center gap-3 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 transition-colors hover:border-amber-300 focus-visible:ring-3 focus-visible:ring-brand-500/20"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-control bg-white text-[#b45309]">
             <ClipboardCheck className="size-5" aria-hidden="true" />

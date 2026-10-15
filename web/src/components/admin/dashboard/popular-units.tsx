@@ -27,7 +27,7 @@ export async function PopularUnits({ popular }: { popular: Promise<PopularUnit[]
             <li key={unit.id}>
               <Link
                 href={`/admin/units/${unit.id}`}
-                className="flex min-h-16 items-center gap-3 rounded-control px-2 py-2.5 transition-colors hover:bg-surface focus-visible:ring-3 focus-visible:ring-brand-500/20 focus-visible:outline-none"
+                className="flex min-h-16 items-center gap-3 rounded-control px-2 py-2.5 transition-colors hover:bg-surface focus-visible:ring-3 focus-visible:ring-brand-500/20"
               >
                 <span
                   className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-bold text-ink-2 tabular-nums"

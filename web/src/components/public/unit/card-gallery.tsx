@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -40,7 +41,7 @@ export function CardGallery({ photos, href, alt, sizes, dimmed, eager = false }:
     const el = track.current;
     if (!el) return;
     const target = Math.min(list.length - 1, Math.max(0, index + delta));
-    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
+    el.scrollTo({ left: target * el.clientWidth, behavior: scrollBehavior() });
   };
 
   return (
@@ -72,7 +73,13 @@ export function CardGallery({ photos, href, alt, sizes, dimmed, eager = false }:
       </div>
       {list.length > 1 ? (
         <>
-          <div className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex items-center gap-1 rounded-full bg-night/45 px-2 py-1">
+          <span className="sr-only" aria-live="polite">
+            Foto {index + 1} dari {list.length}
+          </span>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex items-center gap-1 rounded-full bg-night/45 px-2 py-1"
+          >
             {list.map((src, i) => (
               <span
                 key={src}

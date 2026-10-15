@@ -73,7 +73,7 @@ export function SectionNav({ sections, label }: { sections: NavSection[]; label:
                 aria-current={current ? "location" : undefined}
                 onClick={(event) => jump(event, section.id)}
                 className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20",
+                  "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-brand-500/20",
                   current
                     ? "border-brand-200 bg-brand-50 text-brand-700"
                     : "border-line bg-white text-ink-2 hover:bg-surface-2 hover:text-ink",

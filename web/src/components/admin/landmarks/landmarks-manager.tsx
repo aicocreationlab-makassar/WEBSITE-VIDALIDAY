@@ -218,7 +218,7 @@ export function LandmarksManager({ landmarks, locations }: { landmarks: AdminLan
                   title={option.fullName}
                   onClick={() => setScope(option.value === ALL_LOCATIONS ? ALL_LOCATIONS : Number(option.value))}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-2 rounded-control border px-3.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20 focus-visible:outline-none",
+                    "inline-flex min-h-11 items-center gap-2 rounded-control border px-3.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                     active
                       ? "border-brand-200 bg-brand-50 text-brand-700"
                       : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",

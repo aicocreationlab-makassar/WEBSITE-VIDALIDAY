@@ -50,7 +50,7 @@ export function HealthTooltip({ flags }: { flags: HealthFlag[] }) {
         <button
           type="button"
           aria-label={`Perlu dicek: ${healthText(flags)}`}
-          className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-full text-warning transition-colors after:absolute after:-inset-1.5 hover:bg-amber-50 focus-visible:ring-3 focus-visible:ring-brand-500/20 focus-visible:outline-none"
+          className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-full text-warning transition-colors after:absolute after:-inset-1.5 hover:bg-amber-50 focus-visible:ring-3 focus-visible:ring-brand-500/20"
         >
           <TriangleAlert className="size-4" aria-hidden="true" />
         </button>

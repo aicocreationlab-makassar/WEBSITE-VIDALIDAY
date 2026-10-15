@@ -34,22 +34,54 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   );
 }
 
-/** Modal (radius 24, DESIGN 3.3). Fokus terkunci, Esc menutup, fokus kembali ke pemicu (Radix). */
+/**
+ * Kembalikan fokus ke elemen yang aktif saat dialog/sheet dibuka. Radix hanya mengembalikan
+ * fokus ke `Trigger`; dialog yang dibuka dari state (tanpa Trigger) kehilangan fokus tanpa ini.
+ * Pemanggil yang memanggil `preventDefault()` di `onCloseAutoFocus` tetap menang.
+ */
+function useReturnFocus(
+  onOpenAutoFocus: ((event: Event) => void) | undefined,
+  onCloseAutoFocus: ((event: Event) => void) | undefined,
+) {
+  const returnTo = React.useRef<HTMLElement | null>(null);
+  return {
+    onOpenAutoFocus: (event: Event) => {
+      returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      onOpenAutoFocus?.(event);
+    },
+    onCloseAutoFocus: (event: Event) => {
+      onCloseAutoFocus?.(event);
+      if (event.defaultPrevented) return;
+      const target = returnTo.current;
+      returnTo.current = null;
+      if (target?.isConnected && target !== document.body) {
+        event.preventDefault();
+        target.focus({ preventScroll: true });
+      }
+    },
+  };
+}
+
+/** Modal (radius 24, DESIGN 3.3). Fokus terkunci, Esc menutup, fokus kembali ke elemen pembuka. */
 function DialogContent({
   className,
   children,
   showCloseButton = true,
   closeLabel = "Tutup",
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
   closeLabel?: string;
 }) {
+  const focusHandlers = useReturnFocus(onOpenAutoFocus, onCloseAutoFocus);
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        {...focusHandlers}
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid max-h-[90dvh] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-sheet bg-white p-6 text-ink shadow-raised duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className,
@@ -116,4 +148,5 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+  useReturnFocus,
 };

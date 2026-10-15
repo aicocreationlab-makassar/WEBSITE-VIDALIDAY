@@ -47,7 +47,7 @@ export function AmenitiesSection({ amenities, initialIds }: Props) {
           aria-describedby={error ? "fasilitas-error" : undefined}
           data-invalid={error ? "true" : undefined}
           tabIndex={-1}
-          className="flex flex-wrap gap-2 outline-none"
+          className="flex flex-wrap gap-2"
         >
           {choices.map((amenity) => {
             const active = selected.includes(amenity.id);
@@ -59,7 +59,7 @@ export function AmenitiesSection({ amenities, initialIds }: Props) {
                 onClick={() => field.onChange(toggleId(selected, amenity.id))}
                 onBlur={field.onBlur}
                 className={cn(
-                  "inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-3.5 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20",
+                  "inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                   active
                     ? "border-brand-600 bg-brand-50 text-brand-700"
                     : "border-line bg-white text-ink-2 hover:bg-surface-2",

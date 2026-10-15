@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReturnFocus } from "@/components/ui/dialog";
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -36,7 +37,7 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
 
 /**
  * Sheet. `side="bottom"` = bottom sheet mobile (radius atas 24, pegangan dekoratif,
- * memperhitungkan safe area). Fokus terkunci di dalam, Esc menutup, fokus kembali ke pemicu (Radix).
+ * memperhitungkan safe area). Fokus terkunci di dalam, Esc menutup, fokus kembali ke elemen pembuka.
  */
 function SheetContent({
   className,
@@ -44,17 +45,21 @@ function SheetContent({
   side = "right",
   showCloseButton = true,
   closeLabel = "Tutup",
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
   closeLabel?: string;
 }) {
+  const focusHandlers = useReturnFocus(onOpenAutoFocus, onCloseAutoFocus);
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        {...focusHandlers}
         data-side={side}
         className={cn(
           "fixed z-50 flex flex-col bg-white text-ink shadow-raised outline-none transition ease-out duration-200",

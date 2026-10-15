@@ -89,7 +89,7 @@ export function TemplateEditor({ isDefault }: { isDefault: boolean }) {
                 onClick={() => insert(placeholder.key)}
                 aria-label={`Sisipkan ${placeholder.label}${used ? " (sudah dipakai)" : ""}`}
                 className={cn(
-                  "inline-flex h-11 shrink-0 items-center gap-1 rounded-full border px-3 font-mono text-[13px] font-semibold transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-brand-500/20 sm:h-9",
+                  "inline-flex h-11 shrink-0 items-center gap-1 rounded-full border px-3 font-mono text-[13px] font-semibold transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-brand-500/20 sm:h-9",
                   used
                     ? "border-line bg-surface text-ink-2 hover:bg-surface-2"
                     : "border-brand-200 bg-white text-brand-700 hover:bg-brand-50",

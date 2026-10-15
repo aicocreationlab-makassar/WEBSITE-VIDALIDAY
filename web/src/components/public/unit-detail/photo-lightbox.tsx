@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImageOff, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { clampIndex, isLetterboxed } from "@/lib/unit-detail";
+import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type Shape = "full" | "letterbox" | "error";
@@ -17,10 +18,6 @@ type Props = {
   index: number;
   onIndexChange: (index: number) => void;
 };
-
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 const NAV_BUTTON =
   "absolute top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-sm transition-colors hover:bg-white/24 focus-visible:ring-3 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-0";
@@ -46,7 +43,7 @@ export function PhotoLightbox({ open, onOpenChange, photos, unitName, index, onI
     const next = clampIndex(target, count);
     onIndexChange(next);
     const el = trackRef.current;
-    if (el) el.scrollTo({ left: next * el.clientWidth, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    if (el) el.scrollTo({ left: next * el.clientWidth, behavior: scrollBehavior() });
   };
 
   const onScroll = () => {

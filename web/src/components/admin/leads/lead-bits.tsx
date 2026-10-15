@@ -82,7 +82,7 @@ export function NotesButton({ lead, onOpen, className }: { lead: LeadRow; onOpen
       aria-label={preview ? `Ubah catatan admin ${lead.code}: ${preview}` : `Tambah catatan admin ${lead.code}`}
       title={preview || undefined}
       className={cn(
-        "inline-flex h-10 max-w-full min-w-0 items-center gap-2 rounded-control px-2.5 text-left text-sm transition-colors outline-none hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-brand-500/20",
+        "inline-flex h-10 max-w-full min-w-0 items-center gap-2 rounded-control px-2.5 text-left text-sm transition-colors hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-brand-500/20",
         preview ? "text-ink-2" : "text-muted",
         className,
       )}

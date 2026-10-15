@@ -40,12 +40,12 @@ export function QuickPrice({ row, desktop, variant }: Props) {
   const trigger = (
     <button
       type="button"
-      aria-label={`Ubah harga ${row.name}`}
+      aria-label={`${formatRupiah(row.effectivePrice)} per malam, ubah harga ${row.name}`}
       aria-haspopup="dialog"
       aria-expanded={open}
       onClick={desktop ? undefined : () => setOpen(true)}
       className={cn(
-        "group/price flex min-h-11 items-center gap-2 rounded-control text-left transition-colors outline-none hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-brand-500/20 aria-expanded:bg-surface-2",
+        "group/price flex min-h-11 items-center gap-2 rounded-control text-left transition-colors hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-brand-500/20 aria-expanded:bg-surface-2",
         variant === "table" ? "-mx-2 px-2 py-1" : "w-full px-2 py-1.5",
       )}
     >

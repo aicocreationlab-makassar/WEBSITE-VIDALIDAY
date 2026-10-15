@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { stripMarkdown } from "@/lib/format";
@@ -15,11 +15,21 @@ type Props = {
 /** FAQ accordion (PRD 6.2: 5 teratas + "Lihat semua pertanyaan"). Badge lama tidak ditampilkan; tanda * dibuang. */
 export function FaqList({ faqs, initial = 5 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const moveFocus = useRef(false);
   const shown = expanded ? faqs : faqs.slice(0, initial);
   const hidden = faqs.length - shown.length;
 
+  // Tombol "Lihat semua" hilang setelah diklik; pindahkan fokus ke pertanyaan pertama yang baru tampil.
+  useEffect(() => {
+    if (!expanded || !moveFocus.current) return;
+    moveFocus.current = false;
+    const triggers = listRef.current?.querySelectorAll<HTMLElement>('[data-slot="accordion-trigger"]');
+    triggers?.[initial]?.focus();
+  }, [expanded, initial]);
+
   return (
-    <div className="rounded-card bg-white px-4 shadow-card ring-1 ring-line/80 sm:px-6">
+    <div ref={listRef} className="rounded-card bg-white px-4 shadow-card ring-1 ring-line/80 sm:px-6">
       <Accordion type="single" collapsible>
         {shown.map((faq) => (
           <AccordionItem key={faq.id} value={String(faq.id)}>
@@ -40,7 +50,10 @@ export function FaqList({ faqs, initial = 5 }: Props) {
         <div className="border-t border-line py-2">
           <button
             type="button"
-            onClick={() => setExpanded(true)}
+            onClick={() => {
+              moveFocus.current = true;
+              setExpanded(true);
+            }}
             className="inline-flex min-h-11 items-center gap-1.5 rounded-control px-1 font-semibold text-brand-700 hover:underline"
           >
             Lihat semua pertanyaan ({faqs.length})

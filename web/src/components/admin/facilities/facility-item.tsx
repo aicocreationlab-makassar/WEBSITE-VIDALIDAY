@@ -91,7 +91,7 @@ export function FacilityItem({ row, isFirst, isLast, reorderDisabled, onToggle, 
             {row.name}
           </span>
         </p>
-        <p className={cn("w-full truncate text-sm", row.description ? "text-muted" : "text-subtle")}>
+        <p className={cn("w-full truncate text-sm text-muted", !row.description && "italic")}>
           {row.description ?? "Belum ada deskripsi"}
         </p>
         {missingIcon ? (

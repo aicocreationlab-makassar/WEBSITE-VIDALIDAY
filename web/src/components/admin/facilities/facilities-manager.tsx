@@ -221,7 +221,7 @@ export function FacilitiesManager({ facilities, locations }: Props) {
                       aria-pressed={active}
                       onClick={() => setFilter({ status: item.value })}
                       className={cn(
-                        "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20 focus-visible:outline-none",
+                        "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                         active
                           ? "border-brand-600 bg-brand-600 text-white"
                           : "border-line bg-white text-ink-2 hover:bg-surface-2",

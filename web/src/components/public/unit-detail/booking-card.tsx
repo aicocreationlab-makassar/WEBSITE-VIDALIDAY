@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState, useSyncExternalStore } from "react";
 import { Clock, Minus, Plus, TriangleAlert } from "lucide-react";
+import { largerUnitsLink } from "@/components/public/booking/booking-model";
 import { useBooking } from "@/components/public/booking/booking-provider";
 import { PriceTag } from "@/components/public/unit/price";
 import { UnitBadges } from "@/components/public/unit/unit-badges";
@@ -176,7 +177,10 @@ export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
           <TriangleAlert className="mt-px size-4 shrink-0 text-[#b45309]" aria-hidden="true" />
           <span>
             Unit ini untuk maks. {unit.maxGuests} tamu.{" "}
-            <Link href={largerUnitsHref} className="font-semibold text-brand-700 underline underline-offset-2">
+            <Link
+              href={largerUnitsLink(largerUnitsHref, guests)}
+              className="font-semibold text-brand-700 underline underline-offset-2"
+            >
               Lihat unit yang lebih besar
             </Link>
           </span>

@@ -7,6 +7,7 @@ import { UnitCard } from "@/components/public/unit/unit-card";
 import { track } from "@/lib/analytics";
 import { getRecentServerSnapshot, getRecentSnapshot, subscribeRecent } from "@/lib/recent";
 import type { Recommendation } from "@/lib/recommend";
+import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { CatalogUnit } from "@/types/domain";
 import { ReasonChip } from "./reason-chip";
@@ -77,8 +78,7 @@ function SimilarList({
   const scrollPage = (direction: 1 | -1) => {
     const el = listRef.current;
     if (!el) return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: reduceMotion ? "auto" : "smooth" });
+    el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: scrollBehavior() });
   };
 
   const arrows =

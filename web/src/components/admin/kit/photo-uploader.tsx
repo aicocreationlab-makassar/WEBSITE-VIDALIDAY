@@ -167,17 +167,17 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                   type="button"
                   onClick={() => onChange(value.filter((_, i) => i !== index))}
                   aria-label={`Hapus foto ${index + 1}`}
-                  className="absolute top-1 right-1 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-danger shadow-sm hover:bg-white"
+                  className="absolute top-1 right-1 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-danger shadow-sm after:absolute after:-inset-1.5 hover:bg-white"
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
                 </button>
-                <div className="absolute right-1 bottom-1 flex gap-1">
+                <div className="absolute right-1 bottom-1 flex gap-3">
                   <button
                     type="button"
                     onClick={() => onChange(move(value, index, index - 1))}
                     disabled={index === 0}
                     aria-label={`Geser foto ${index + 1} ke kiri`}
-                    className="inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm disabled:hidden"
+                    className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm after:absolute after:-inset-1.5 disabled:hidden"
                   >
                     <ArrowLeft className="size-4" aria-hidden="true" />
                   </button>
@@ -186,7 +186,7 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                     onClick={() => onChange(move(value, index, index + 1))}
                     disabled={index === value.length - 1}
                     aria-label={`Geser foto ${index + 1} ke kanan`}
-                    className="inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm disabled:hidden"
+                    className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm after:absolute after:-inset-1.5 disabled:hidden"
                   >
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </button>
