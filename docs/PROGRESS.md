@@ -2,7 +2,18 @@
 
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
-**Fase aktif:** 2 (Fase 1 selesai 16 Okt 2026; fondasi Fase 2–5 sudah ditulis dan diuji, menunggu `web/.env.local` untuk audit data)
+**Fase aktif:** 6 (kode Fase 2–5 selesai dan lulus lint/typecheck/430 unit test; verifikasi dengan data asli — build, e2e, screenshot, Lighthouse — menunggu `web/.env.local`)
+
+Status verifikasi per fase:
+
+| Fase | Kode | Unit test | Build + e2e + screenshot dengan data asli |
+|---|---|---|---|
+| 1 | selesai | lulus | lulus (tanpa data, bingkai saja) |
+| 2 | selesai (kecuali audit data + `backfill_v3`) | lulus | menunggu env |
+| 3 | selesai | lulus | menunggu env |
+| 4 | selesai | lulus | menunggu env |
+| 5 | selesai | lulus | menunggu env + CP-C (login admin) |
+| 6 | sedang dikerjakan | — | menunggu env |
 
 Rencana eksekusi lengkap yang disetujui pemilik: `docs/audit/rencana-eksekusi.md`.
 Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
@@ -143,6 +154,16 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 16 Okt 2026 | Footer publik: logo tanpa tautan, latar gelap night → night-rose; header desktop menampilkan "Tanya admin" dan tombol ikon WhatsApp. | Menghindari dua tautan "ke beranda"; kontrak tombol WA header di semua ukuran. |
 | 16 Okt 2026 | Contoh tanggal di PRD 6.5 ("Sab, 18 Okt 2026") keliru: 18 Okt 2026 hari Minggu. Format tanggal mengikuti kalender sebenarnya. | Fakta kalender. |
 | 16 Okt 2026 | Halaman `dev-preview/*` hanya dipakai saat pengembangan dan dihapus sebelum commit fase. | Aturan rencana (tidak ada halaman uji di repo). |
+| 16 Okt 2026 | Hero: tinggi foto mobile `clamp(232px, 100svh - 348px, 340px)` supaya kartu pencarian muat di 390×664 bersama header + pengumuman; nama opsi tipe/budget hanya labelnya (jumlah unit dibaca sebagai deskripsi); tombol panah di daftar opsi memindah fokus, Enter/klik memilih. | PRD 6.2 kriteria terima, aksesibilitas. |
+| 16 Okt 2026 | `/sewa`: grid 1 kolom → 2 (sm) → 3 (xl), sidebar 240/280px; hasil dirender di server, klien hanya bingkai filter; "Hapus semua" mempertahankan urutan; `tamu=1` dianggap tanpa filter. | Kartu tidak terlalu sempit di 1024px; JS klien lebih kecil. |
+| 16 Okt 2026 | Detail unit: satu set gambar untuk mobile (4:5) dan grid desktop (gambar LCP tidak diunduh dua kali); "Lihat semua foto" mulai 2 foto; kolom kanan 300px (md) / 360px (lg); Offer JSON-LD node terpisah yang ditautkan ke Apartment. | Performa dan validitas schema.org. |
+| 16 Okt 2026 | Form sewa: validasi sinkron dulu, baru tab WhatsApp disiapkan (tidak ada tab kosong saat isian salah); klien menunggu `submitLead` maks. 5 detik lalu tetap ke WhatsApp tanpa kode; panel sukses muncul di dalam form setelah kirim, atau menempel di bawah setelah halaman dimuat ulang; di luar jam layanan pesan menyebut jam mulai layanan. | PRD 6.5 langkah 4–6 (WhatsApp tidak boleh terhalang). |
+| 16 Okt 2026 | Unit serupa: urutan server = tahap 1 tanpa riwayat; klien memakai fungsi yang sama dengan riwayat perangkat, jumlah kartu tidak berubah setelah hidrasi; teks chip "Apartemen sama" (istilah PRD 10). | Tanpa pergeseran tata letak; satu sumber aturan. |
+| 16 Okt 2026 | OG image: PNG 1200×630 via `next/og`, foto unit hanya kalau JPG/PNG dan ≤ 300 KB total (kalau lebih, kartu tanpa foto); font Plus Jakarta Sans diambil dari Google Fonts saat build dengan cadangan font bawaan. | Satori tidak bisa membaca WebP; pratinjau WhatsApp butuh gambar kecil. |
+| 16 Okt 2026 | Admin unit: tabel mulai 1024px (kartu di bawahnya, sidebar memakan lebar); aksi baris mengirim nilai target (bukan toggle) supaya klik ganda tidak membatalkan; duplikat berbagi foto, hapus hanya menghapus foto yang tidak dipakai unit lain. | Admin sering bekerja dari HP; integritas Storage. |
+| 16 Okt 2026 | Form unit: slug tidak ikut berubah saat nama diubah pada unit yang sudah ada (tombol "Samakan dengan nama"); `rental_period` selalu disimpan "Malam"; Simpan dikunci selama foto diunggah. | Tautan publik stabil; semua harga per malam. |
+| 16 Okt 2026 | Apartemen baru dibuat nonaktif; halaman ubah apartemen menampilkan daftar langkah supaya tampil di situs (tipe kamar, unit tampil, aktifkan). Hapus apartemen ikut menghapus tipe kamar, fasilitas gedung, dan landmark-nya (hanya kalau tidak punya unit). | PRD 7.5. |
+| 16 Okt 2026 | Lupa kata sandi admin: teks hasil selalu netral (tidak membocorkan email terdaftar); tautan email diverifikasi di `/admin/auth/confirm`, lalu non-admin dikeluarkan. | Keamanan (PRD 7.1). |
 
 ## Pertanyaan terbuka
 

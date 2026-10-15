@@ -43,12 +43,35 @@ function parseReasons(raw: string | null | undefined): AboutReason[] | null {
   }
 }
 
-/** Baris tabel `settings` → objek bertipe. Nilai kosong memakai default, kecuali teks pengumuman (kosong = disembunyikan). */
+/** Kunci wajib: kalau kosong tetap memakai nilai bawaan (situs butuh nilainya). */
+const REQUIRED_KEYS = new Set([
+  "whatsapp_number",
+  "hero_title",
+  "booking_whatsapp_template",
+  "company_legal_name",
+  "seo_title",
+  "seo_description",
+  "about_tagline",
+  "about_hero_title",
+  "about_intro_p1",
+  "about_commit_title",
+  "about_commit_text",
+]);
+
+/**
+ * Baris tabel `settings` → objek bertipe.
+ * - Baris tidak ada atau bernilai NULL → nilai bawaan.
+ * - Kunci wajib yang kosong → nilai bawaan.
+ * - Kunci opsional yang sengaja dikosongkan admin ("") → tetap kosong (mis. subjudul, email, pengumuman).
+ */
 export function mapSettings(rows: SettingRow[]): SiteSettings {
   const byKey = new Map(rows.map((row) => [row.key, row.value]));
   const text = (key: string, fallback: string) => {
     const value = byKey.get(key);
-    return value && value.trim() ? value.trim() : fallback;
+    if (value === undefined || value === null) return fallback;
+    const trimmed = value.trim();
+    if (!trimmed && REQUIRED_KEYS.has(key)) return fallback;
+    return trimmed;
   };
 
   const settings: SiteSettings = structuredClone(DEFAULT_SETTINGS);
@@ -56,8 +79,6 @@ export function mapSettings(rows: SettingRow[]): SiteSettings {
     if (field === "heroImage" || field === "siteLogo") {
       const value = byKey.get(dbKey);
       settings[field] = value && value.trim() ? value.trim() : null;
-    } else if (field === "promoBannerText") {
-      settings.promoBannerText = (byKey.get(dbKey) ?? DEFAULT_SETTINGS.promoBannerText ?? "").trim();
     } else {
       settings[field] = text(dbKey, DEFAULT_SETTINGS[field]);
     }
@@ -65,7 +86,9 @@ export function mapSettings(rows: SettingRow[]): SiteSettings {
   for (const [dbKey, field] of Object.entries(ABOUT_KEYS)) {
     settings.about[field] = text(dbKey, DEFAULT_SETTINGS.about[field]);
   }
-  settings.about.reasons = parseReasons(byKey.get("about_reasons")) ?? DEFAULT_SETTINGS.about.reasons;
+  const rawReasons = byKey.get("about_reasons");
+  settings.about.reasons =
+    rawReasons?.trim() === "[]" ? [] : (parseReasons(rawReasons) ?? DEFAULT_SETTINGS.about.reasons);
   return settings;
 }
 

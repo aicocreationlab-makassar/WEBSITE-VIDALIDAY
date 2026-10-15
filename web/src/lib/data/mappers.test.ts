@@ -11,10 +11,11 @@ afterEach(() => {
 });
 
 describe("mapSettings", () => {
-  it("fills missing or empty keys with defaults", () => {
+  it("fills missing, NULL, or empty required keys with defaults", () => {
     const settings = mapSettings([
       { key: "whatsapp_number", value: "6285711696970" },
-      { key: "office_hours", value: "" },
+      { key: "office_hours", value: null },
+      { key: "hero_title", value: "  " },
       { key: "hero_image", value: "settings/hero.jpg" },
       { key: "site_logo", value: null },
     ]);
@@ -23,6 +24,19 @@ describe("mapSettings", () => {
     expect(settings.heroImage).toBe("settings/hero.jpg");
     expect(settings.siteLogo).toBeNull();
     expect(settings.heroTitle).toBe(DEFAULT_SETTINGS.heroTitle);
+  });
+
+  it("keeps optional keys that an admin cleared on purpose", () => {
+    const settings = mapSettings([
+      { key: "hero_subtitle", value: "" },
+      { key: "contact_email", value: "" },
+      { key: "about_intro_p3", value: "" },
+      { key: "about_reasons", value: "[]" },
+    ]);
+    expect(settings.heroSubtitle).toBe("");
+    expect(settings.contactEmail).toBe("");
+    expect(settings.about.introP3).toBe("");
+    expect(settings.about.reasons).toEqual([]);
   });
 
   it("keeps an empty announcement empty (hidden)", () => {

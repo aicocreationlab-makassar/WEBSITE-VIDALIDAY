@@ -215,18 +215,33 @@ type SingleProps = {
   onChange: (next: string | null) => void;
   folder: MediaFolder;
   /** Rasio pratinjau. */
-  aspect?: "video" | "square" | "wide";
+  aspect?: "video" | "square" | "wide" | "photo";
   /** Gambar bawaan yang dipakai situs kalau kosong (ditampilkan sebagai keterangan). */
   fallbackLabel?: string;
+  /** Dipanggil saat unggahan mulai/selesai (true = sedang mengunggah), mis. untuk mengunci tombol Simpan. */
+  onUploadingChange?: (uploading: boolean) => void;
   id?: string;
   "aria-describedby"?: string;
 };
 
 /** Pengunggah satu foto (fasilitas gedung, apartemen, logo, hero). */
-export function SingleImageUploader({ value, onChange, folder, aspect = "video", fallbackLabel, id, ...aria }: SingleProps) {
+export function SingleImageUploader({
+  value,
+  onChange,
+  folder,
+  aspect = "video",
+  fallbackLabel,
+  onUploadingChange,
+  id,
+  ...aria
+}: SingleProps) {
   const input = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const url = mediaUrl(value);
+  const busy = progress !== null;
+  useEffect(() => {
+    onUploadingChange?.(busy);
+  }, [busy, onUploadingChange]);
 
   async function handle(file: File | undefined) {
     if (!file) return;
@@ -249,6 +264,7 @@ export function SingleImageUploader({ value, onChange, folder, aspect = "video",
           aspect === "video" && "aspect-video",
           aspect === "square" && "aspect-square max-w-40",
           aspect === "wide" && "aspect-[21/9]",
+          aspect === "photo" && "aspect-[4/3]",
         )}
       >
         {url ? (
