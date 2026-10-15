@@ -63,6 +63,34 @@ function samePath(a: string, b: string): boolean {
   return isBucketPath(a) && isBucketPath(b) && normalizeStoragePath(a) === normalizeStoragePath(b);
 }
 
+/**
+ * Saring path yang masih dipakai baris lain (fasilitas atau apartemen lain), misalnya foto fasilitas
+ * yang sama dipasang di dua gedung. Kalau pengecekan gagal, semua file dibiarkan (lebih aman tersisa).
+ */
+async function unreferencedPaths(
+  supabase: Parameters<typeof deleteStorageFiles>[0],
+  paths: (string | null)[],
+): Promise<string[]> {
+  const list = [...new Set(paths.filter((p): p is string => Boolean(p)))];
+  if (!list.length) return [];
+  const variants = list.flatMap((path) => [path, `storage/${path}`, `/storage/${path}`]);
+  try {
+    const [facilities, locations] = await Promise.all([
+      supabase.from("facilities").select("image").in("image", variants),
+      supabase.from("locations").select("hero_image").in("hero_image", variants),
+    ]);
+    if (facilities.error || locations.error) return [];
+    const used = new Set(
+      [...(facilities.data ?? []).map((row) => row.image), ...(locations.data ?? []).map((row) => row.hero_image)]
+        .filter(isBucketPath)
+        .map(normalizeStoragePath),
+    );
+    return list.filter((path) => !used.has(path));
+  } catch {
+    return [];
+  }
+}
+
 /** Hapus file Storage tanpa menggagalkan aksi (sisa file tidak merusak situs). */
 async function cleanupFiles(
   supabase: Parameters<typeof deleteStorageFiles>[0],
@@ -289,7 +317,9 @@ export async function deleteLocation(id: unknown): Promise<ActionResult> {
     const facilityImages = (facilities.data ?? [])
       .map((row) => (isBucketPath(row.image) ? normalizeStoragePath(row.image) : null))
       .filter((path): path is string => Boolean(path && /^facilities\/[A-Za-z0-9._-]+$/.test(path)));
-    await cleanupFiles(supabase, [ownedLocationImage(current.data.hero_image), ...facilityImages], "apartemen");
+    // Dijalankan setelah hapus: fasilitas apartemen ini sudah ikut terhapus (cascade), jadi yang tersisa milik gedung lain.
+    const orphaned = await unreferencedPaths(supabase, [ownedLocationImage(current.data.hero_image), ...facilityImages]);
+    await cleanupFiles(supabase, orphaned, "apartemen");
 
     invalidate({ kind: "location" }, { kind: "facility" }, { kind: "landmark" });
     return { ok: true, message: `Apartemen ${current.data.name} dihapus` };

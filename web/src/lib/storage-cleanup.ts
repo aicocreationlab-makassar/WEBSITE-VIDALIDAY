@@ -8,6 +8,9 @@ export function removedPaths(before: (string | null | undefined)[], after: (stri
   return [...new Set(before.filter(isBucketPath).map(normalizeStoragePath))].filter((path) => !keep.has(path));
 }
 
+/** Folder foto unit (sama di versi lama: `store('units')`). File di luar folder ini tidak pernah dihapus dari sini. */
+const UNIT_PHOTO_PREFIX = "units/";
+
 /**
  * Hapus file foto unit dari Storage hanya kalau tidak dipakai unit lain
  * (unit hasil "Duplikat" berbagi foto dengan unit aslinya). Kegagalan tidak membatalkan simpan.
@@ -17,7 +20,15 @@ export async function deleteUnusedUnitPhotos(
   paths: string[],
   excludeUnitId?: number,
 ): Promise<{ deleted: string[]; kept: string[] }> {
-  const candidates = [...new Set(paths.filter(isBucketPath).map(normalizeStoragePath))];
+  // Path yang menunjuk ke folder lain (mis. foto apartemen dipakai sebagai sampul) tidak disentuh.
+  const candidates = [
+    ...new Set(
+      paths
+        .filter(isBucketPath)
+        .map(normalizeStoragePath)
+        .filter((path) => path.startsWith(UNIT_PHOTO_PREFIX)),
+    ),
+  ];
   if (!candidates.length) return { deleted: [], kept: [] };
 
   const kept: string[] = [];
