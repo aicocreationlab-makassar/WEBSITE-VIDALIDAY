@@ -2,7 +2,7 @@
 
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
-**Fase aktif:** 6 (kode Fase 2–5 selesai dan lulus lint/typecheck/430 unit test; verifikasi dengan data asli — build, e2e, screenshot, Lighthouse — menunggu `web/.env.local`)
+**Fase aktif:** 7 (kode Fase 1–6 selesai dan lulus lint/typecheck/528 unit test/cek emoji; temuan review adversarial pertama sudah diperbaiki; verifikasi dengan data asli — build, e2e, screenshot, Lighthouse — menunggu `web/.env.local`)
 
 Status verifikasi per fase:
 
@@ -13,7 +13,7 @@ Status verifikasi per fase:
 | 3 | selesai | lulus | menunggu env |
 | 4 | selesai | lulus | menunggu env |
 | 5 | selesai | lulus | menunggu env + CP-C (login admin) |
-| 6 | sedang dikerjakan | — | menunggu env |
+| 6 | selesai | lulus | menunggu env + CP-C (login admin) |
 
 Rencana eksekusi lengkap yang disetujui pemilik: `docs/audit/rencana-eksekusi.md`.
 Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
@@ -44,6 +44,7 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
   3. Matikan sign-up publik di Supabase Auth (SETUP.md §3.2).
   4. Buat dua akun uji di Supabase Auth: `admin-qa` (lalu `insert into public.admins`) dan `nonadmin-qa`. Password tidak dikirim ke chat.
 - [ ] **CP-B** (setelah audit data Fase 2): tinjau SQL pratinjau, jalankan migrasi `20261015000300_v2_perbaikan.sql` di SQL Editor, jawab pertanyaan data.
+  Migrasi ini juga menyembunyikan unit milik apartemen nonaktif dari publik dan menolak permintaan sewa untuk unit itu (policy `units` + `submit_lead`).
 - [ ] **CP-C** (Fase 5): login sendiri sebagai `admin-qa` di panel browser aplikasi saat diminta, lalu sekali sebagai `nonadmin-qa`.
 
 - [ ] **Supabase Auth untuk lupa kata sandi admin** (Fase 5):
@@ -164,6 +165,19 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 16 Okt 2026 | Form unit: slug tidak ikut berubah saat nama diubah pada unit yang sudah ada (tombol "Samakan dengan nama"); `rental_period` selalu disimpan "Malam"; Simpan dikunci selama foto diunggah. | Tautan publik stabil; semua harga per malam. |
 | 16 Okt 2026 | Apartemen baru dibuat nonaktif; halaman ubah apartemen menampilkan daftar langkah supaya tampil di situs (tipe kamar, unit tampil, aktifkan). Hapus apartemen ikut menghapus tipe kamar, fasilitas gedung, dan landmark-nya (hanya kalau tidak punya unit). | PRD 7.5. |
 | 16 Okt 2026 | Lupa kata sandi admin: teks hasil selalu netral (tidak membocorkan email terdaftar); tautan email diverifikasi di `/admin/auth/confirm`, lalu non-admin dikeluarkan. | Keamanan (PRD 7.1). |
+| 16 Okt 2026 | Hasil review adversarial (setelah Fase 6): ditambah error boundary (`app/error.tsx`, `(public)/error.tsx`, `global-error.tsx`, admin `error.tsx` + `not-found.tsx`) dengan tombol "Coba lagi" dan "Chat admin via WhatsApp". | Galat Supabase tidak boleh berakhir di layar kosong; jalur ke WhatsApp tetap ada. |
+| 16 Okt 2026 | Urutan "Rekomendasi" = unggulan → popularitas 30 hari → termurah → `sort_order` → id (tanpa langkah "punya foto"). | Sama persis dengan PRD 6.3; unit tanpa foto sudah tampil dengan placeholder. |
+| 16 Okt 2026 | `outline-none` dibuang dari tombol dan kontrol; outline global `:focus-visible` selalu terlihat. Dialog dan sheet mengembalikan fokus ke elemen pembuka walau dibuka dari state (bukan `Trigger`). | DESIGN 8 (fokus terlihat, fokus kembali setelah modal ditutup). |
+| 16 Okt 2026 | Ekspor CSV permintaan sewa diambil per 1000 baris (maju sebanyak baris yang diterima) sampai 5000, diurutkan `created_at` lalu `id`. | Batas `max-rows` PostgREST (1000) memotong ekspor sebelumnya. |
+| 16 Okt 2026 | Hapus foto unit hanya untuk path `units/`; hapus apartemen hanya menghapus foto gedung/fasilitas yang tidak dipakai baris lain. | Integritas Storage (foto bisa dipakai bersama). |
+| 16 Okt 2026 | Tahun hak cipta di footer memakai cache terpisah `cacheLife('days')`, tidak ikut cache `max` bingkai situs. | Supaya tahun tidak membeku sampai admin mengubah data. |
+| 16 Okt 2026 | Perbaikan aksesibilitas kecil: teks badge sukses emerald-700, scroll terprogram menghormati `prefers-reduced-motion`, posisi foto kartu dibacakan ("Foto n dari m"), fokus pindah ke pertanyaan baru setelah "Lihat semua pertanyaan", area sentuh tombol foto admin 44px, nama aksesibel harga cepat diawali harga yang terlihat, tautan "unit yang lebih besar" di kartu sewa memakai jumlah tamu yang dipilih. | DESIGN 8, WCAG 2.5.3/2.5.8. |
+
+## Keterbatasan yang diketahui
+
+- Mengganti nama tipe kamar tidak memperbarui kolom lama `units.room_type` di unit yang sudah ada (kolom itu hanya untuk kompatibilitas; aplikasi membaca `room_type_id`).
+- Filter apartemen di admin permintaan sewa mencocokkan nama apartemen saat ini dengan `leads.location_name`; permintaan lama dengan nama apartemen yang sudah diganti tidak ikut tersaring.
+- Form admin belum memakai kunci versi (optimistic concurrency): kalau dua admin mengubah data yang sama bersamaan, simpanan terakhir yang berlaku.
 
 ## Pertanyaan terbuka
 
