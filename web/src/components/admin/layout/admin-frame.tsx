@@ -7,10 +7,13 @@ import { AdminShell } from "./admin-shell";
  */
 export async function AdminFrame({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  // TODO(Fase 5): hitung permintaan sewa berstatus 'baru' untuk badge menu.
-  const newLeads = 0;
+  // Badge menu "Permintaan sewa": jumlah permintaan berstatus baru. Gagal hitung tidak memblokir panel.
+  const { count } = await admin.supabase
+    .from("leads")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "baru");
   return (
-    <AdminShell email={admin.email} newLeads={newLeads}>
+    <AdminShell email={admin.email} newLeads={count ?? 0}>
       {children}
     </AdminShell>
   );

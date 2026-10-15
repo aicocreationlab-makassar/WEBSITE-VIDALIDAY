@@ -21,15 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { absolute: settings.seoTitle },
     description: settings.seoDescription,
     alternates: { canonical: "/" },
-    // Gambar OG bawaan diatur di tempat lain; objek ini menggantikan openGraph layout, jadi siteName diulang.
-    openGraph: {
-      title: settings.seoTitle,
-      description: settings.seoDescription,
-      url: "/",
-      type: "website",
-      locale: "id_ID",
-      siteName: "VIDALIDAY",
-    },
+    // Tanpa objek openGraph di sini: objek halaman akan menimpa milik layout dan membuang gambar OG bawaan.
   };
 }
 
