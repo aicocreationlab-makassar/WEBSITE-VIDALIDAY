@@ -35,6 +35,12 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
 - [ ] **CP-B** (setelah audit data Fase 2): tinjau SQL pratinjau, jalankan migrasi `20261015000300_v2_perbaikan.sql` di SQL Editor, jawab pertanyaan data.
 - [ ] **CP-C** (Fase 5): login sendiri sebagai `admin-qa` di panel browser aplikasi saat diminta, lalu sekali sebagai `nonadmin-qa`.
 
+- [ ] **Supabase Auth untuk lupa kata sandi admin** (Fase 5):
+  1. Authentication → URL Configuration: Site URL `https://vidaliday.com`; Redirect URLs tambah `https://vidaliday.com/admin/auth/confirm` dan `http://localhost:3000/admin/auth/confirm`.
+  2. Authentication → Email Templates → Reset Password: ganti tautan menjadi
+     `{{ .SiteURL }}/admin/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/admin/atur-password`
+     (supaya link bisa dibuka dari perangkat mana pun).
+
 Menjelang go-live: lihat bagian "Checklist go-live" (diisi di Fase 7).
 
 ## Catatan audit (Fase 0)

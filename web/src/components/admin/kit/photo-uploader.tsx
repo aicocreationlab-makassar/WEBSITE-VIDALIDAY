@@ -17,6 +17,8 @@ type PhotoListProps = {
   onChange: (next: string[]) => void;
   folder: MediaFolder;
   max?: number;
+  /** Dipanggil saat jumlah unggahan berjalan berubah (true = masih mengunggah), mis. untuk mengunci tombol Simpan. */
+  onUploadingChange?: (uploading: boolean) => void;
   id?: string;
   "aria-describedby"?: string;
 };
@@ -33,7 +35,7 @@ function move<T>(list: T[], from: number, to: number): T[] {
  * unggah langsung ke Storage, progres per file, urutkan (drag di desktop, tombol geser di HP/keyboard),
  * foto pertama = sampul, hapus. File lama di Storage dihapus oleh server saat disimpan.
  */
-export function PhotoListUploader({ value, onChange, folder, max = 15, id, ...aria }: PhotoListProps) {
+export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadingChange, id, ...aria }: PhotoListProps) {
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<Uploading[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -43,6 +45,11 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, id, ...ar
   useEffect(() => {
     latest.current = value;
   }, [value]);
+
+  const busy = uploading.length > 0;
+  useEffect(() => {
+    onUploadingChange?.(busy);
+  }, [busy, onUploadingChange]);
 
   const room = max - value.length - uploading.length;
 

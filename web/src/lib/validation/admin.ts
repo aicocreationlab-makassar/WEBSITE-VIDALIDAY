@@ -17,9 +17,18 @@ const slug = z
   .max(80, "Slug maksimal 80 karakter.")
   .regex(SLUG_PATTERN, "Slug hanya huruf kecil, angka, dan tanda hubung (mis. studio-at-26x).");
 
-const money = z.number({ error: "Isi dengan angka." }).int("Isi tanpa desimal.").min(0, "Tidak boleh negatif.").max(1_000_000_000);
+const money = z
+  .number({ error: "Isi dengan angka." })
+  .int("Isi tanpa desimal.")
+  .min(0, "Tidak boleh negatif.")
+  .max(1_000_000_000, "Angka terlalu besar.");
 const optionalMoney = money.nullable().optional().transform((value) => (value ? value : null));
-const sortOrder = z.number().int().min(0).max(100_000).default(0);
+const sortOrder = z
+  .number({ error: "Isi urutan dengan angka." })
+  .int("Urutan harus bilangan bulat.")
+  .min(0, "Urutan minimal 0.")
+  .max(100_000, "Urutan terlalu besar.")
+  .default(0);
 
 // ---------------------------------------------------------------------------
 // Unit (PRD 7.4)
@@ -46,11 +55,11 @@ export const unitSchema = z
     weeklyPrice: optionalMoney,
     monthlyPrice: optionalMoney,
     amenityIds: z.array(z.number().int().positive()).max(60).default([]),
-    photos: z.array(z.string().trim().min(1).max(500)).max(UNIT_PHOTOS_MAX, `Maksimal ${UNIT_PHOTOS_MAX} foto.`).default([]),
+    photos: z.array(z.string().trim().min(1).max(500, "Maksimal 500 karakter.")).max(UNIT_PHOTOS_MAX, `Maksimal ${UNIT_PHOTOS_MAX} foto.`).default([]),
     youtubeUrl: z
       .string()
       .trim()
-      .max(500)
+      .max(500, "Maksimal 500 karakter.")
       .optional()
       .transform((v) => (v ? v : null))
       .refine((v) => v === null || youtubeId(v) !== null, "Link YouTube belum benar. Contoh: https://youtu.be/abc123XYZ00"),
@@ -93,7 +102,7 @@ export const quickPriceSchema = z
 export const BULK_ACTIONS = ["tersedia", "penuh", "promo-on", "promo-off", "tampil", "sembunyi", "ubah-tipe"] as const;
 
 export const bulkSchema = z.object({
-  ids: z.array(z.number().int().positive()).min(1, "Pilih minimal satu unit.").max(500),
+  ids: z.array(z.number().int().positive()).min(1, "Pilih minimal satu unit.").max(500, "Maksimal 500 unit sekaligus."),
   action: z.enum(BULK_ACTIONS),
   roomTypeId: z.number().int().positive().optional(),
 });
@@ -103,7 +112,7 @@ export const bulkSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const locationSchema = z.object({
-  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120),
+  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Maksimal 120 karakter."),
   shortName: z.string().trim().min(2, "Nama singkat minimal 2 karakter.").max(16, "Nama singkat maksimal 16 karakter (label tab di hero)."),
   slug,
   area: optionalText(60),
@@ -111,12 +120,12 @@ export const locationSchema = z.object({
   gmapsUrl: z
     .string()
     .trim()
-    .max(500)
+    .max(500, "Maksimal 500 karakter.")
     .optional()
     .transform((v) => (v ? v : null))
     .refine((v) => v === null || /^https?:\/\//i.test(v), "Link harus diawali https://"),
-  latitude: z.number().min(-90).max(90).nullable().optional().transform((v) => v ?? null),
-  longitude: z.number().min(-180).max(180).nullable().optional().transform((v) => v ?? null),
+  latitude: z.number({ error: "Isi latitude dengan angka." }).min(-90, "Latitude -90 sampai 90.").max(90, "Latitude -90 sampai 90.").nullable().optional().transform((v) => v ?? null),
+  longitude: z.number({ error: "Isi longitude dengan angka." }).min(-180, "Longitude -180 sampai 180.").max(180, "Longitude -180 sampai 180.").nullable().optional().transform((v) => v ?? null),
   tagline: optionalText(160),
   description: optionalText(2000),
   heroImage: z.string().trim().max(500).nullable().optional().transform((v) => v || null),
@@ -130,10 +139,10 @@ export const ROOM_CATEGORY_VALUES = ["studio", "1br", "2br", "3br", "other"] as 
 
 export const roomTypeSchema = z.object({
   locationId: z.number().int().positive(),
-  name: z.string().trim().min(2, "Nama tipe minimal 2 karakter.").max(60),
+  name: z.string().trim().min(2, "Nama tipe minimal 2 karakter.").max(60, "Maksimal 60 karakter."),
   slug,
   category: z.enum(ROOM_CATEGORY_VALUES),
-  defaultMaxGuests: z.number().int().min(1).max(30).nullable().optional().transform((v) => v ?? null),
+  defaultMaxGuests: z.number({ error: "Isi kapasitas dengan angka." }).int("Kapasitas harus bilangan bulat.").min(1, "Kapasitas 1 sampai 30 tamu.").max(30, "Kapasitas 1 sampai 30 tamu.").nullable().optional().transform((v) => v ?? null),
   sortOrder,
   isActive: z.boolean(),
 });
@@ -144,10 +153,10 @@ export type RoomTypeInput = z.input<typeof roomTypeSchema>;
 // Fasilitas kamar, fasilitas gedung, landmark, FAQ (PRD 7.6–7.7)
 // ---------------------------------------------------------------------------
 
-const iconName = z.string().trim().min(1, "Pilih ikon.").max(40);
+const iconName = z.string().trim().min(1, "Pilih ikon.").max(40, "Maksimal 40 karakter.");
 
 export const amenitySchema = z.object({
-  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(60),
+  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(60, "Maksimal 60 karakter."),
   icon: iconName,
   sortOrder,
   isActive: z.boolean(),
@@ -155,7 +164,7 @@ export const amenitySchema = z.object({
 
 export const facilitySchema = z.object({
   locationId: z.number({ error: "Pilih apartemen." }).int().positive("Pilih apartemen."),
-  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120),
+  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Maksimal 120 karakter."),
   description: optionalText(300),
   icon: iconName,
   image: z.string().trim().max(500).nullable().optional().transform((v) => v || null),
@@ -165,8 +174,8 @@ export const facilitySchema = z.object({
 
 export const landmarkSchema = z.object({
   locationId: z.number({ error: "Pilih apartemen." }).int().positive("Pilih apartemen."),
-  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120),
-  distanceTime: z.string().trim().min(1, "Isi jarak atau waktu tempuh, mis. 5 menit.").max(100),
+  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Maksimal 120 karakter."),
+  distanceTime: z.string().trim().min(1, "Isi jarak atau waktu tempuh, mis. 5 menit.").max(100, "Maksimal 100 karakter."),
   notes: optionalText(255),
   icon: iconName,
   sortOrder,
@@ -174,8 +183,8 @@ export const landmarkSchema = z.object({
 });
 
 export const faqSchema = z.object({
-  question: z.string().trim().min(5, "Pertanyaan minimal 5 karakter.").max(255),
-  answer: z.string().trim().min(5, "Jawaban minimal 5 karakter.").max(2000),
+  question: z.string().trim().min(5, "Pertanyaan minimal 5 karakter.").max(255, "Maksimal 255 karakter."),
+  answer: z.string().trim().min(5, "Jawaban minimal 5 karakter.").max(2000, "Maksimal 2000 karakter."),
   sortOrder,
   isActive: z.boolean(),
 });
@@ -215,13 +224,13 @@ export const settingsSchema = z.object({
   heroSubtitle: text(200).default(""),
   heroImage: z.string().trim().max(500).nullable().optional().transform((v) => v || null),
   promoBannerText: text(140).default(""),
-  bookingWhatsappTemplate: z.string().trim().min(20, "Template terlalu pendek.").max(2000),
+  bookingWhatsappTemplate: z.string().trim().min(20, "Template terlalu pendek.").max(2000, "Maksimal 2000 karakter."),
   checkinTime: text(40).default(""),
   checkoutTime: text(40).default(""),
   checkinRequirements: text(300).default(""),
   houseRules: text(3000).default(""),
   siteLogo: z.string().trim().max(500).nullable().optional().transform((v) => v || null),
-  companyLegalName: z.string().trim().min(2, "Isi nama badan hukum.").max(120),
+  companyLegalName: z.string().trim().min(2, "Isi nama badan hukum.").max(120, "Maksimal 120 karakter."),
   seoTitle: z.string().trim().min(10, "Judul SEO minimal 10 karakter.").max(70, "Judul SEO maksimal 70 karakter."),
   seoDescription: z.string().trim().min(30, "Deskripsi SEO minimal 30 karakter.").max(170, "Deskripsi SEO maksimal 170 karakter."),
 });
@@ -229,19 +238,19 @@ export const settingsSchema = z.object({
 export type SettingsInput = z.input<typeof settingsSchema>;
 
 export const aboutSchema = z.object({
-  tagline: z.string().trim().min(2).max(120),
-  heroTitle: z.string().trim().min(5).max(160),
-  introP1: z.string().trim().min(10, "Paragraf 1 wajib diisi.").max(1500),
+  tagline: z.string().trim().min(2).max(120, "Maksimal 120 karakter."),
+  heroTitle: z.string().trim().min(5).max(160, "Maksimal 160 karakter."),
+  introP1: z.string().trim().min(10, "Paragraf 1 wajib diisi.").max(1500, "Maksimal 1500 karakter."),
   introP2: text(1500).default(""),
   introP3: text(1500).default(""),
-  commitTitle: z.string().trim().min(2).max(80),
-  commitText: z.string().trim().min(10).max(1500),
+  commitTitle: z.string().trim().min(2).max(80, "Maksimal 80 karakter."),
+  commitText: z.string().trim().min(10).max(1500, "Maksimal 1500 karakter."),
   closingQuote: text(200).default(""),
   closingCta: text(250).default(""),
   reasons: z
     .array(
       z.object({
-        title: z.string().trim().min(2, "Judul alasan minimal 2 karakter.").max(80),
+        title: z.string().trim().min(2, "Judul alasan minimal 2 karakter.").max(80, "Maksimal 80 karakter."),
         desc: text(240).default(""),
         icon: iconName,
       }),
