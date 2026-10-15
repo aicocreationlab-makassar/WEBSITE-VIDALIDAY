@@ -1,0 +1,73 @@
+// Skema form sewa (PRD 6.5), dipakai di klien (react-hook-form) dan di server (submitLead).
+
+import { z } from "zod";
+import { addDays, diffDays, isDateString, isValidWhatsapp, normalizeWhatsapp } from "@/lib/format";
+
+export const PURPOSES = ["Liburan", "Kerja/Bisnis", "Staycation", "Tinggal sementara", "Lainnya"] as const;
+export type Purpose = (typeof PURPOSES)[number];
+
+export const MAX_GUESTS = 30;
+export const MAX_NOTES = 500;
+
+export const BOOKING_MESSAGES = {
+  name: "Tulis nama lengkap minimal 2 huruf.",
+  nameLong: "Nama maksimal 100 karakter.",
+  phone: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
+  checkInPast: "Check-in tidak boleh sebelum hari ini.",
+  checkInFar: "Check-in maksimal 365 hari dari sekarang.",
+  checkInInvalid: "Pilih tanggal check-in.",
+  checkOutInvalid: "Pilih tanggal check-out.",
+  checkOutOrder: "Tanggal check-out harus setelah check-in.",
+  stayTooLong: "Lama menginap maksimal 365 malam.",
+  guests: "Jumlah tamu 1 sampai 30 orang.",
+  notes: `Catatan maksimal ${MAX_NOTES} karakter.`,
+} as const;
+
+/** Skema dengan "hari ini" (WITA) dari luar supaya bisa diuji dan sama di klien/server. */
+export function makeBookingSchema(today: string) {
+  const lastCheckIn = addDays(today, 365);
+  return z
+    .object({
+      unitId: z.number().int().positive(),
+      fullName: z
+        .string()
+        .trim()
+        .min(2, BOOKING_MESSAGES.name)
+        .max(100, BOOKING_MESSAGES.nameLong),
+      whatsapp: z
+        .string()
+        .trim()
+        .transform((value) => normalizeWhatsapp(value))
+        .refine((value) => isValidWhatsapp(value), BOOKING_MESSAGES.phone),
+      checkIn: z
+        .string()
+        .refine((value) => isDateString(value), BOOKING_MESSAGES.checkInInvalid)
+        .refine((value) => !isDateString(value) || value >= today, BOOKING_MESSAGES.checkInPast)
+        .refine((value) => !isDateString(value) || value <= lastCheckIn, BOOKING_MESSAGES.checkInFar),
+      checkOut: z.string().refine((value) => isDateString(value), BOOKING_MESSAGES.checkOutInvalid),
+      guests: z
+        .number({ error: BOOKING_MESSAGES.guests })
+        .int(BOOKING_MESSAGES.guests)
+        .min(1, BOOKING_MESSAGES.guests)
+        .max(MAX_GUESTS, BOOKING_MESSAGES.guests),
+      purpose: z.enum(PURPOSES).nullable().optional(),
+      notes: z.string().trim().max(MAX_NOTES, BOOKING_MESSAGES.notes).optional().default(""),
+      /** Honeypot: harus kosong. Diisi bot → penyimpanan dilewati. */
+      website: z.string().optional().default(""),
+      sourcePath: z.string().max(300).optional(),
+    })
+    .superRefine((value, ctx) => {
+      if (!isDateString(value.checkIn) || !isDateString(value.checkOut)) return;
+      const nights = diffDays(value.checkIn, value.checkOut);
+      if (nights <= 0) {
+        ctx.addIssue({ code: "custom", path: ["checkOut"], message: BOOKING_MESSAGES.checkOutOrder });
+      } else if (nights > 365) {
+        ctx.addIssue({ code: "custom", path: ["checkOut"], message: BOOKING_MESSAGES.stayTooLong });
+      }
+    });
+}
+
+export type BookingSchema = ReturnType<typeof makeBookingSchema>;
+export type BookingInput = z.input<BookingSchema>;
+export type BookingData = z.output<BookingSchema>;
+export type BookingField = "fullName" | "whatsapp" | "checkIn" | "checkOut" | "guests" | "purpose" | "notes";
