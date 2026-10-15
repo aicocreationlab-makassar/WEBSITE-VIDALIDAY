@@ -21,7 +21,6 @@ export function sortUnits(units: CatalogUnit[], urut: SortOption, popularity: Po
     rekomendasi: (a, b) =>
       Number(b.isFeatured) - Number(a.isFeatured) ||
       (popularity[b.id] ?? 0) - (popularity[a.id] ?? 0) ||
-      Number(b.photos.length > 0) - Number(a.photos.length > 0) ||
       a.effectivePrice - b.effectivePrice ||
       a.sortOrder - b.sortOrder ||
       byId(a, b),
