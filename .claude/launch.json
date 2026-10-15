@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-dev",
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": ["--prefix", "web", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "web-start",
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": ["--prefix", "web", "run", "start", "--", "-p", "3100"],
+      "port": 3100
+    }
+  ]
+}
