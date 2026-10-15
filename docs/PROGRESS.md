@@ -53,7 +53,35 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
      `{{ .SiteURL }}/admin/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/admin/atur-password`
      (supaya link bisa dibuka dari perangkat mana pun).
 
-Menjelang go-live: lihat bagian "Checklist go-live" (diisi di Fase 7).
+Menjelang go-live: lihat bagian "Checklist go-live" di bawah.
+
+## Checklist go-live
+
+Ikuti `docs/SETUP.md` §5–8 (Vercel, domain, checklist A–E, rollback). Tambahan khusus v2:
+
+**Sebelum deploy**
+
+- [ ] `web/.env.local` terisi, lalu Claude menjalankan verifikasi yang masih tertunda: audit data, build, e2e fase 1/3/4 (+ admin setelah CP-C), screenshot 390/1280, Lighthouse.
+- [ ] Migrasi `20261015000300_v2_perbaikan.sql` dijalankan (setelah `backfill_v3()` difinalkan dari hasil audit data).
+- [ ] Vercel: Root Directory `web`, **Node.js 24.x**, region `sin1`, tiga variabel `NEXT_PUBLIC_*` (tanpa secret key).
+- [ ] Supabase Auth: sign-up publik dimatikan; Site URL + Redirect URLs + template Reset Password (lihat "Yang perlu dilakukan pemilik").
+- [ ] Supabase plan Pro disarankan: project Free bisa di-pause dan membuat build gagal (halaman data sengaja gagal keras tanpa database).
+
+**Di Vercel Preview**
+
+- [ ] Uji kesegaran cache: ubah harga satu unit di admin, lalu buka `/`, `/sewa`, `/unit/<slug>` dari browser lain. Harga baru harus langsung tampil (kalau masih basi, beri tahu Claude: cache diganti ke `'use cache: remote'`).
+- [ ] Tambah apartemen + tipe kamar uji, pastikan muncul di hero dan filter setelah diaktifkan, lalu hapus.
+- [ ] Kirim satu permintaan sewa uji; pesan WhatsApp berisi `Kode permintaan: VDL-…`; tandai Batal di admin.
+- [ ] Ekspor CSV permintaan sewa terbuka rapi di Excel (UTF-8, kolom tidak bergeser).
+
+**Data dan konten (klien)**
+
+- [ ] Setelah migrasi data final: `select public.backfill_v2(); select public.backfill_v3();`.
+- [ ] Foto: hero gedung ≥ 1920px; foto unit landscape ≥ 1600px (bukan tangkapan layar video).
+- [ ] Link Google Maps (pin) kedua gedung diisi di Admin → Apartemen.
+- [ ] Teks kebijakan privasi (draf UU PDP) dan peraturan menginap disetujui klien.
+- [ ] Fasilitas kamar duplikat dirapikan di Admin → Fasilitas kamar; ikon yang masih "check" diganti.
+- [ ] Label promo lama yang berisi persen dikosongkan (atau biarkan "Hemat X%" otomatis).
 
 ## Catatan audit (Fase 0)
 

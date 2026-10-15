@@ -242,7 +242,7 @@ Chip fasilitas: pill, ikon + teks, terpilih = border `brand-600` + bg `brand-50`
 ```
 Mobile 390px
 ┌──────────────────────────────────────────┐
-│ [ galeri 4:3, geser ]            1/8      │
+│ [ galeri 4:5 (maks. 60svh), geser ] 1/8  │
 │                         [play] Video tur  │
 ├──────────────────────────────────────────┤
 │ Studio AT 26X                             │  H1 26/32
@@ -278,6 +278,12 @@ Mobile 390px
 ```
 
 Desktop: kolom kiri (galeri grid + konten), kolom kanan 360px berisi kartu sewa menempel (harga, check-in, check-out, tamu, "Sewa sekarang").
+
+Penyimpangan yang disetujui pemilik (15 Okt 2026, lihat `docs/PROGRESS.md` bagian Keputusan):
+
+- Galeri mobile 4:5 (maks. 60svh), bukan 4:3: mayoritas foto lama berorientasi potret.
+- Bar CTA bawah mobile selalu tampil sejak halaman dibuka (bukan baru muncul setelah galeri lewat), sesuai brief "CTA sewa yang jelas".
+- Galeri desktop menyesuaikan jumlah foto: 1 foto utuh di atas latar blur, 2 foto dibelah, 3–4 foto, 5+ foto grid 2×2 + "Lihat semua foto".
 
 ### 4.9 Form sewa (bottom sheet / modal)
 
@@ -435,8 +441,9 @@ Ikon WhatsApp tidak ada di lucide: pakai SVG resmi WhatsApp (satu warna, `curren
 ## 7. Gambar
 
 - Selalu `next/image` dengan `sizes` yang tepat. `remotePatterns`: `<project>.supabase.co/storage/v1/object/public/media/**` dan `images.unsplash.com` (data lama).
-- Rasio: kartu 4:3, galeri detail 4:3 (mobile) / grid (desktop), hero mobile ±340px tinggi, hero desktop ±520px.
-- `priority` hanya untuk foto hero dan foto pertama galeri.
+- Rasio: kartu 4:3 cover (`object-position 50% 55%`), galeri detail 4:5 (mobile, maks. 60svh) / grid (desktop), hero mobile ±340px tinggi, hero desktop ±520px.
+- Lightbox menampilkan foto utuh; foto dengan rasio lebar/tinggi < 0,5 (tangkapan layar video berbar hitam) dibingkai 9:16 supaya bar hitam terpotong.
+- Muat segera (`loading="eager"` + `fetchPriority="high"`; `priority` sudah usang di Next 16) hanya untuk foto hero dan foto pertama galeri.
 - Teks di atas foto selalu dengan overlay gradien gelap supaya kontras terjaga.
 - Alt: "{nama unit}, foto {n}", "Gedung {apartemen}", "Fasilitas {nama} di {apartemen}".
 - Tanpa foto: placeholder netral `surface-2` + ikon `building-2` (bukan foto stok acak).
