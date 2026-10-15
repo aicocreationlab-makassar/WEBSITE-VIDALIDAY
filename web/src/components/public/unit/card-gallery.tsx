@@ -13,6 +13,8 @@ type Props = {
   alt: string;
   sizes: string;
   dimmed?: boolean;
+  /** Foto pertama dimuat segera (gambar LCP). */
+  eager?: boolean;
 };
 
 const MAX_PHOTOS = 5;
@@ -22,7 +24,7 @@ const MAX_PHOTOS = 5;
  * Berada di atas tautan kartu (z-[1]) supaya bisa digeser; setiap slide juga menuju detail unit
  * (tabIndex -1, karena tautan utama kartu sudah ada di judul).
  */
-export function CardGallery({ photos, href, alt, sizes, dimmed }: Props) {
+export function CardGallery({ photos, href, alt, sizes, dimmed, eager = false }: Props) {
   const list = photos.slice(0, MAX_PHOTOS);
   const track = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -61,7 +63,8 @@ export function CardGallery({ photos, href, alt, sizes, dimmed }: Props) {
               alt={`${alt}, foto ${i + 1}`}
               fill
               sizes={sizes}
-              loading="lazy"
+              loading={eager && i === 0 ? "eager" : "lazy"}
+              fetchPriority={eager && i === 0 ? "high" : undefined}
               className={cn("object-cover object-[50%_55%]", dimmed && "grayscale-[60%]")}
             />
           </Link>

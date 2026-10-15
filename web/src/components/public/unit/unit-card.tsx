@@ -22,6 +22,10 @@ type UnitCardProps = {
   /** Elemen tambahan di bawah nama, mis. chip alasan rekomendasi. */
   extra?: React.ReactNode;
   headingLevel?: "h2" | "h3";
+  /** Foto pertama dimuat segera (kartu pertama hasil /sewa = gambar LCP di mobile). */
+  eager?: boolean;
+  /** Ganti atribut sizes bawaan (mis. grid /sewa dengan sidebar). */
+  sizes?: string;
   className?: string;
   /** Props tambahan tautan judul (mis. onClick untuk event recommendation_click; hanya dari komponen klien). */
   linkProps?: Omit<React.ComponentProps<typeof Link>, "href" | "className" | "children">;
@@ -31,15 +35,25 @@ type UnitCardProps = {
  * Kartu unit (DESIGN 4.6). Seluruh kartu satu tautan: judul memakai pseudo-elemen yang menutupi kartu,
  * sehingga tidak ada tombol di dalam tautan. Tombol galeri berada di atas lapisan itu (z-10).
  */
-export function UnitCard({ unit, layout = "grid", extra, headingLevel = "h3", className, linkProps }: UnitCardProps) {
+export function UnitCard({
+  unit,
+  layout = "grid",
+  extra,
+  headingLevel = "h3",
+  eager = false,
+  sizes: sizesOverride,
+  className,
+  linkProps,
+}: UnitCardProps) {
   const Heading = headingLevel;
   const amenities = cardAmenities(unit.amenities);
-  const sizes = CARD_SIZES[layout];
+  const sizes = sizesOverride ?? CARD_SIZES[layout];
   const alt = unit.name;
   const dimmed = !unit.isAvailable;
 
   return (
     <article
+      data-testid="unit-card"
       className={cn(
         "group relative flex h-full flex-col overflow-hidden rounded-card bg-white shadow-card ring-1 ring-line/80 transition-[box-shadow,transform] duration-200 ease-out focus-within:ring-2 focus-within:ring-brand-500 md:hover:-translate-y-0.5 md:hover:shadow-card-hover",
         className,
@@ -49,13 +63,15 @@ export function UnitCard({ unit, layout = "grid", extra, headingLevel = "h3", cl
         {unit.photos.length === 0 ? (
           <PhotoPlaceholder />
         ) : layout === "grid" && unit.photos.length > 1 ? (
-          <CardGallery photos={unit.photos} href={unitHref(unit.slug)} alt={alt} sizes={sizes} dimmed={dimmed} />
+          <CardGallery photos={unit.photos} href={unitHref(unit.slug)} alt={alt} sizes={sizes} dimmed={dimmed} eager={eager} />
         ) : (
           <Image
             src={unit.photos[0]}
             alt={`${alt}, foto 1`}
             fill
             sizes={sizes}
+            loading={eager ? "eager" : "lazy"}
+            fetchPriority={eager ? "high" : undefined}
             className={cn("object-cover object-[50%_55%]", dimmed && "grayscale-[60%]")}
           />
         )}

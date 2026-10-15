@@ -184,22 +184,25 @@ test.describe("Beranda", () => {
 // c. Halaman placeholder
 // ---------------------------------------------------------------------------
 
+// Rute publik (isi tiap halaman diuji di spec fase 3/4). h1 null = cukup ada satu judul H1.
 const PLACEHOLDER_ROUTES = [
-  { path: "/sewa", h1: "Cari unit", fab: true, name: "sewa" },
-  { path: "/about", h1: "Tentang VIDALIDAY", fab: true, name: "about" },
-  { path: "/apartemen/vida-view", h1: "Apartemen", fab: true, name: "apartemen" },
-  { path: "/unit/contoh", h1: "Detail unit", fab: false, name: "unit" },
+  { path: "/sewa", h1: null, fab: true, name: "sewa" },
+  { path: "/about", h1: null, fab: true, name: "about" },
   { path: "/kebijakan-privasi", h1: "Kebijakan privasi", fab: false, name: "kebijakan-privasi" },
 ] as const;
 
 test.describe("Halaman placeholder", () => {
   for (const route of PLACEHOLDER_ROUTES) {
-    test(`${route.path}: judul "${route.h1}", tombol WA mengambang ${route.fab ? "ada" : "tidak ada"}`, async ({
+    test(`${route.path}: judul ${route.h1 ?? "H1"}, tombol WA mengambang ${route.fab ? "ada" : "tidak ada"}`, async ({
       page,
     }, testInfo) => {
       await gotoOk(page, route.path);
 
-      await expect(page.getByRole("heading", { level: 1, name: route.h1, exact: true })).toBeVisible();
+      await expect(
+        route.h1
+          ? page.getByRole("heading", { level: 1, name: route.h1, exact: true })
+          : page.getByRole("heading", { level: 1 }).first(),
+      ).toBeVisible();
       await expect(page.getByTestId("header-whatsapp")).toBeVisible();
       await expect(page.locator(FOOTER)).toBeVisible();
 
