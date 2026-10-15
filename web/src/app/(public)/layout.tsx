@@ -1,11 +1,11 @@
 import { AnnouncementBar } from "@/components/public/layout/announcement-bar";
 import { SiteFooter } from "@/components/public/layout/site-footer";
 import { SiteHeader } from "@/components/public/layout/site-header";
-import { getSiteChrome } from "@/lib/data/chrome";
+import { getCopyrightYear, getSiteChrome } from "@/lib/data/chrome";
 
 /** Bingkai situs publik: tautan lompat, pengumuman, header, konten, footer. */
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const chrome = await getSiteChrome();
+  const [chrome, year] = await Promise.all([getSiteChrome(), getCopyrightYear()]);
 
   return (
     <>
@@ -24,7 +24,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         {children}
       </main>
-      <SiteFooter chrome={chrome} />
+      <SiteFooter chrome={chrome} year={year} />
     </>
   );
 }

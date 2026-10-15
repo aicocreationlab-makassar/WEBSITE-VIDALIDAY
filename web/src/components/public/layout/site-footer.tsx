@@ -23,8 +23,8 @@ function FooterColumn({ id, title, children }: { id: string; title: string; chil
 }
 
 /** Footer publik: latar gelap night ke night-rose, teks putih 80%, tautan putih. */
-export function SiteFooter({ chrome }: { chrome: SiteChrome }) {
-  const { settings, locations, year } = chrome;
+export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number }) {
+  const { settings, locations } = chrome;
   const waHref = waLink(settings.whatsappNumber, GENERAL_INQUIRY_MESSAGE);
   const officeHours = formatOfficeHours(settings.officeHours);
   const email = settings.contactEmail.trim();

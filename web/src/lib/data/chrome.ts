@@ -18,9 +18,17 @@ export type NavLocation = {
 export type SiteChrome = {
   settings: SiteSettings;
   locations: NavLocation[];
-  /** Tahun untuk hak cipta, dihitung di dalam cache (render tidak boleh memanggil new Date()). */
-  year: number;
 };
+
+/**
+ * Tahun hak cipta. Cache terpisah berumur harian supaya tidak ikut membeku di cache 'max'
+ * milik getSiteChrome (yang hanya diperbarui saat admin mengubah data).
+ */
+export async function getCopyrightYear(): Promise<number> {
+  "use cache";
+  cacheLife("days");
+  return new Date().getFullYear();
+}
 
 export async function getSiteChrome(): Promise<SiteChrome> {
   "use cache";
@@ -29,12 +37,11 @@ export async function getSiteChrome(): Promise<SiteChrome> {
   // Tanpa env (sebelum .env.local diisi) bingkai tetap tampil dengan nilai bawaan.
   // Data utama (unit, apartemen) tetap gagal keras di fungsi masing-masing.
   if (!hasSupabaseEnv()) {
-    return { settings: DEFAULT_SETTINGS, locations: [], year: new Date().getFullYear() };
+    return { settings: DEFAULT_SETTINGS, locations: [] };
   }
   const [settings, locations] = await Promise.all([getSettings(), getListedLocations()]);
   return {
     settings,
     locations: locations.map((l) => ({ slug: l.slug, name: l.name, shortName: l.shortName })),
-    year: new Date().getFullYear(),
   };
 }
