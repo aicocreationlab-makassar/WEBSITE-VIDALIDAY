@@ -279,6 +279,11 @@
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;
     text-size-adjust: 100%;
+    /* Anchor (mis. /#faq) tidak tertutup header yang menempel: 60px mobile, 72px desktop. */
+    scroll-padding-top: 60px;
+    @media (width >= 48rem) {
+      scroll-padding-top: 72px;
+    }
   }
 
   html,

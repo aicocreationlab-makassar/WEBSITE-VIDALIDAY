@@ -1,5 +1,9 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { TAGS } from "@/lib/cache-tags";
+import { getListedLocations } from "@/lib/data/locations";
+import { getSettings } from "@/lib/data/settings";
+import { hasSupabaseEnv } from "@/lib/env";
 import { DEFAULT_SETTINGS } from "@/lib/settings-defaults";
 import type { SiteSettings } from "@/types/settings";
 
@@ -18,21 +22,19 @@ export type SiteChrome = {
   year: number;
 };
 
-/**
- * KONTRAK FASE 1: mengembalikan nilai bawaan.
- * Fase 2 mengganti isinya dengan getSettings() + getNavLocations() dari Supabase,
- * tanpa mengubah tanda tangan fungsi ini.
- */
 export async function getSiteChrome(): Promise<SiteChrome> {
   "use cache";
-  cacheLife("days");
-  cacheTag("settings", "locations");
+  cacheLife("max");
+  cacheTag(TAGS.settings, TAGS.locations, TAGS.units);
+  // Tanpa env (sebelum .env.local diisi) bingkai tetap tampil dengan nilai bawaan.
+  // Data utama (unit, apartemen) tetap gagal keras di fungsi masing-masing.
+  if (!hasSupabaseEnv()) {
+    return { settings: DEFAULT_SETTINGS, locations: [], year: new Date().getFullYear() };
+  }
+  const [settings, locations] = await Promise.all([getSettings(), getListedLocations()]);
   return {
-    settings: DEFAULT_SETTINGS,
-    locations: [
-      { slug: "vida-view", name: "Apartemen Vida View", shortName: "Vida View" },
-      { slug: "delft-cpi", name: "Apartemen Delft CPI", shortName: "Delft CPI" },
-    ],
+    settings,
+    locations: locations.map((l) => ({ slug: l.slug, name: l.name, shortName: l.shortName })),
     year: new Date().getFullYear(),
   };
 }

@@ -35,7 +35,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   cacheComponents: true,
   poweredByHeader: false,
-  turbopack: { root: path.join(__dirname) },
   outputFileTracingRoot: path.join(__dirname),
   images: {
     remotePatterns: [

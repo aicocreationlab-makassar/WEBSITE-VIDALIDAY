@@ -2,7 +2,7 @@
 
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
-**Fase aktif:** 1 (Fase 0 selesai 15 Okt 2026)
+**Fase aktif:** 2 (Fase 1 selesai 16 Okt 2026; fondasi Fase 2–5 sudah ditulis dan diuji, menunggu `web/.env.local` untuk audit data)
 
 Rencana eksekusi lengkap yang disetujui pemilik: `docs/audit/rencana-eksekusi.md`.
 Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
@@ -12,7 +12,10 @@ Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
 ## Checklist fase
 
 - [x] **Fase 0** — Orientasi: dokumen dibaca, audit gaya situs lama, rencana kerja
-- [ ] **Fase 1** — Fondasi: Next.js 16 di `web/`, token desain, klien Supabase, proxy, utilitas + test, layout publik & admin
+- [x] **Fase 1** — Fondasi: Next.js 16 di `web/`, token desain, klien Supabase, proxy, utilitas + test, layout publik & admin
+  - lint, typecheck, 150 unit test, build, cek emoji, cek secret: lulus
+  - e2e `e2e/fase-1.spec.ts` terhadap `next start`: 33 lulus (390px & 1280px), screenshot diperiksa
+  - `/admin` tanpa sesi → 307 ke `/admin/login`; header keamanan dan redirect URL lama berjalan
 - [ ] **Fase 2** — Lapisan data v2: query + cache tag, rekomendasi tahap 1, validasi zod, action `submitLead`
 - [ ] **Fase 3** — Beranda (hero + kotak pencarian) dan `/sewa` (filter, urutan, paginasi)
 - [ ] **Fase 4** — Detail unit, form sewa → WhatsApp, rekomendasi tahap 2, apartemen, about, privasi, SEO, analitik
@@ -127,6 +130,13 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 15 Okt 2026 | URL `images.unsplash.com` dianggap "tanpa foto" (placeholder netral), tidak dipakai di promo pilihan maupun OG. | DESIGN §7 melarang foto stok. |
 | 15 Okt 2026 | Filter apartemen di admin permintaan sewa memakai kolom `leads.location_name`. | `leads` tidak punya `location_id`. |
 | 15 Okt 2026 | Redirect URL lama: `/preview-client` → `/`, `/login` → `/admin/login` (308). | Menjaga tautan lama. |
+| 16 Okt 2026 | `turbopack.root` tidak dipakai di `next.config.ts` (hanya `outputFileTracingRoot`). | Dengan `turbopack.root`, `next dev` gagal me-resolve font `next/font/google` (Turbopack 16.3.8); setelah Laravel dipindah, root workspace sudah terdeteksi benar tanpa opsi itu. |
+| 16 Okt 2026 | shadcn/ui ditambahkan tanpa dependensi `shadcn` dan `cn` yang dipasang CLI-nya; isi `shadcn/tailwind.css` yang dipakai disalin ke `globals.css`, dan `cn()` tetap `clsx` + `tailwind-merge` (diperluas dengan token kustom). | CLI memasang `shadcn@4.21.5` (belum 14 hari) sebagai dependensi runtime dan paket `cn` yang tidak ada di daftar stack. |
+| 16 Okt 2026 | Komponen shadcn disesuaikan ke token DESIGN: `bg-muted` → `bg-surface-2`, tombol 44/52px, input 48px gaya `.glass-input`, sheet bawah radius 24 + pegangan, label "Tutup". | DESIGN 4.4–4.5; `muted` di DESIGN adalah warna teks. |
+| 16 Okt 2026 | Toaster memakai `sonner` langsung (komponen `sonner` shadcn tidak dipasang). | Versi shadcn membutuhkan `next-themes`. |
+| 16 Okt 2026 | Footer publik: logo tanpa tautan, latar gelap night → night-rose; header desktop menampilkan "Tanya admin" dan tombol ikon WhatsApp. | Menghindari dua tautan "ke beranda"; kontrak tombol WA header di semua ukuran. |
+| 16 Okt 2026 | Contoh tanggal di PRD 6.5 ("Sab, 18 Okt 2026") keliru: 18 Okt 2026 hari Minggu. Format tanggal mengikuti kalender sebenarnya. | Fakta kalender. |
+| 16 Okt 2026 | Halaman `dev-preview/*` hanya dipakai saat pengembangan dan dihapus sebelum commit fase. | Aturan rencana (tidak ada halaman uji di repo). |
 
 ## Pertanyaan terbuka
 
