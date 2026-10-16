@@ -31,7 +31,7 @@ export function Pagination({ page, pageCount, total, pageSize, onPage, noun = ""
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
   const button =
-    "inline-flex size-10 items-center justify-center rounded-control text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-40";
+    "inline-flex size-11 items-center justify-center rounded-control text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-40";
 
   return (
     <nav aria-label="Halaman" className={cn("flex items-center justify-between gap-3 pt-4", className)}>

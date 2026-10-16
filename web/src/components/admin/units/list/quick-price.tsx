@@ -7,7 +7,15 @@ import { Field } from "@/components/admin/kit/field";
 import { RupiahInput } from "@/components/admin/kit/rupiah-input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetBody, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  focusSheetContainer,
+} from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { updateUnitPrice } from "@/lib/actions/admin/units-list";
 import type { AdminUnitRow } from "@/lib/admin/unit-query";
@@ -105,7 +113,7 @@ export function QuickPrice({ row, desktop, variant }: Props) {
         <SheetContent
           side="bottom"
           // HP: jangan langsung buka keyboard; admin memilih isian sendiri.
-          onOpenAutoFocus={(event) => event.preventDefault()}
+          onOpenAutoFocus={focusSheetContainer}
         >
           <SheetHeader>
             <SheetTitle>Ubah harga</SheetTitle>

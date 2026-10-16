@@ -10,7 +10,7 @@ import { toStatus } from "./lead-list-model";
 const TONE: Record<LeadStatusValue, string> = {
   baru: "border-brand-200 bg-brand-50 text-brand-700",
   dihubungi: "border-amber-200 bg-amber-50 text-[#b45309]",
-  deal: "border-emerald-200 bg-emerald-50 text-success",
+  deal: "border-emerald-200 bg-emerald-50 text-emerald-700",
   batal: "bg-surface-2 text-ink-2",
 };
 

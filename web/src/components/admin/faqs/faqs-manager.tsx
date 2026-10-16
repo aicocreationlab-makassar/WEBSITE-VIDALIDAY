@@ -281,7 +281,7 @@ function FaqRowItem({ row, onHome, isFirst, isLast, reorderDisabled, reorderReas
       <span
         className={cn(
           "col-start-1 row-start-1 flex size-11 items-center justify-center rounded-control text-sm font-bold tabular-nums",
-          row.isActive ? "bg-brand-50 text-brand-700" : "bg-surface-2 text-muted",
+          row.isActive ? "bg-brand-50 text-brand-700" : "bg-surface-2 text-ink-2",
         )}
       >
         <span className="sr-only">Urutan </span>

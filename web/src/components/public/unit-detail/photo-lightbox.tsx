@@ -20,7 +20,7 @@ type Props = {
 };
 
 const NAV_BUTTON =
-  "absolute top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-sm transition-colors hover:bg-white/24 focus-visible:ring-3 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-0";
+  "absolute top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-sm transition-colors hover:bg-white/24 focus-visible:ring-3 focus-visible:ring-white/40 aria-disabled:cursor-default aria-disabled:opacity-40";
 
 /**
  * Lightbox layar penuh (DESIGN 4.10, UX 3d): latar night 95%, foto utuh (contain) dalam
@@ -153,7 +153,7 @@ export function PhotoLightbox({ open, onOpenChange, photos, unitName, index, onI
               <button
                 type="button"
                 onClick={() => go(index - 1)}
-                disabled={index === 0}
+                aria-disabled={index === 0 || undefined}
                 aria-label="Foto sebelumnya"
                 className={cn(NAV_BUTTON, "left-2 md:left-4")}
               >
@@ -162,7 +162,7 @@ export function PhotoLightbox({ open, onOpenChange, photos, unitName, index, onI
               <button
                 type="button"
                 onClick={() => go(index + 1)}
-                disabled={index === count - 1}
+                aria-disabled={index === count - 1 || undefined}
                 aria-label="Foto berikutnya"
                 className={cn(NAV_BUTTON, "right-2 md:right-4")}
               >

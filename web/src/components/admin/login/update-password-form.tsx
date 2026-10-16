@@ -194,7 +194,7 @@ export function UpdatePasswordForm({ email, className }: { email: string | null;
 
 function Requirement({ id, met, children }: { id?: string; met: boolean; children: React.ReactNode }) {
   return (
-    <p id={id} className={cn("flex items-center gap-1.5 text-caption", met ? "font-medium text-success" : "text-muted")}>
+    <p id={id} className={cn("flex items-center gap-1.5 text-caption", met ? "font-medium text-emerald-700" : "text-muted")}>
       <Check className={cn("size-4 shrink-0", met ? "opacity-100" : "opacity-40")} aria-hidden="true" />
       <span>{children}</span>
     </p>

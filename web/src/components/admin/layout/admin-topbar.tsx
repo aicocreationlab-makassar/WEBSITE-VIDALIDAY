@@ -69,7 +69,7 @@ function AccountMenu({ email }: { email: string | null }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="quiet" aria-label="Menu akun" className="max-sm:w-11 max-sm:px-0">
+        <Button variant="quiet" aria-label={`${displayEmail}, menu akun`} className="max-sm:w-11 max-sm:px-0">
           {signingOut ? (
             <LoaderCircle className="animate-spin" aria-hidden="true" />
           ) : (

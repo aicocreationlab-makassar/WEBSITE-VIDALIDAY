@@ -12,13 +12,18 @@ type Props = {
   /** Lebar item: mobile 82% layar (kartu berikutnya terlihat sebagian), desktop sesuai kolom. */
   itemClassName?: string;
   className?: string;
+  /**
+   * Isi kartu tidak punya elemen yang bisa difokus (mis. fasilitas gedung): rel bisa difokus dan digeser
+   * dengan tombol panah keyboard, dan tombol geser sudah tampil mulai md untuk pointer mouse.
+   */
+  focusableTrack?: boolean;
 };
 
 /**
  * Rel kartu horizontal dengan scroll-snap (DESIGN 4.6: kartu carousel mobile 82% lebar layar).
  * Bisa digeser jari, keyboard (Tab ke kartu), dan tombol panah di desktop.
  */
-export function CardRail({ children, label, itemClassName, className }: Props) {
+export function CardRail({ children, label, itemClassName, className, focusableTrack = false }: Props) {
   const track = useRef<HTMLUListElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
 
@@ -51,6 +56,7 @@ export function CardRail({ children, label, itemClassName, className }: Props) {
         ref={track}
         onScroll={update}
         aria-label={label}
+        tabIndex={focusableTrack ? 0 : undefined}
         className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0"
       >
         {items.map((child, i) => (
@@ -63,22 +69,27 @@ export function CardRail({ children, label, itemClassName, className }: Props) {
         ))}
       </ul>
       {items.length > 1 ? (
-        <div className="pointer-events-none absolute -top-14 right-0 hidden gap-2 lg:flex">
+        <div
+          className={cn(
+            "pointer-events-none absolute -top-14 right-0 hidden gap-2 lg:flex",
+            focusableTrack && "md:pointer-fine:flex",
+          )}
+        >
           <button
             type="button"
             onClick={() => scroll(-1)}
-            disabled={edges.start}
+            aria-disabled={edges.start || undefined}
             aria-label={`Geser ${label} ke kiri`}
-            className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:opacity-40"
+            className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 aria-disabled:opacity-40"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={() => scroll(1)}
-            disabled={edges.end}
+            aria-disabled={edges.end || undefined}
             aria-label={`Geser ${label} ke kanan`}
-            className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:opacity-40"
+            className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 aria-disabled:opacity-40"
           >
             <ChevronRight className="size-5" aria-hidden="true" />
           </button>

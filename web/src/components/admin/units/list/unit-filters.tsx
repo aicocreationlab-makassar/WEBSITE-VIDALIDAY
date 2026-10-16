@@ -13,6 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  focusSheetContainer,
 } from "@/components/ui/sheet";
 import type { AdminLocationOption } from "@/lib/data/admin/units";
 import { cn } from "@/lib/utils";
@@ -180,7 +181,7 @@ export function FilterSheet({ value, locations, count, onApply, side }: SheetPro
           ) : null}
         </Button>
       </SheetTrigger>
-      <SheetContent side={side} onOpenAutoFocus={(event) => event.preventDefault()}>
+      <SheetContent side={side} onOpenAutoFocus={focusSheetContainer}>
         <SheetHeader>
           <SheetTitle>Filter</SheetTitle>
           <SheetDescription>Saring dan urutkan daftar unit.</SheetDescription>

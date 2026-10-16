@@ -90,18 +90,18 @@ export function CardGallery({ photos, href, alt, sizes, dimmed, eager = false }:
           <button
             type="button"
             onClick={() => go(-1)}
-            disabled={index === 0}
+            aria-disabled={index === 0 || undefined}
             aria-label={`Foto sebelumnya, ${alt}`}
-            className="absolute top-1/2 left-2 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-opacity disabled:invisible md:flex md:opacity-0 md:group-hover/gallery:opacity-100 md:focus-visible:opacity-100"
+            className="absolute top-1/2 left-2 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-opacity aria-disabled:cursor-default aria-disabled:text-ink/30 md:flex md:opacity-0 md:group-hover/gallery:opacity-100 md:focus-visible:opacity-100"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={() => go(1)}
-            disabled={index === list.length - 1}
+            aria-disabled={index === list.length - 1 || undefined}
             aria-label={`Foto berikutnya, ${alt}`}
-            className="absolute top-1/2 right-2 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-opacity disabled:invisible md:flex md:opacity-0 md:group-hover/gallery:opacity-100 md:focus-visible:opacity-100"
+            className="absolute top-1/2 right-2 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-opacity aria-disabled:cursor-default aria-disabled:text-ink/30 md:flex md:opacity-0 md:group-hover/gallery:opacity-100 md:focus-visible:opacity-100"
           >
             <ChevronRight className="size-5" aria-hidden="true" />
           </button>

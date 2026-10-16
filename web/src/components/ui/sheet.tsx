@@ -90,6 +90,15 @@ function SheetContent({
   );
 }
 
+/**
+ * Untuk `onOpenAutoFocus`: fokus ke kontainer sheet (tabIndex -1 dari Radix), bukan ke isian pertama.
+ * Keyboard HP tidak langsung muncul, tapi fokus tetap terkunci di dalam sheet.
+ */
+function focusSheetContainer(event: Event) {
+  event.preventDefault();
+  (event.currentTarget as HTMLElement | null)?.focus({ preventScroll: true });
+}
+
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -150,4 +159,5 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
+  focusSheetContainer,
 };

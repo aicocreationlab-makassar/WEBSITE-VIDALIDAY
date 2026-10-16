@@ -43,7 +43,7 @@ export function DateRangeFields({ kind, label, value, onChange, onPreset }: Fiel
               aria-pressed={selected}
               onClick={() => (onPreset ? onPreset(preset) : onChange({ from: preset.from, to: preset.to }))}
               className={cn(
-                "inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
+                "inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-brand-500/20",
                 selected ? "border-brand-200 bg-brand-50 text-brand-700" : "border-line bg-white text-ink-2 hover:bg-surface-2",
               )}
             >

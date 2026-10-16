@@ -231,7 +231,7 @@ export function FacilitiesManager({ facilities, locations }: Props) {
                       <span
                         className={cn(
                           "min-w-6 rounded-full px-1.5 text-center text-caption tabular-nums",
-                          active ? "bg-white/20 text-white" : "bg-surface-2 text-ink-2",
+                          active ? "bg-white text-brand-700" : "bg-surface-2 text-ink-2",
                         )}
                       >
                         {counts[item.value]}

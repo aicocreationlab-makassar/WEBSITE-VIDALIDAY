@@ -10,7 +10,7 @@ import type { Facility } from "@/types/domain";
  */
 export function BuildingFacilities({ facilities, apartmentName }: { facilities: Facility[]; apartmentName: string }) {
   return (
-    <CardRail label="Fasilitas gedung" itemClassName="w-[64%] max-w-[260px] sm:w-[38%] lg:w-[calc((100%-3rem)/4)] lg:max-w-none">
+    <CardRail label="Fasilitas gedung" focusableTrack itemClassName="w-[64%] max-w-[260px] sm:w-[38%] lg:w-[calc((100%-3rem)/4)] lg:max-w-none">
       {facilities.map((facility) => {
         const photo = facility.imageUrl && !isStockPhoto(facility.imageUrl) ? facility.imageUrl : null;
         return (

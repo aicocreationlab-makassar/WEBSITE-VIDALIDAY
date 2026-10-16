@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { SectionStatus } from "./settings-model";
 
@@ -49,8 +50,10 @@ export function SectionNav({ sections, label }: { sections: NavSection[]; label:
     const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
-    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+    target.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    // Pindahkan fokus keyboard ke bagian tujuan, supaya Tab berikutnya masuk ke isiannya.
+    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
     setActive(id);
   }
 

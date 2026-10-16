@@ -149,10 +149,10 @@ function RailButton({
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
+      aria-disabled={disabled || undefined}
       aria-controls={LIST_ID}
       aria-label={direction === 1 ? "Geser unit serupa ke kanan" : "Geser unit serupa ke kiri"}
-      className="inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none disabled:opacity-40"
+      className="inline-flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand-500 aria-disabled:opacity-40"
     >
       <Chevron className="size-5" aria-hidden="true" />
     </button>

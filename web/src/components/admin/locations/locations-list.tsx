@@ -96,7 +96,7 @@ export function LocationsList({ locations }: { locations: AdminLocationCard[] })
 }
 
 const VISIBILITY_STYLE: Record<LocationVisibility, { icon: typeof CircleCheck; className: string }> = {
-  tampil: { icon: CircleCheck, className: "text-success" },
+  tampil: { icon: CircleCheck, className: "text-emerald-700" },
   "tanpa-unit": { icon: CircleAlert, className: "text-[#b45309]" },
   nonaktif: { icon: EyeOff, className: "text-muted" },
 };

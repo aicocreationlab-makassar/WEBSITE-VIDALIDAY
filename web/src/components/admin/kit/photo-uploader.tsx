@@ -23,6 +23,8 @@ type PhotoListProps = {
   "aria-describedby"?: string;
 };
 
+type FocusAction = "left" | "right" | "delete";
+
 function move<T>(list: T[], from: number, to: number): T[] {
   const next = [...list];
   const [item] = next.splice(from, 1);
@@ -37,6 +39,10 @@ function move<T>(list: T[], from: number, to: number): T[] {
  */
 export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadingChange, id, ...aria }: PhotoListProps) {
   const input = useRef<HTMLInputElement>(null);
+  const pickButton = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  // Setelah geser/hapus, elemen yang difokus ikut dipindah/dihapus React; fokus dikembalikan ke tombol yang setara.
+  const pendingFocus = useRef<{ path: string | null; action: FocusAction } | null>(null);
   const [uploading, setUploading] = useState<Uploading[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropActive, setDropActive] = useState(false);
@@ -45,6 +51,30 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
   useEffect(() => {
     latest.current = value;
   }, [value]);
+
+  useEffect(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    pendingFocus.current = null;
+    const buttons = Array.from(list.current?.querySelectorAll<HTMLButtonElement>("[data-photo-action]") ?? []);
+    const find = (action: FocusAction) =>
+      buttons.find((b) => b.dataset.photo === target.path && b.dataset.photoAction === action && !b.disabled);
+    const opposite: FocusAction = target.action === "left" ? "right" : "left";
+    const next = target.path === null ? null : (find(target.action) ?? (target.action === "delete" ? null : find(opposite)));
+    (next ?? pickButton.current)?.focus();
+  }, [value]);
+
+  function moveFocused(index: number, to: number, action: "left" | "right") {
+    pendingFocus.current = { path: value[index], action };
+    onChange(move(value, index, to));
+  }
+
+  function removeFocused(index: number) {
+    const remaining = value.filter((_, i) => i !== index);
+    // Fokus ke tombol hapus foto berikutnya (atau sebelumnya), atau "Pilih foto" kalau daftar kosong.
+    pendingFocus.current = { path: remaining[index] ?? remaining[index - 1] ?? null, action: "delete" };
+    onChange(remaining);
+  }
 
   const busy = uploading.length > 0;
   useEffect(() => {
@@ -104,6 +134,7 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
         <ImagePlus className="size-8 text-subtle" aria-hidden="true" />
         <p className="text-sm font-semibold text-ink">Tarik foto ke sini atau</p>
         <button
+          ref={pickButton}
           id={id}
           type="button"
           {...aria}
@@ -132,7 +163,7 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
       </div>
 
       {value.length || uploading.length ? (
-        <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6" aria-label="Foto unit, urutan tampil">
+        <ul ref={list} className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6" aria-label="Foto unit, urutan tampil">
           {value.map((path, index) => {
             const url = mediaUrl(path);
             return (
@@ -165,7 +196,9 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => onChange(value.filter((_, i) => i !== index))}
+                  onClick={() => removeFocused(index)}
+                  data-photo={path}
+                  data-photo-action="delete"
                   aria-label={`Hapus foto ${index + 1}`}
                   className="absolute top-1 right-1 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-danger shadow-sm after:absolute after:-inset-1.5 hover:bg-white"
                 >
@@ -174,7 +207,9 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                 <div className="absolute right-1 bottom-1 flex gap-3">
                   <button
                     type="button"
-                    onClick={() => onChange(move(value, index, index - 1))}
+                    onClick={() => moveFocused(index, index - 1, "left")}
+                    data-photo={path}
+                    data-photo-action="left"
                     disabled={index === 0}
                     aria-label={`Geser foto ${index + 1} ke kiri`}
                     className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm after:absolute after:-inset-1.5 disabled:hidden"
@@ -183,7 +218,9 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                   </button>
                   <button
                     type="button"
-                    onClick={() => onChange(move(value, index, index + 1))}
+                    onClick={() => moveFocused(index, index + 1, "right")}
+                    data-photo={path}
+                    data-photo-action="right"
                     disabled={index === value.length - 1}
                     aria-label={`Geser foto ${index + 1} ke kanan`}
                     className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm after:absolute after:-inset-1.5 disabled:hidden"

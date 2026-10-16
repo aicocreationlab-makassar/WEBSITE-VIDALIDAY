@@ -33,7 +33,7 @@ export function LocationHeader({ detail }: { detail: AdminLocationDetail }) {
       <p
         className={cn(
           "flex items-start gap-1.5 text-sm",
-          visibility === "tampil" ? "text-success" : visibility === "tanpa-unit" ? "text-[#b45309]" : "text-muted",
+          visibility === "tampil" ? "text-emerald-700" : visibility === "tanpa-unit" ? "text-[#b45309]" : "text-muted",
         )}
       >
         <VisibilityIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />

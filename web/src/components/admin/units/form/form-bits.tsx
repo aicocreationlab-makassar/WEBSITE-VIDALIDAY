@@ -105,7 +105,7 @@ export function GuestStepper({ value, onChange, min = 1, max = 30, disabled, ...
     onChange(Math.min(max, Math.max(min, base + delta)));
   };
   const button =
-    "inline-flex size-12 shrink-0 items-center justify-center rounded-control border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40 focus-visible:ring-3 focus-visible:ring-brand-500/20";
+    "inline-flex size-12 shrink-0 items-center justify-center rounded-control border-[1.5px] border-line bg-white text-ink transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40 aria-disabled:opacity-40 focus-visible:ring-3 focus-visible:ring-brand-500/20";
 
   return (
     <div className="flex items-center gap-2">
@@ -113,7 +113,8 @@ export function GuestStepper({ value, onChange, min = 1, max = 30, disabled, ...
         type="button"
         className={button}
         onClick={() => step(-1)}
-        disabled={disabled || (current !== null && current <= min)}
+        disabled={disabled}
+        aria-disabled={(current !== null && current <= min) || undefined}
         aria-label="Kurangi tamu"
       >
         <Minus className="size-5" aria-hidden="true" />
@@ -123,7 +124,8 @@ export function GuestStepper({ value, onChange, min = 1, max = 30, disabled, ...
         type="button"
         className={button}
         onClick={() => step(1)}
-        disabled={disabled || (current !== null && current >= max)}
+        disabled={disabled}
+        aria-disabled={(current !== null && current >= max) || undefined}
         aria-label="Tambah tamu"
       >
         <Plus className="size-5" aria-hidden="true" />

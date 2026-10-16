@@ -14,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  focusSheetContainer,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DateRangeFields, DateRangePopover } from "./date-range-filter";
@@ -125,7 +126,7 @@ export function LeadFilterSheet({ value, apartments, count, onApply, side }: She
           ) : null}
         </Button>
       </SheetTrigger>
-      <SheetContent side={side} onOpenAutoFocus={(event) => event.preventDefault()}>
+      <SheetContent side={side} onOpenAutoFocus={focusSheetContainer}>
         <SheetHeader>
           <SheetTitle>Filter</SheetTitle>
           <SheetDescription>Saring permintaan sewa menurut status, apartemen, dan tanggal.</SheetDescription>
