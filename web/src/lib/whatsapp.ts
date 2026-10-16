@@ -65,6 +65,12 @@ export function waLink(number: string, text?: string): string {
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
 
+/**
+ * Nomor WhatsApp admin bawaan (setting `whatsapp_number` kosong). Konstanta terpisah dari
+ * DEFAULT_SETTINGS supaya halaman galat tidak ikut membundel semua teks bawaan.
+ */
+export const DEFAULT_WHATSAPP_NUMBER = "6285711696970";
+
 /** Pesan umum ke admin (tombol WA di header, FAB, penutup beranda). */
 export const GENERAL_INQUIRY_MESSAGE =
   "Halo Admin VIDALIDAY, saya mau tanya ketersediaan sewa apartemen di Makassar.";

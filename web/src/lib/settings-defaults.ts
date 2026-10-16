@@ -1,3 +1,4 @@
+import { DEFAULT_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import type { SiteSettings } from "@/types/settings";
 
 /**
@@ -5,7 +6,7 @@ import type { SiteSettings } from "@/types/settings";
  * Sumber: migrasi 0002 dan default AboutController situs lama (disesuaikan ke sapaan "kamu").
  */
 export const DEFAULT_SETTINGS: SiteSettings = {
-  whatsappNumber: "6285711696970",
+  whatsappNumber: DEFAULT_WHATSAPP_NUMBER,
   contactPhone: "+62 857-1169-6970",
   contactEmail: "info@vidaliday.com",
   officeHours: "08.00–23.00 WITA",

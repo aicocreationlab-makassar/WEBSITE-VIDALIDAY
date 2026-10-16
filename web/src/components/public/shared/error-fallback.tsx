@@ -1,15 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { RefreshCw, ServerCrash } from "lucide-react";
 import { WhatsappIcon } from "@/components/icons/whatsapp";
-import { Button } from "@/components/ui/button";
-import { DEFAULT_SETTINGS } from "@/lib/settings-defaults";
-import { GENERAL_INQUIRY_MESSAGE, waLink } from "@/lib/whatsapp";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
+import { DEFAULT_WHATSAPP_NUMBER, GENERAL_INQUIRY_MESSAGE, waLink } from "@/lib/whatsapp";
+
+const PRIMARY = cn(buttonVariants({ size: "lg" }));
+const SECONDARY = cn(buttonVariants({ size: "lg", variant: "secondary" }));
 
 /**
  * Tampilan saat halaman gagal dimuat (mis. database sedang bermasalah). Tidak memanggil data layer:
  * tombol WhatsApp memakai nomor bawaan supaya tamu tetap bisa menghubungi admin (PRD 4.9, 9 Keandalan).
+ *
+ * Dipakai tiga error boundary yang dimuat di setiap halaman, jadi sengaja ringan: elemen biasa
+ * dengan kelas tombol yang sama (bukan Button/Slot), `<a>` biasa (bukan next/link; muat ulang penuh
+ * juga lebih aman setelah galat), dan nomor bawaan saja (bukan seluruh DEFAULT_SETTINGS).
  */
 export function ErrorFallback({ retry, digest }: { retry: () => void; digest?: string }) {
   return (
@@ -22,25 +28,39 @@ export function ErrorFallback({ retry, digest }: { retry: () => void; digest?: s
         Ada gangguan sebentar di sistem kami. Coba muat ulang, atau langsung tanya admin lewat WhatsApp.
       </p>
       <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-        <Button size="lg" onClick={() => retry()}>
+        <button
+          type="button"
+          data-slot="button"
+          data-variant="primary"
+          data-size="lg"
+          className={PRIMARY}
+          onClick={() => retry()}
+        >
           <RefreshCw aria-hidden="true" />
           Coba lagi
-        </Button>
-        <Button asChild size="lg" variant="secondary">
-          <a href={waLink(DEFAULT_SETTINGS.whatsappNumber, GENERAL_INQUIRY_MESSAGE)} target="_blank" rel="noopener noreferrer">
-            <WhatsappIcon className="size-5 text-brand-600" />
-            Chat admin via WhatsApp
-          </a>
-        </Button>
+        </button>
+        <a
+          href={waLink(DEFAULT_WHATSAPP_NUMBER, GENERAL_INQUIRY_MESSAGE)}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-slot="button"
+          data-variant="secondary"
+          data-size="lg"
+          className={SECONDARY}
+        >
+          <WhatsappIcon className="size-5 text-brand-600" />
+          Chat admin via WhatsApp
+        </a>
       </div>
       <p className="mt-6 text-sm text-muted">
-        <Link href="/" className="font-semibold text-brand-700 underline underline-offset-2">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- sengaja muat ulang penuh setelah galat (lihat komentar di atas) */}
+        <a href="/" className="font-semibold text-brand-700 underline underline-offset-2">
           Ke beranda
-        </Link>
+        </a>
         {" · "}
-        <Link href="/sewa" className="font-semibold text-brand-700 underline underline-offset-2">
+        <a href="/sewa" className="font-semibold text-brand-700 underline underline-offset-2">
           Cari unit
-        </Link>
+        </a>
       </p>
       {digest ? <p className="mt-4 text-caption text-muted">Kode galat: {digest}</p> : null}
     </div>
