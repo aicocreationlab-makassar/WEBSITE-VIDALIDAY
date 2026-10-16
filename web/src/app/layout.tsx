@@ -3,8 +3,6 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/env";
 import { DEFAULT_SETTINGS } from "@/lib/settings-defaults";
 import "./globals.css";
@@ -44,8 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="id" className={jakarta.variable} data-scroll-behavior="smooth">
       <body className="min-h-dvh">
-        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-        <Toaster />
+        {/* Toast dan tooltip dipasang di layout /admin saja (tidak dipakai situs publik). */}
+        {children}
         {/* Analitik tanpa cookie (PRD 6.10). Suspense: keduanya membaca URL di klien. */}
         <Suspense fallback={null}>
           <Analytics />
