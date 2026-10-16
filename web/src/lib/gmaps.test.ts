@@ -50,6 +50,8 @@ describe("csv", () => {
   it("quotes, escapes and guards against formulas", () => {
     expect(csvCell('Halo, "admin"')).toBe('"Halo, ""admin"""');
     expect(csvCell("=HYPERLINK(1)")).toBe("'=HYPERLINK(1)");
+    // Excel berlocale Indonesia memisah sel dengan titik koma.
+    expect(csvCell("Budi;=1+1;")).toBe('"Budi;=1+1;"');
     expect(csvCell(-5)).toBe("-5");
     expect(csvCell(null)).toBe("");
   });

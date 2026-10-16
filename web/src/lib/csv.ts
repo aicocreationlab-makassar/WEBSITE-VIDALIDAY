@@ -1,5 +1,7 @@
 // Ekspor CSV yang terbuka benar di Excel/Google Sheets: UTF-8 BOM, pemisah koma, CRLF,
 // dan penjaga injeksi formula (sel yang diawali = + - @ diberi tanda kutip satu).
+// Sel berisi titik koma selalu dikutip: Excel berlocale Indonesia memakai `;` sebagai pemisah,
+// sehingga teks tamu seperti `Budi;=1+1` tidak terpecah menjadi sel formula.
 
 const BOM = "﻿";
 
@@ -9,7 +11,7 @@ export function csvCell(value: CsvValue): string {
   if (value === null || value === undefined) return "";
   let text = String(value);
   if (typeof value === "string" && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
-  if (/[",\r\n]/.test(text)) text = `"${text.replace(/"/g, '""')}"`;
+  if (/[",;\r\n]/.test(text)) text = `"${text.replace(/"/g, '""')}"`;
   return text;
 }
 
