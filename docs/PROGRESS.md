@@ -2,18 +2,19 @@
 
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
-**Fase aktif:** 7 (kode Fase 1–6 selesai dan lulus lint/typecheck/528 unit test/cek emoji; temuan review adversarial pertama sudah diperbaiki; verifikasi dengan data asli — build, e2e, screenshot, Lighthouse — menunggu `web/.env.local`)
+**Fase aktif:** 7. Kode Fase 1–6 selesai; QA kode Fase 7 (4 lensa + verifikasi) sudah diperbaiki; lint/typecheck/529 unit test/cek emoji lulus.
+`web/.env.local` sudah ada (16 Okt 2026) dan build dengan env asli lulus, tapi **database Supabase masih kosong** (hanya skema + seed 0002: 0 apartemen, 0 unit, 0 FAQ, 0 landmark, 9 kunci settings v2). Verifikasi dengan data asli menunggu migrasi data oleh pemilik.
 
 Status verifikasi per fase:
 
 | Fase | Kode | Unit test | Build + e2e + screenshot dengan data asli |
 |---|---|---|---|
-| 1 | selesai | lulus | lulus (tanpa data, bingkai saja) |
-| 2 | selesai (kecuali audit data + `backfill_v3`) | lulus | menunggu env |
-| 3 | selesai | lulus | menunggu env |
-| 4 | selesai | lulus | menunggu env |
-| 5 | selesai | lulus | menunggu env + CP-C (login admin) |
-| 6 | selesai | lulus | menunggu env + CP-C (login admin) |
+| 1 | selesai | lulus | lulus (tanpa data, bingkai saja); build dengan env asli lulus 16 Okt |
+| 2 | selesai (kecuali `backfill_v3`, menunggu data) | lulus | audit data jalan: DB kosong |
+| 3 | selesai | lulus | menunggu data |
+| 4 | selesai | lulus | menunggu data |
+| 5 | selesai | lulus | menunggu data + CP-C (login admin) |
+| 6 | selesai | lulus | menunggu data + CP-C (login admin) |
 
 Rencana eksekusi lengkap yang disetujui pemilik: `docs/audit/rencana-eksekusi.md`.
 Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
@@ -43,6 +44,8 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
   2. Opsional: jalankan `npx supabase login` di terminal sendiri, supaya tipe database bisa di-generate.
   3. Matikan sign-up publik di Supabase Auth (SETUP.md §3.2).
   4. Buat dua akun uji di Supabase Auth: `admin-qa` (lalu `insert into public.admins`) dan `nonadmin-qa`. Password tidak dikirim ke chat.
+- [ ] **Migrasi data lama ke Supabase** (16 Okt 2026, menghambat semua verifikasi): jalankan paket `vidaliday-migrasi-supabase` (ekspor DB + foto dari hosting lama) ke project di `web/.env.local`, lalu kabari Claude. Folder `tools/` tidak ada di repo ini.
+- [ ] **Hapus `SUPABASE_SECRET_KEY` dari `web/.env.local`** (pindahkan ke env paket migrasi). Aplikasi tidak membacanya; jangan disalin ke Vercel (SETUP §3.4).
 - [ ] **CP-B** (setelah audit data Fase 2): tinjau SQL pratinjau, jalankan migrasi `20261015000300_v2_perbaikan.sql` di SQL Editor, jawab pertanyaan data.
   Migrasi ini juga menyembunyikan unit milik apartemen nonaktif dari publik dan menolak permintaan sewa untuk unit itu (policy `units` + `submit_lead`).
 - [ ] **CP-C** (Fase 5): login sendiri sebagai `admin-qa` di panel browser aplikasi saat diminta, lalu sekali sebagai `nonadmin-qa`.
@@ -201,6 +204,13 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 16 Okt 2026 | Tahun hak cipta di footer memakai cache terpisah `cacheLife('days')`, tidak ikut cache `max` bingkai situs. | Supaya tahun tidak membeku sampai admin mengubah data. |
 | 16 Okt 2026 | Perbaikan aksesibilitas kecil: teks badge sukses emerald-700, scroll terprogram menghormati `prefers-reduced-motion`, posisi foto kartu dibacakan ("Foto n dari m"), fokus pindah ke pertanyaan baru setelah "Lihat semua pertanyaan", area sentuh tombol foto admin 44px, nama aksesibel harga cepat diawali harga yang terlihat, tautan "unit yang lebih besar" di kartu sewa memakai jumlah tamu yang dipilih. | DESIGN 8, WCAG 2.5.3/2.5.8. |
 
+| 16 Okt 2026 | QA kode Fase 7 (workflow 4 lensa: copy, keamanan, Next 16/cache/data kosong, aksesibilitas; tiap temuan diverifikasi skeptis): 25 dari 32 temuan terkonfirmasi dan diperbaiki. Ditolak: perlindungan ganti kata sandi tanpa link pemulihan (pemegang sesi sudah memegang token), URL foto eksternal dari aksi admin (butuh sesi admin), nomor WA bawaan di halaman galat (disengaja), kalimat promo, dua label tautan unit besar, istilah Supabase di galat admin, empty state /sewa tanpa filter, tautan FAQ saat 0 FAQ. | Rencana Fase 7. |
+| 16 Okt 2026 | Admin → Pengaturan punya tombol "Segarkan data situs" (mengedarkan semua tag cache publik). | Data yang diubah langsung di database (migrasi, SQL Editor) tidak menyegarkan cache halaman statis. |
+| 16 Okt 2026 | Profil `/apartemen/[slug]` hanya untuk apartemen terdaftar (aktif + punya unit published); selain itu 404. Tombol "Lihat di situs" di admin hanya tampil untuk apartemen itu. | PRD 7.5; sama dengan sitemap dan generateStaticParams. |
+| 16 Okt 2026 | Harga singkat tidak pernah dibulatkan: Rp1,05jt; kalau tidak bisa disingkat persis, ditulis penuh (Rp1.234.567). | Label budget dan "mulai" harus sama dengan harga sebenarnya. |
+| 16 Okt 2026 | Draf kebijakan privasi diubah: lama penyimpanan menjadi "selama diperlukan, dihapus atas permintaan" (sebelumnya 12 bulan, tanpa mekanisme hapus otomatis); cara menghapus data tersimpan dijelaskan sesuai perilaku. | Teks hukum tidak boleh menjanjikan hal yang tidak terjadi. Masih perlu disetujui klien. |
+| 16 Okt 2026 | Telepon kontak (`contact_phone`) tampil di footer sebagai tautan `tel:`. | Petunjuk admin menyebut "Tampil di footer". |
+
 ## Keterbatasan yang diketahui
 
 - Mengganti nama tipe kamar tidak memperbarui kolom lama `units.room_type` di unit yang sudah ada (kolom itu hanya untuk kompatibilitas; aplikasi membaca `room_type_id`).
@@ -213,7 +223,7 @@ Dari PRD §14 (sisa):
 
 1. Apakah ada harga mingguan/bulanan per unit? (bisa diisi admin kapan saja)
 2. Koordinat atau link Google Maps persis tiap gedung.
-3. Teks final kebijakan privasi dan peraturan menginap.
+3. Teks final kebijakan privasi dan peraturan menginap. Termasuk lama penyimpanan data permintaan sewa: kalau mau tetap "12 bulan", Claude siapkan SQL penghapusan terjadwal.
 4. Jam layanan yang benar: data lama 08.00–23.00, situs live 10.00–23.00 WITA. (ditanyakan lagi di CP-B)
 
 Akan ditanyakan di CP-B (setelah data dicek):
