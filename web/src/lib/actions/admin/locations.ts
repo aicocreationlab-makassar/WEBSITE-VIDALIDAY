@@ -327,3 +327,22 @@ export async function deleteLocation(id: unknown): Promise<ActionResult> {
     return failure({ message: (error as Error)?.message }, "hapus");
   }
 }
+
+const UPLOAD_PATH = /^locations\/[0-9a-f-]{36}\.webp$/;
+
+/**
+ * Buang foto gedung yang sudah diunggah dari form tapi tidak jadi disimpan. Hanya unggahan baru
+ * `locations/<uuid>.webp` yang tidak dipakai apartemen atau fasilitas mana pun.
+ */
+export async function discardLocationUploads(paths: unknown): Promise<ActionResult> {
+  const auth = await guardAdmin();
+  if (!auth.ok) return auth.result;
+
+  const parsed = z.array(z.string().max(200)).max(20).safeParse(paths);
+  if (!parsed.success) return { ok: false, error: MSG_INVALID };
+  const uploads = parsed.data.map((path) => path.trim()).filter((path) => UPLOAD_PATH.test(path));
+  if (!uploads.length) return { ok: true };
+
+  await cleanupFiles(auth.session.supabase, await unreferencedPaths(auth.session.supabase, uploads), "buang unggahan");
+  return { ok: true };
+}

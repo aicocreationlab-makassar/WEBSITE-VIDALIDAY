@@ -17,7 +17,7 @@ import type { AdminSession } from "@/lib/auth/require-admin";
 import { getTakenUnitSlugs } from "@/lib/data/admin/units";
 import { parseGallery } from "@/lib/media";
 import { deleteUnusedUnitPhotos, removedPaths } from "@/lib/storage-cleanup";
-import { unitSchema, type UnitData } from "@/lib/validation/admin";
+import { UNIT_PHOTOS_MAX, unitSchema, type UnitData } from "@/lib/validation/admin";
 
 type Supabase = AdminSession["supabase"];
 type UnitSaved = { id: number; slug: string };
@@ -199,4 +199,27 @@ export async function updateUnit(id: unknown, input: unknown): Promise<ActionRes
   } catch (error) {
     return fail(`updateUnit(${unitId})`, error);
   }
+}
+
+const UNIT_UPLOAD_PATH = /^units\/[0-9a-f-]{36}\.webp$/;
+
+/**
+ * Buang foto unit yang sudah diunggah dari form tapi tidak jadi disimpan (form ditinggal atau foto
+ * dihapus lagi sebelum simpan). Hanya unggahan baru `units/<uuid>.webp` yang tidak dipakai unit mana pun.
+ */
+export async function discardUnitUploads(paths: unknown): Promise<ActionResult> {
+  const auth = await guardAdmin();
+  if (!auth.ok) return auth.result;
+
+  const parsed = z.array(z.string().max(200)).max(UNIT_PHOTOS_MAX * 2).safeParse(paths);
+  if (!parsed.success) return { ok: false, error: MSG_INVALID };
+  const uploads = parsed.data.map((path) => path.trim()).filter((path) => UNIT_UPLOAD_PATH.test(path));
+  if (!uploads.length) return { ok: true };
+
+  try {
+    await deleteUnusedUnitPhotos(auth.session.supabase, uploads);
+  } catch (error) {
+    console.error("[admin/units] buang unggahan gagal", { name: (error as Error)?.name });
+  }
+  return { ok: true };
 }

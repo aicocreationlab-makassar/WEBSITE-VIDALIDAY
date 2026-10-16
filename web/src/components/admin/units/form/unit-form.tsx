@@ -11,7 +11,8 @@ import { UnitStatusBadges } from "@/components/admin/kit/status-badge";
 import { StickyActionBar } from "@/components/admin/kit/sticky-action-bar";
 import { useUnsavedGuard } from "@/components/admin/kit/use-unsaved-guard";
 import { Button } from "@/components/ui/button";
-import { createUnit, updateUnit } from "@/lib/actions/admin/units-form";
+import { useUploadSession } from "@/components/admin/settings/form-bits";
+import { createUnit, discardUnitUploads, updateUnit } from "@/lib/actions/admin/units-form";
 import type { AdminAmenityOption, AdminLocationOption, AdminUnitEdit } from "@/lib/data/admin/units";
 import { formatDateTime } from "@/lib/format";
 import { unitSchema, type UnitData, type UnitInput } from "@/lib/validation/admin";
@@ -102,6 +103,8 @@ export function UnitForm({ mode, lookups, initial, legacyBadge = null, rentalPer
   } = form;
   const busy = isSubmitting || leaving;
   useUnsavedGuard(isDirty && !busy);
+  // Foto yang diunggah tapi tidak jadi disimpan dibuang dari Storage (saat simpan atau saat form ditinggal).
+  const uploads = useUploadSession(discardUnitUploads);
 
   const isEdit = mode === "edit" && initial !== null;
 
@@ -118,6 +121,8 @@ export function UnitForm({ mode, lookups, initial, legacyBadge = null, rentalPer
 
     if (result.ok) {
       toast.success("Perubahan disimpan");
+      // Sebelum pindah halaman: foto yang tersimpan tidak boleh ikut terbuang saat form dilepas.
+      uploads.settle(values.photos ?? []);
       if (!isEdit && result.data) {
         setLeaving(true);
         router.replace(`/admin/units/${result.data.id}`);
@@ -202,7 +207,7 @@ export function UnitForm({ mode, lookups, initial, legacyBadge = null, rentalPer
               legacyPeriod={initialFlags.includes("periode-bukan-harian") ? rentalPeriod : null}
             />
             <AmenitiesSection amenities={lookups.amenities} initialIds={defaults.amenityIds ?? []} />
-            <MediaSection onUploadingChange={setUploadingPhotos} />
+            <MediaSection onUploadingChange={setUploadingPhotos} onUpload={uploads.track} />
             <DescriptionSection />
           </div>
           <div className="grid min-w-0 gap-5 xl:sticky xl:top-20">

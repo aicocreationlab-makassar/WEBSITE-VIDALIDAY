@@ -15,7 +15,14 @@ import { youtubeNote, youtubePreview } from "./unit-form-model";
  * Kartu "Foto & video" (PRD 7.4): unggah banyak foto (kompres WebP di browser, foto pertama = sampul,
  * bisa diurutkan) dan link YouTube dengan pratinjau thumbnail.
  */
-export function MediaSection({ onUploadingChange }: { onUploadingChange?: (uploading: boolean) => void }) {
+export function MediaSection({
+  onUploadingChange,
+  onUpload,
+}: {
+  onUploadingChange?: (uploading: boolean) => void;
+  /** Dipanggil untuk tiap foto baru (bukan urutan ulang), supaya foto yang tidak jadi disimpan bisa dibuang. */
+  onUpload?: (path: string) => void;
+}) {
   const {
     control,
     register,
@@ -47,7 +54,10 @@ export function MediaSection({ onUploadingChange }: { onUploadingChange?: (uploa
       >
         <PhotoListUploader
           value={list}
-          onChange={(next) => photos.field.onChange(next)}
+          onChange={(next) => {
+            for (const path of next) if (!list.includes(path)) onUpload?.(path);
+            photos.field.onChange(next);
+          }}
           folder="units"
           max={UNIT_PHOTOS_MAX}
           onUploadingChange={onUploadingChange}

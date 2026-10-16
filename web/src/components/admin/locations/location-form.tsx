@@ -15,7 +15,8 @@ import { useUnsavedGuard } from "@/components/admin/kit/use-unsaved-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateLocation } from "@/lib/actions/admin/locations";
+import { useUploadSession } from "@/components/admin/settings/form-bits";
+import { discardLocationUploads, updateLocation } from "@/lib/actions/admin/locations";
 import { mapEmbedUrl, mapExternalUrl } from "@/lib/gmaps";
 import { cn } from "@/lib/utils";
 import { locationSchema, type LocationInput } from "@/lib/validation/admin";
@@ -105,6 +106,8 @@ export function LocationForm({ detail, roomTypes }: Props) {
   });
 
   const heroField = useController({ control, name: "heroImage" });
+  // Foto yang diunggah tapi tidak jadi disimpan dibuang dari Storage (saat simpan atau saat form ditinggal).
+  const uploads = useUploadSession(discardLocationUploads);
   const activeField = useController({ control, name: "isActive" });
   const [name, shortName, slug, address, gmapsUrl, latitude, longitude, description, isActive] = useWatch({
     control,
@@ -142,6 +145,7 @@ export function LocationForm({ detail, roomTypes }: Props) {
     const result = await updateLocation(detail.id, values);
     if (result.ok) {
       toast.success("Perubahan disimpan");
+      uploads.settle([submitted.heroImage]);
       // Nilai yang baru disimpan menjadi nilai awal (form bersih, peringatan mati).
       reset(submitted);
       return;
@@ -312,7 +316,10 @@ export function LocationForm({ detail, roomTypes }: Props) {
           <div className="max-w-xl">
             <SingleImageUploader
               value={heroField.field.value ?? null}
-              onChange={(next) => heroField.field.onChange(next)}
+              onChange={(next) => {
+                if (next && next !== detail.values.heroImage) uploads.track(next);
+                heroField.field.onChange(next);
+              }}
               folder="locations"
               aspect="video"
               fallbackLabel={detail.hasFallbackImage ? "Situs memakai foto gedung bawaan" : "Belum ada foto gedung"}
