@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { aboutSchema, locationSchema, quickPriceSchema, settingsSchema, unitSchema } from "./admin";
+import {
+  aboutSchema,
+  amenitySchema,
+  facilitySchema,
+  faqSchema,
+  landmarkSchema,
+  locationSchema,
+  quickPriceSchema,
+  roomTypeSchema,
+  settingsSchema,
+  unitSchema,
+} from "./admin";
 
 const unit = {
   locationId: 1,
@@ -87,5 +98,44 @@ describe("other admin schemas", () => {
         reasons: [{ title: "Bersih", desc: "", icon: "sparkles" }],
       }).success,
     ).toBe(true);
+  });
+});
+
+// Form admin mengirim hasil parse (kosong → null) ke Server Action yang mem-parse ulang dengan skema yang sama.
+// Hasil parse karena itu harus lolos lagi (idempoten), termasuk nilai null dari kolom DB yang kosong.
+describe("admin schemas are idempotent", () => {
+  const location = {
+    name: "Apartemen UJI QA",
+    shortName: "UJI QA",
+    slug: "apartemen-uji-qa",
+    area: "",
+    address: null,
+    gmapsUrl: "",
+    latitude: null,
+    longitude: null,
+    tagline: null,
+    description: "",
+    heroImage: null,
+    sortOrder: 3,
+    isActive: false,
+  };
+  const cases: [string, { parse: (v: unknown) => unknown; safeParse: (v: unknown) => { success: boolean } }, unknown][] = [
+    ["unit", unitSchema, { ...unit, tower: null, viewType: null, promoBadge: null, youtubeUrl: null, description: null }],
+    ["location", locationSchema, location],
+    ["roomType", roomTypeSchema, { locationId: 3, name: "UJI QA Tipe", slug: "uji-qa-tipe", category: "studio", defaultMaxGuests: null, sortOrder: 1, isActive: true }],
+    ["amenity", amenitySchema, { name: "Kulkas", icon: "refrigerator", sortOrder: 1, isActive: true }],
+    ["facility", facilitySchema, { locationId: 1, name: "Kolam renang", description: null, icon: "waves", image: null, sortOrder: 1, isActive: true }],
+    ["landmark", landmarkSchema, { locationId: 1, name: "Mall Panakkukang", distanceTime: "5 menit", notes: null, icon: "shopping-bag", sortOrder: 1, isActive: true }],
+    ["faq", faqSchema, { question: "Jam check-in?", answer: "Mulai 14.00 WITA.", sortOrder: 1, isActive: true }],
+  ];
+
+  it.each(cases)("%s: parse(parse(x)) tetap lolos", (_name, schema, input) => {
+    const once = schema.parse(input);
+    expect(schema.safeParse(once).success).toBe(true);
+  });
+
+  it("location menerima null untuk field opsional dari DB", () => {
+    const parsed = locationSchema.parse(location);
+    expect(parsed).toMatchObject({ area: null, address: null, gmapsUrl: null, tagline: null, description: null });
   });
 });

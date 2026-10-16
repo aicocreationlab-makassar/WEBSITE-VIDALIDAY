@@ -1,13 +1,15 @@
 // Skema zod form admin (PRD 7.4–7.9), dipakai di klien (react-hook-form) dan di server (Server Action).
 
 import { z } from "zod";
+import "./locale";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { youtubeId } from "@/lib/youtube";
 
 const text = (max: number, message = `Maksimal ${max} karakter.`) => z.string().trim().max(max, message);
+// nullish: hasil parse (null untuk kosong) harus lolos lagi saat Server Action mem-parse ulang data dari form.
 const optionalText = (max: number) =>
   text(max)
-    .optional()
+    .nullish()
     .transform((value) => (value ? value : null));
 
 const slug = z
@@ -60,7 +62,7 @@ export const unitSchema = z
       .string()
       .trim()
       .max(500, "Maksimal 500 karakter.")
-      .optional()
+      .nullish()
       .transform((v) => (v ? v : null))
       .refine((v) => v === null || youtubeId(v) !== null, "Link YouTube belum benar. Contoh: https://youtu.be/abc123XYZ00"),
     description: optionalText(2000),
@@ -121,7 +123,7 @@ export const locationSchema = z.object({
     .string()
     .trim()
     .max(500, "Maksimal 500 karakter.")
-    .optional()
+    .nullish()
     .transform((v) => (v ? v : null))
     .refine((v) => v === null || /^https?:\/\//i.test(v), "Link harus diawali https://"),
   latitude: z.number({ error: "Isi latitude dengan angka." }).min(-90, "Latitude -90 sampai 90.").max(90, "Latitude -90 sampai 90.").nullable().optional().transform((v) => v ?? null),

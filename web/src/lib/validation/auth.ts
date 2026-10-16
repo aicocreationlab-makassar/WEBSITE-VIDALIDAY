@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "./locale";
 
 // Skema masuk admin. Dipakai di form (klien) dan di Server Action `signIn` (server).
 // Email di-trim dulu supaya spasi dari isian otomatis tidak membuat validasi gagal.

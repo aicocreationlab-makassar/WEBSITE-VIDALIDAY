@@ -1,6 +1,7 @@
 // Skema form sewa (PRD 6.5), dipakai di klien (react-hook-form) dan di server (submitLead).
 
 import { z } from "zod";
+import "./locale";
 import { addDays, diffDays, isDateString, isValidWhatsapp, normalizeWhatsapp } from "@/lib/format";
 
 export const PURPOSES = ["Liburan", "Kerja/Bisnis", "Staycation", "Tinggal sementara", "Lainnya"] as const;
