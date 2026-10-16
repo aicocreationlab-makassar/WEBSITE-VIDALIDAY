@@ -30,7 +30,7 @@ function Detail({ icon: IconComponent, label, children }: { icon: LucideIcon; la
 export function LeadCards({ rows, actions }: Props) {
   return (
     <div className="@container">
-      <ul className="grid gap-3 @2xl:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 @2xl:grid-cols-2">
         {rows.map((lead) => {
           const saving = actions.savingIds.has(lead.id);
           const nights = stayNights(lead);

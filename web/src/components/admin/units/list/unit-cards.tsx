@@ -36,7 +36,7 @@ export function UnitCards({ rows, actions, desktop, selecting, selection, onTogg
           <span aria-hidden="true">Pilih semua di halaman ini</span>
         </label>
       ) : null}
-      <ul className="grid gap-3 @2xl:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 @2xl:grid-cols-2">
         {rows.map((row) => {
           const selected = selection.has(row.id);
           const busy = actions.busyId === row.id;

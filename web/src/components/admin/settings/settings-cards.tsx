@@ -441,7 +441,7 @@ export function SeoCard({ hidden, isDefault }: CardProps) {
 function SeoPreview({ title, description }: { title: string; description: string }) {
   const site = getSiteUrl();
   return (
-    <div className="grid min-w-0 content-start gap-1.5">
+    <div className="grid min-w-0 grid-cols-1 content-start gap-1.5">
       <p className="text-sm leading-5 font-semibold text-ink-2">Pratinjau di Google</p>
       <div className="max-w-[600px] rounded-card border border-line bg-white p-4" aria-hidden="true">
         <div className="flex items-center gap-3">
