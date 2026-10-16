@@ -27,10 +27,22 @@ export async function expectNoHorizontalOverflow(page: Page): Promise<void> {
     const limit = Math.min(window.innerWidth, root.clientWidth);
     const scrollWidth = root.scrollWidth;
     const offenders: string[] = [];
-    if (scrollWidth > limit + 1) {
+    // body/html memakai overflow-x: clip, jadi scrollWidth tidak melebar walau isi terpotong di kanan.
+    // Elemen di dalam wadah yang memang bisa digeser (carousel: overflow-x auto/scroll/hidden) tidak dihitung.
+    const insideScroller = (el: Element) => {
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        const overflowX = getComputedStyle(p).overflowX;
+        if (overflowX === "auto" || overflowX === "scroll" || overflowX === "hidden") return true;
+      }
+      return false;
+    };
+    {
       for (const el of Array.from(document.body.querySelectorAll("*"))) {
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0 || rect.right <= limit + 1) continue;
+        const style = getComputedStyle(el);
+        if (style.position === "fixed" || style.visibility === "hidden") continue;
+        if (el.closest(".sr-only,[aria-hidden='true']") || insideScroller(el)) continue;
         const id = el.id ? `#${el.id}` : "";
         const classes =
           typeof el.className === "string" && el.className.trim()
@@ -45,8 +57,8 @@ export async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 
   const detail = result.offenders.length ? ` Elemen yang melewati tepi kanan: ${result.offenders.join("; ")}` : "";
   expect(
-    result.scrollWidth <= result.limit + 1,
-    `Halaman bisa digeser ke samping di ${page.url()}: scrollWidth ${result.scrollWidth}px > lebar viewport ${result.limit}px.${detail}`,
+    result.scrollWidth <= result.limit + 1 && result.offenders.length === 0,
+    `Halaman melebar ke samping di ${page.url()}: scrollWidth ${result.scrollWidth}px, lebar viewport ${result.limit}px.${detail}`,
   ).toBe(true);
 }
 

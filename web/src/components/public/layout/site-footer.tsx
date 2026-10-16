@@ -4,7 +4,7 @@ import { Clock, Mail, Phone, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { WhatsappIcon } from "@/components/icons/whatsapp";
 import type { SiteChrome } from "@/lib/data/chrome";
-import { formatOfficeHours, formatWhatsappDisplay, toDisplayLegalName } from "@/lib/format";
+import { formatOfficeHours, formatWhatsappDisplay, normalizeWhatsapp, toDisplayLegalName } from "@/lib/format";
 import { GENERAL_INQUIRY_MESSAGE, waLink } from "@/lib/whatsapp";
 
 // Tinggi 44px di mobile (target sentuh), lebih rapat di desktop.
@@ -30,6 +30,8 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
   const email = settings.contactEmail.trim();
   const phone = settings.contactPhone.trim();
   const phoneHref = phone.replace(/[^\d+]/g, "");
+  // Telepon yang sama dengan nomor WhatsApp tidak ditampilkan dua kali.
+  const showPhone = Boolean(phone && phoneHref) && normalizeWhatsapp(phone) !== normalizeWhatsapp(settings.whatsappNumber);
 
   return (
     <footer data-testid="site-footer" className="bg-linear-to-br from-night to-night-rose text-white/80">
@@ -104,7 +106,7 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
                   </span>
                 </a>
               </li>
-              {phone && phoneHref ? (
+              {showPhone ? (
                 <li>
                   <a href={`tel:${phoneHref}`} className="group inline-flex min-h-11 items-center gap-3 rounded-control">
                     <Phone className="size-5 shrink-0 text-white/70" aria-hidden="true" />

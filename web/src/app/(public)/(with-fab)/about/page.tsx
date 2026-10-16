@@ -43,8 +43,8 @@ export default async function AboutPage() {
       </Section>
 
       <Section className="pt-0 md:pt-0">
-        <div className="grid gap-8 rounded-card bg-white p-5 shadow-card ring-1 ring-line/80 sm:p-8 md:grid-cols-[1fr_320px] md:gap-12">
-          <div className="space-y-4 text-base leading-[26px] text-ink-2">
+        <div className="grid grid-cols-1 gap-8 rounded-card bg-white p-5 shadow-card ring-1 ring-line/80 sm:p-8 md:grid-cols-[minmax(0,1fr)_320px] md:gap-12">
+          <div className="min-w-0 space-y-4 text-base leading-[26px] text-ink-2">
             <div className="flex items-center gap-3">
               <span className="relative size-14 overflow-hidden rounded-full border border-line bg-white">
                 <Image src={logo} alt="" fill sizes="56px" className="object-cover" />
@@ -60,7 +60,7 @@ export default async function AboutPage() {
             ))}
           </div>
           {locations.length ? (
-            <ul className="grid content-start gap-3" aria-label="Apartemen kami">
+            <ul className="grid min-w-0 content-start gap-3" aria-label="Apartemen kami">
               {locations.map((location) => (
                 <li key={location.slug}>
                   <Link
