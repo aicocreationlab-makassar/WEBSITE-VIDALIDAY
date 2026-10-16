@@ -9,17 +9,27 @@ export function formatRupiah(value: number): string {
   return `Rp${rupiahNumber.format(Math.round(value))}`;
 }
 
-function trimDecimal(value: number): string {
-  // 1.5 → "1,5"; 2.0 → "2"
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
+/** Bentuk singkat hanya kalau persis (tanpa pembulatan); selain itu null. 1050000, 1e6, 2 → "1,05". */
+function exactShort(n: number, unit: number, decimals: number): string | null {
+  if (n % (unit / 10 ** decimals) !== 0) return null;
+  return (n / unit).toFixed(decimals).replace(/\.?0+$/, "").replace(".", ",");
 }
 
-/** 280000 → "Rp280rb", 1500000 → "Rp1,5jt", 1000000 → "Rp1jt" */
+/**
+ * 280000 → "Rp280rb", 1500000 → "Rp1,5jt", 1050000 → "Rp1,05jt".
+ * Nilai yang tidak bisa disingkat tanpa pembulatan ditulis penuh ("Rp1.234.567"),
+ * supaya label budget dan "mulai" tidak berbeda dengan harga sebenarnya.
+ */
 export function formatRupiahShort(value: number): string {
   const n = Math.round(value);
-  if (n >= 1_000_000) return `Rp${trimDecimal(n / 1_000_000)}jt`;
-  if (n >= 1_000) return `Rp${trimDecimal(n / 1_000)}rb`;
+  if (n >= 1_000_000) {
+    const short = exactShort(n, 1_000_000, 2);
+    return short === null ? formatRupiah(n) : `Rp${short}jt`;
+  }
+  if (n >= 1_000) {
+    const short = exactShort(n, 1_000, 1);
+    return short === null ? formatRupiah(n) : `Rp${short}rb`;
+  }
   return `Rp${n}`;
 }
 

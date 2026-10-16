@@ -15,12 +15,17 @@ import { Section, SectionHeading } from "@/components/public/shared/section-head
 import { UnitBreadcrumb } from "@/components/public/unit-detail/unit-breadcrumb";
 import { getCatalog } from "@/lib/data/catalog";
 import { getFacilities, getFaqs, getLandmarks } from "@/lib/data/content";
-import { getListedLocations, getLocationBySlug } from "@/lib/data/locations";
+import { getListedLocations } from "@/lib/data/locations";
 import { getSiteUrl } from "@/lib/env";
 import { apartmentPath, buildApartmentPageJsonLd } from "@/lib/seo/apartment-jsonld";
 import { JsonLd } from "@/lib/seo/json-ld";
 
 const MAX_FAQS = 5;
+
+/** Hanya apartemen terdaftar (aktif dan punya unit published) yang punya profil publik (PRD 7.5). */
+async function getListedLocation(slug: string) {
+  return (await getListedLocations()).find((location) => location.slug === slug) ?? null;
+}
 
 /**
  * Apartemen terdaftar (aktif dan punya unit) diprerender saat build, supaya `params` bisa dibaca
@@ -33,7 +38,7 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 
 export async function generateMetadata({ params }: PageProps<"/apartemen/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const location = await getLocationBySlug(slug);
+  const location = await getListedLocation(slug);
   if (!location) return {};
 
   // openGraph sengaja tidak diisi: objek openGraph di sini akan menggantikan milik layout dan membuang
@@ -52,7 +57,7 @@ export async function generateMetadata({ params }: PageProps<"/apartemen/[slug]"
  */
 export default async function ApartmentPage({ params }: PageProps<"/apartemen/[slug]">) {
   const { slug } = await params;
-  const location = await getLocationBySlug(slug);
+  const location = await getListedLocation(slug);
   if (!location) notFound();
 
   const [catalog, facilities, landmarks, faqs] = await Promise.all([

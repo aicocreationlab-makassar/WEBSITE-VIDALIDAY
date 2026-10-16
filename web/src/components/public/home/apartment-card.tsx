@@ -77,7 +77,7 @@ export function ApartmentCard({ location, sizes, className }: Props) {
 
         <div className="mt-auto flex items-center gap-2 pt-4">
           <Link
-            href={sewaHref({ lokasi: location.slug })}
+            href={sewaHref({ lokasi: location.slug, penuh: available === 0 })}
             className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-control whitespace-nowrap border-[1.5px] border-brand-600 bg-white px-4 text-[15px] font-semibold text-brand-700 transition-colors duration-150 ease-out group-hover:bg-brand-50 after:absolute after:inset-0 after:content-[''] focus-visible:ring-3 focus-visible:ring-brand-500/20"
           >
             Lihat unit<span className="sr-only"> di {location.shortName}</span>

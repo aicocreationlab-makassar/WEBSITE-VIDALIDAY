@@ -27,16 +27,22 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 /**
  * PNG unit (base64) di-cache utuh. Tag unit/units/locations dari getUnitBySlug ikut menempel,
  * jadi gambar diperbarui saat admin mengubah unit. null = unit tidak ada atau draft.
+ * Satu panggilan cacheLife per jalur (docs cacheLife: "conditional cache lifetimes").
  */
 async function unitOgPng(slug: string): Promise<string | null> {
   "use cache";
-  cacheLife("max");
 
   const unit = await getUnitBySlug(slug);
-  if (!unit) return null;
+  if (!unit) {
+    cacheLife("max");
+    return null;
+  }
   const photoUrl = pickOgPhotoUrl(unit.photos);
-  const [fonts, photo] = await Promise.all([loadOgFonts(), photoUrl ? fetchOgPhoto(photoUrl) : null]);
-  const bytes = await renderUnitOg(unit, photo, fonts);
+  const [fonts, fetched] = await Promise.all([loadOgFonts(), photoUrl ? fetchOgPhoto(photoUrl) : null]);
+  // Gagal sementara (font/foto timeout) jangan dibekukan 30 hari: cache pendek supaya segera dicoba lagi.
+  if (fonts && !fetched?.transient) cacheLife("max");
+  else cacheLife("minutes");
+  const bytes = await renderUnitOg(unit, fetched?.photo ?? null, fonts);
   return Buffer.from(bytes).toString("base64");
 }
 

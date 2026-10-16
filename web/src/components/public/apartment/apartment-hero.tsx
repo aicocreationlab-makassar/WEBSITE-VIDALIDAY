@@ -29,7 +29,8 @@ export function ApartmentHero({ location, typeCount }: Props) {
   const description = cleanDescription(location.description);
   const tagline = location.tagline?.trim() || null;
   const place = location.area ? `${location.area}, Makassar` : "Makassar";
-  const unitsHref = sewaHref({ lokasi: location.slug });
+  // Semua unit penuh: tampilkan unit penuh juga, supaya tautan tidak berakhir di "0 unit".
+  const unitsHref = sewaHref({ lokasi: location.slug, penuh: location.availableCount === 0 });
 
   return (
     <section aria-labelledby="apartemen-judul" className="pb-10 md:pt-6 md:pb-[72px]">

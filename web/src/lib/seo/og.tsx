@@ -164,17 +164,26 @@ export function sniffImageType(bytes: Uint8Array): "image/jpeg" | "image/png" | 
  * Foto unit sebagai data URL, atau null (bukan JPEG/PNG, terlalu besar, atau gagal diambil).
  * Dipanggil dari dalam fungsi "use cache" milik route OG unit, jadi tidak di-cache sendiri.
  */
-export async function fetchOgPhoto(url: string): Promise<string | null> {
-  if (!isSatoriImageUrl(url)) return null;
+/**
+ * Foto unit sebagai data URL. `transient` = gagal karena jaringan/timeout (layak dicoba lagi),
+ * berbeda dengan foto yang memang ditolak (terlalu besar, bukan JPEG/PNG).
+ */
+export async function fetchOgPhoto(url: string): Promise<{ photo: string | null; transient: boolean }> {
+  if (!isSatoriImageUrl(url)) return { photo: null, transient: false };
+  let response: Response;
   try {
-    const response = await fetchOk(url);
-    if (Number(response.headers.get("content-length")) > MAX_PHOTO_BYTES) return null;
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > MAX_PHOTO_BYTES) return null;
-    const type = sniffImageType(bytes);
-    return type ? `data:${type};base64,${Buffer.from(bytes).toString("base64")}` : null;
+    response = await fetchOk(url);
   } catch {
-    return null;
+    return { photo: null, transient: true };
+  }
+  try {
+    if (Number(response.headers.get("content-length")) > MAX_PHOTO_BYTES) return { photo: null, transient: false };
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength > MAX_PHOTO_BYTES) return { photo: null, transient: false };
+    const type = sniffImageType(bytes);
+    return { photo: type ? `data:${type};base64,${Buffer.from(bytes).toString("base64")}` : null, transient: false };
+  } catch {
+    return { photo: null, transient: true };
   }
 }
 
@@ -337,13 +346,16 @@ type OgUnit = Pick<
   | "promoPrice"
   | "isPromoActive"
   | "promoBadge"
+  | "isAvailable"
 >;
 
 /** Kartu unit: apartemen + posisi, nama unit, harga per malam (+ harga coret dan label promo). */
 export function unitOgCard(unit: OgUnit, photo: string | null): ReactElement {
   const fields = { normal_price: unit.normalPrice, promo_price: unit.promoPrice, is_promo_active: unit.isPromoActive };
   const strike = strikePrice(fields);
-  const badge = badgeFor({ ...fields, promo_badge: unit.promoBadge });
+  // Unit penuh: label "Penuh" menggantikan label promo, sama seperti di halaman (DESIGN 4.6).
+  const full = !unit.isAvailable;
+  const badge = full ? { label: "Penuh" } : badgeFor({ ...fields, promo_badge: unit.promoBadge });
   const name = truncate(unit.name, 64);
   const nameSize = name.length <= 24 ? 64 : name.length <= 40 ? 54 : 46;
 
@@ -394,9 +406,9 @@ export function unitOgCard(unit: OgUnit, photo: string | null): ReactElement {
                 display: "flex",
                 fontSize: 22,
                 fontWeight: 800,
-                color: C.brand700,
-                background: C.brand50,
-                border: `2px solid ${C.brand200}`,
+                color: full ? C.ink2 : C.brand700,
+                background: full ? C.surface2 : C.brand50,
+                border: `2px solid ${full ? C.muted : C.brand200}`,
                 borderRadius: 9999,
                 padding: "6px 18px",
                 whiteSpace: "nowrap",
@@ -410,7 +422,7 @@ export function unitOgCard(unit: OgUnit, photo: string | null): ReactElement {
     ),
     bottom: (
       <div style={{ display: "flex", alignItems: "center", fontSize: 24, fontWeight: 600, color: C.ink2 }}>
-        <span>Pesan cepat via WhatsApp</span>
+        <span>{unit.isAvailable ? "Pesan cepat via WhatsApp" : "Tanya ketersediaan via WhatsApp"}</span>
         <span style={{ color: C.muted, margin: "0 12px" }}>·</span>
         <span style={{ color: C.brand700, fontWeight: 800 }}>{SITE_LABEL}</span>
       </div>

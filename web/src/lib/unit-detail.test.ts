@@ -228,6 +228,7 @@ describe("booking card helpers", () => {
     const unit = { effectivePrice: 280_000, weeklyPrice: 1_750_000, monthlyPrice: null };
     expect(stayEstimate(unit, "", "")).toEqual({ status: "empty" });
     expect(stayEstimate(unit, "2026-10-20", "2026-10-20")).toEqual({ status: "invalid" });
+    expect(stayEstimate(unit, "2026-10-20", "2027-10-21")).toEqual({ status: "too-long" });
     expect(stayEstimate(unit, "2026-10-20", "2026-10-22")).toEqual({
       status: "ok",
       estimate: estimateTotal({ effective_price: 280_000, weekly_price: 1_750_000, monthly_price: null }, 2),

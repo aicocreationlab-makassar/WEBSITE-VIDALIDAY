@@ -25,7 +25,9 @@ export const metadata: Metadata = {
  * Hasil pencarian /sewa (PRD 6.3). Kerangka halaman statis; hasil bergantung searchParams sehingga
  * dirender per permintaan di dalam Suspense (skeleton sebagai fallback). Semua data dari fungsi "use cache".
  */
-export default function SewaPage({ searchParams }: PageProps<"/sewa">) {
+export default async function SewaPage({ searchParams }: PageProps<"/sewa">) {
+  // Indeks di-cache 'max' (bagian dari kerangka statis); dipakai untuk membuang riwayat unit yang sudah tidak ada.
+  const index = await getSearchIndex();
   return (
     <>
       <div className="mx-auto w-full max-w-[1200px] px-4 pt-5 pb-10 sm:px-6 md:pt-8 md:pb-[72px] lg:px-8">
@@ -34,7 +36,7 @@ export default function SewaPage({ searchParams }: PageProps<"/sewa">) {
         </Suspense>
       </div>
       {/* Hanya tampil kalau ada riwayat di perangkat ini; setelah hasil supaya tidak menggeser layout. */}
-      <RecentlyViewed className="bg-surface" />
+      <RecentlyViewed current={index.map((row) => ({ id: row.id, p: row.p }))} className="bg-surface" />
     </>
   );
 }

@@ -63,7 +63,10 @@ export default async function HomePage() {
       <ApartmentsSection locations={listed} className="bg-surface" />
 
       {/* Riwayat (hanya kalau ada) menyambung latar blok apartemen, tanpa jarak atas ganda. */}
-      <RecentlyViewed className={listed.length ? "bg-surface pt-0 md:pt-0" : "bg-surface"} />
+      <RecentlyViewed
+        current={index.map((row) => ({ id: row.id, p: row.p }))}
+        className={listed.length ? "bg-surface pt-0 md:pt-0" : "bg-surface"}
+      />
 
       <WhySection legalName={settings.companyLegalName} />
 

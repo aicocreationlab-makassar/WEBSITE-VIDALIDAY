@@ -27,7 +27,7 @@ export function ApartmentCta({ location }: Props) {
           <p className="mt-1 text-base text-white/85">{summary}</p>
         </div>
         <Button asChild size="lg" className="w-full shrink-0 focus-visible:ring-white/60 md:w-auto">
-          <Link href={sewaHref({ lokasi: location.slug })}>
+          <Link href={sewaHref({ lokasi: location.slug, penuh: location.availableCount === 0 })}>
             Lihat semua unit di {location.shortName}
             <ArrowRight aria-hidden="true" />
           </Link>

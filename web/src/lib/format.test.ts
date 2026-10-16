@@ -31,6 +31,13 @@ describe("Rupiah", () => {
     expect(formatRupiahShort(1000000)).toBe("Rp1jt");
     expect(formatRupiahShort(1500000)).toBe("Rp1,5jt");
     expect(formatRupiahShort(900)).toBe("Rp900");
+    // Tanpa pembulatan: label harus sama dengan harga sebenarnya.
+    expect(formatRupiahShort(1050000)).toBe("Rp1,05jt");
+    expect(formatRupiahShort(1250000)).toBe("Rp1,25jt");
+    expect(formatRupiahShort(2000000)).toBe("Rp2jt");
+    expect(formatRupiahShort(1234567)).toBe("Rp1.234.567");
+    expect(formatRupiahShort(250550)).toBe("Rp250.550");
+    expect(formatRupiahShort(10000000)).toBe("Rp10jt");
   });
 });
 

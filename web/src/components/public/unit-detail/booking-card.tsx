@@ -96,6 +96,8 @@ export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
     );
   } else if (estimate.status === "invalid") {
     estimateText = BOOKING_MESSAGES.checkOutOrder;
+  } else if (estimate.status === "too-long") {
+    estimateText = BOOKING_MESSAGES.stayTooLong;
   } else {
     estimateText = "Pilih tanggal untuk melihat estimasi";
   }
@@ -142,14 +144,15 @@ export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
         <span id={ids.guests} className="text-sm leading-5 font-semibold text-ink-2">
           Jumlah tamu
         </span>
+        {/* aria-disabled (bukan disabled) di batas: fokus keyboard tidak hilang ke <body>. Klik di batas no-op (clampGuests). */}
         <div role="group" aria-labelledby={ids.guests} className="flex items-center gap-1">
           <Button
             type="button"
             variant="secondary"
             size="icon"
-            className="rounded-full"
+            className="rounded-full aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
             aria-label="Kurangi tamu"
-            disabled={guests <= 1}
+            aria-disabled={guests <= 1 || undefined}
             onClick={() => setGuests((value) => clampGuests(value - 1))}
           >
             <Minus aria-hidden="true" />
@@ -162,9 +165,9 @@ export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
             type="button"
             variant="secondary"
             size="icon"
-            className="rounded-full"
+            className="rounded-full aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
             aria-label="Tambah tamu"
-            disabled={guests >= MAX_GUESTS}
+            aria-disabled={guests >= MAX_GUESTS || undefined}
             onClick={() => setGuests((value) => clampGuests(value + 1))}
           >
             <Plus aria-hidden="true" />

@@ -36,7 +36,3 @@ export async function getLocations(): Promise<LocationWithTypes[]> {
 export async function getListedLocations(): Promise<LocationWithTypes[]> {
   return (await getLocations()).filter((location) => location.unitCount > 0);
 }
-
-export async function getLocationBySlug(slug: string): Promise<LocationWithTypes | null> {
-  return (await getLocations()).find((location) => location.slug === slug) ?? null;
-}

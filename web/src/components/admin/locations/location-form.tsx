@@ -328,7 +328,8 @@ export function LocationForm({ detail, roomTypes }: Props) {
 
         <StickyActionBar status={isDirty ? "Ada perubahan yang belum disimpan" : null}>
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            {detail.isActive ? (
+            {/* Profil publik hanya ada untuk apartemen aktif yang punya unit tampil (PRD 7.5). */}
+            {detail.isActive && detail.publishedUnitCount > 0 ? (
               <Button asChild variant="ghost" className="px-3">
                 <a href={`/apartemen/${detail.slug}`} target="_blank" rel="noopener noreferrer">
                   <ExternalLink aria-hidden="true" />
@@ -378,7 +379,7 @@ function GmapsNote({ kind, onFill }: { kind: GmapsNoteKind; onFill: () => void }
     );
   }
   const tone =
-    kind === "filled" ? { icon: CircleCheck, className: "text-success" } : kind === "short" ? { icon: CircleAlert, className: "text-[#b45309]" } : { icon: Info, className: "text-ink-2" };
+    kind === "filled" ? { icon: CircleCheck, className: "text-emerald-700" } : kind === "short" ? { icon: CircleAlert, className: "text-[#b45309]" } : { icon: Info, className: "text-ink-2" };
   const IconComponent = tone.icon;
   return (
     <span role="status" className={cn("flex items-start gap-1.5 font-medium", tone.className)}>

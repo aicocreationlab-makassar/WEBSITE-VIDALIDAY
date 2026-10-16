@@ -9,9 +9,14 @@ import { clearRecent, getRecentServerSnapshot, getRecentSnapshot, subscribeRecen
 import { unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
 
+/** Harga terkini per unit dari katalog (unit yang tidak ada di sini sudah dihapus/disembunyikan). */
+export type CurrentPrices = { id: number; p: number }[];
+
 type Props = {
   /** Unit yang sedang dilihat (tidak ditampilkan). */
   excludeId?: number;
+  /** Kalau diisi: entri yang tidak ada di katalog dibuang dan harga memakai nilai terbaru. */
+  current?: CurrentPrices;
   max?: number;
   className?: string;
 };
@@ -20,9 +25,13 @@ type Props = {
  * "Terakhir kamu lihat" (PRD 6.6). Hanya tampil kalau ada riwayat di perangkat ini.
  * Baris ringkas (thumbnail 64px, nama, harga) + "Hapus riwayat". Data tidak pernah dikirim ke server.
  */
-export function RecentlyViewed({ excludeId, max = 6, className }: Props) {
+export function RecentlyViewed({ excludeId, current, max = 6, className }: Props) {
   const recent = useSyncExternalStore(subscribeRecent, getRecentSnapshot, getRecentServerSnapshot);
-  const items = recent.filter((r) => r.id !== excludeId).slice(0, max);
+  const prices = current ? new Map(current.map((row) => [row.id, row.p])) : null;
+  const items = recent
+    .filter((r) => r.id !== excludeId && (!prices || prices.has(r.id)))
+    .map((r) => ({ ...r, p: prices?.get(r.id) ?? r.p }))
+    .slice(0, max);
   if (!items.length) return null;
 
   return (

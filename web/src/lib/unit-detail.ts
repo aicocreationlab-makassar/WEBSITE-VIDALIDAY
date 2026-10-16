@@ -239,6 +239,7 @@ export function shiftCheckOut(prevCheckIn: string, prevCheckOut: string, nextChe
 export type StayEstimate =
   | { status: "empty" }
   | { status: "invalid" }
+  | { status: "too-long" }
   | { status: "ok"; estimate: Estimate };
 
 type RateUnit = Pick<CatalogUnit, "effectivePrice" | "weeklyPrice" | "monthlyPrice">;
@@ -248,7 +249,8 @@ export function stayEstimate(unit: RateUnit, checkIn: string, checkOut: string):
   if (!checkIn || !checkOut) return { status: "empty" };
   if (!isDateString(checkIn) || !isDateString(checkOut)) return { status: "invalid" };
   const nights = diffDays(checkIn, checkOut);
-  if (!Number.isFinite(nights) || nights < 1 || nights > MAX_NIGHTS) return { status: "invalid" };
+  if (!Number.isFinite(nights) || nights < 1) return { status: "invalid" };
+  if (nights > MAX_NIGHTS) return { status: "too-long" };
   return {
     status: "ok",
     estimate: estimateTotal(
