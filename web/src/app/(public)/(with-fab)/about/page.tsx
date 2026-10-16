@@ -60,7 +60,7 @@ export default async function AboutPage() {
             ))}
           </div>
           {locations.length ? (
-            <ul className="grid min-w-0 content-start gap-3" aria-label="Apartemen kami">
+            <ul className="grid min-w-0 grid-cols-1 content-start gap-3" aria-label="Apartemen kami">
               {locations.map((location) => (
                 <li key={location.slug}>
                   <Link
