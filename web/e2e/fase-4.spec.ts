@@ -46,11 +46,17 @@ async function captureWhatsapp(page: Page, mobile: boolean, submit: () => Promis
     await expect.poll(() => captured, { timeout: 15_000 }).toMatch(/^https:\/\/wa\.me\//);
     return captured;
   }
+  // Desktop: tab baru. Cegat wa.me di tingkat context (route halaman tidak berlaku untuk tab baru) supaya
+  // tidak bergantung pada internet; wa.me asli juga mengalihkan ke api.whatsapp.com.
+  let captured = "";
+  await page.context().route("https://wa.me/**", async (route) => {
+    captured = route.request().url();
+    await route.fulfill({ status: 200, contentType: "text/html", body: "<title>wa</title>" });
+  });
   const [popup] = await Promise.all([page.context().waitForEvent("page"), submit()]);
-  await expect.poll(() => popup.url(), { timeout: 15_000 }).toMatch(/^https:\/\/wa\.me\//);
-  const url = popup.url();
+  await expect.poll(() => captured, { timeout: 15_000 }).toMatch(/^https:\/\/wa\.me\//);
   await popup.close();
-  return url;
+  return captured;
 }
 
 test.describe("Detail unit", () => {

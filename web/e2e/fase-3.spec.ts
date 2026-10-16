@@ -101,8 +101,12 @@ async function expectOptionNotes(group: Locator, disabledNote: string): Promise<
   }
 }
 
+/**
+ * URL tepat /sewa?lokasi=<slug>. Regex, bukan predikat: toHaveURL(fungsi) memakai waitForURL yang juga
+ * menunggu event "load", padahal hasil /sewa di-stream (tanpa JS bisa lewat batas waktu walau URL benar).
+ */
 function sewaOnly(slug: string) {
-  return (url: URL) => url.pathname === "/sewa" && url.search === `?lokasi=${slug}`;
+  return new RegExp(`^https?://[^/]+/sewa\\?lokasi=${slug.replace(/[^a-z0-9-]/g, "")}$`);
 }
 
 async function expectResultCards(page: Page, expected: number): Promise<Locator> {

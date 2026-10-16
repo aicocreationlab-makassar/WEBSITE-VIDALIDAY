@@ -9,6 +9,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [["list"]],
+  // Mesin pengembangan lambat (2 CPU): hasil /sewa dan detail di-stream setelah kerangka statis.
+  expect: { timeout: 15_000 },
   use: {
     baseURL,
     channel: "chrome",

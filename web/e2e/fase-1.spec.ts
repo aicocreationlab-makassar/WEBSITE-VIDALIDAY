@@ -134,7 +134,8 @@ test.describe("Beranda", () => {
     await menu.getByRole("link", { name: "Cari unit", exact: true }).click();
 
     await expect(page).toHaveURL(/\/sewa$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Cari unit", exact: true })).toBeVisible();
+    // Fase 3 mengganti placeholder: judul /sewa berbentuk "N unit di ...".
+    await expect(page.getByTestId("sewa-heading")).toHaveText(/\d+ unit di \S/);
     await expect(menu).toBeHidden();
   });
 
