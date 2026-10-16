@@ -41,7 +41,7 @@ import {
 } from "@/lib/unit-detail";
 import { unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
-import { MAX_GUESTS } from "@/lib/validation/booking";
+import { MAX_GUESTS } from "@/lib/validation/booking-constants";
 import { sewaHref } from "@/lib/validation/filters";
 import { youtubeId } from "@/lib/youtube";
 

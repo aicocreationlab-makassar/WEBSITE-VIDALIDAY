@@ -6,7 +6,7 @@ import { addDays, diffDays, formatRupiah, isDateString, stripMarkdown } from "@/
 import type { IconName } from "@/lib/icons";
 import { estimateTotal, type Estimate } from "@/lib/pricing";
 import { cardAmenities, unitHref } from "@/lib/unit-display";
-import { MAX_GUESTS } from "@/lib/validation/booking";
+import { MAX_GUESTS } from "@/lib/validation/booking-constants";
 import { ROOM_CATEGORIES, type CatalogUnit, type UnitDetail } from "@/types/domain";
 
 // ---------------------------------------------------------------------------

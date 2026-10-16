@@ -3,7 +3,8 @@
 
 import { addDays, diffDays, formatDateShort, formatOfficeHours, formatRupiah, isDateString } from "@/lib/format";
 import { estimateTotal, type RateKind } from "@/lib/pricing";
-import { MAX_GUESTS, type BookingField, type BookingInput } from "@/lib/validation/booking";
+import type { BookingInput } from "@/lib/validation/booking";
+import { MAX_GUESTS, type BookingField } from "@/lib/validation/booking-constants";
 import type { LastLead, SavedGuest } from "@/lib/wa-redirect";
 import type { BookingPrefill, BookingUnit } from "./types";
 
