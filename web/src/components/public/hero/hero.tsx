@@ -46,6 +46,7 @@ export function Hero({ settings, locations, index }: HeroProps) {
             sizes="(min-width: 1280px) 1200px, 100vw"
             loading="eager"
             fetchPriority="high"
+            quality={50}
             className="object-cover object-center"
           />
           <div

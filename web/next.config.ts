@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname),
   images: {
+    // 75 = bawaan; 50 hanya untuk foto hero (tertutup overlay gelap) supaya LCP mobile lebih ringan.
+    qualities: [50, 75],
     remotePatterns: [
       ...supabaseStoragePattern(),
       // Data lama masih menyimpan URL Unsplash; dianggap "tanpa foto" oleh lib/media.ts.
