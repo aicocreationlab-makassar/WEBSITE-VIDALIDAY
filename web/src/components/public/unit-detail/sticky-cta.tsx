@@ -15,7 +15,7 @@ type Props = {
  * Harga panjang boleh turun baris ("/malam" ke bawah) daripada menabrak tombol.
  */
 export function StickyCta({ unit }: Props) {
-  const { open } = useBooking();
+  const { open, preload } = useBooking();
   return (
     <div
       data-testid="sticky-cta"
@@ -27,7 +27,14 @@ export function StickyCta({ unit }: Props) {
           size="bar"
           className="min-w-0 flex-1 [&>p:first-child]:flex-wrap [&>p:first-child]:gap-x-1 [&>p:first-child]:gap-y-0 [&>p:first-child]:whitespace-normal"
         />
-        <Button type="button" size="lg" className="shrink-0 basis-[52%] px-4" onClick={() => open({}, "sticky")}>
+        <Button
+          type="button"
+          size="lg"
+          className="shrink-0 basis-[52%] px-4"
+          onPointerEnter={preload}
+          onFocus={preload}
+          onClick={() => open({}, "sticky")}
+        >
           {unit.isAvailable ? "Sewa sekarang" : "Tanya ketersediaan"}
         </Button>
       </div>

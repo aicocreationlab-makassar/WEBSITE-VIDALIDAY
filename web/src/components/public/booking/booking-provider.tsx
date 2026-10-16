@@ -1,9 +1,18 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { track } from "@/lib/analytics";
-import { BookingSheet } from "./booking-sheet";
 import type { BookingContextValue, BookingPrefill, BookingSettings, BookingSource, BookingUnit } from "./types";
+import { useActiveLead } from "./use-active-lead";
+
+// Form sewa (Dialog/Sheet, react-hook-form, zod) baru diunduh saat pertama dibuka atau saat ada
+// niat membuka (hover/fokus/sentuh tombol sewa), supaya tidak membebani muatan awal halaman.
+const BookingSheet = dynamic(() => import("./booking-sheet").then((mod) => mod.BookingSheet), { ssr: false });
+
+function preloadBookingSheet() {
+  void import("./booking-sheet");
+}
 
 const BookingContext = createContext<BookingContextValue | null>(null);
 
@@ -23,11 +32,15 @@ type Props = {
  */
 export function BookingProvider({ unit, settings, siteUrl, largerUnitsHref, children }: Props) {
   const [open, setOpen] = useState(false);
+  const [requested, setRequested] = useState(false);
   const [prefill, setPrefill] = useState<BookingPrefill>({});
+  // Tamu kembali dari WhatsApp: panel "Permintaan terkirim" ada di modul form, jadi ikut dimuat.
+  const activeLead = useActiveLead(unit.slug, settings.officeHours);
 
   const openBooking = useCallback(
     (next: BookingPrefill = {}, source: BookingSource = "sticky") => {
       setPrefill(next);
+      setRequested(true);
       setOpen(true);
       track("booking_open", { unit: unit.slug, source });
     },
@@ -38,20 +51,22 @@ export function BookingProvider({ unit, settings, siteUrl, largerUnitsHref, chil
   // overlay dan kunci scroll tidak tertinggal, dan form tidak terbuka lagi saat kembali.
   useEffect(() => () => setOpen(false), []);
 
-  const value = useMemo<BookingContextValue>(() => ({ open: openBooking }), [openBooking]);
+  const value = useMemo<BookingContextValue>(() => ({ open: openBooking, preload: preloadBookingSheet }), [openBooking]);
 
   return (
     <BookingContext.Provider value={value}>
       {children}
-      <BookingSheet
-        open={open}
-        onOpenChange={setOpen}
-        unit={unit}
-        settings={settings}
-        siteUrl={siteUrl}
-        prefill={prefill}
-        largerUnitsHref={largerUnitsHref}
-      />
+      {requested || activeLead ? (
+        <BookingSheet
+          open={open}
+          onOpenChange={setOpen}
+          unit={unit}
+          settings={settings}
+          siteUrl={siteUrl}
+          prefill={prefill}
+          largerUnitsHref={largerUnitsHref}
+        />
+      ) : null}
     </BookingContext.Provider>
   );
 }

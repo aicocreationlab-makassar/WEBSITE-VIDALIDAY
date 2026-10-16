@@ -1,15 +1,13 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { Slider as SliderPrimitive } from "radix-ui";
+import dynamic from "next/dynamic";
 import { ChevronDown, SlidersHorizontal, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BUDGET_PRESETS, budgetLabel, type BudgetRange } from "@/lib/budget";
 import { formatRupiah } from "@/lib/format";
-import { PRICE_STEP } from "@/lib/search-index";
-import { cn } from "@/lib/utils";
 import type { SearchIndexRow } from "@/types/domain";
 import { HeroField } from "./hero-field";
 import {
@@ -27,6 +25,17 @@ import {
   type HeroState,
 } from "./hero-model";
 import { OptionRadioGroup } from "./option-radio-group";
+
+// Radix Slider baru diunduh saat panel budget dibuka (lihat handleOpenChange); selama termuat,
+// tempatnya diisi kotak setinggi slider (44px) supaya isian di bawahnya tidak bergeser.
+const BudgetSlider = dynamic(() => import("./budget-slider").then((mod) => mod.BudgetSlider), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className="h-11" />,
+});
+
+function preloadSlider() {
+  void import("./budget-slider");
+}
 
 type Props = {
   /** Baris indeks hero (hanya unit tersedia). */
@@ -60,6 +69,7 @@ export function BudgetField({ index, scope, scopeLabel, budget, onChange, isDesk
 
   function handleOpenChange(next: boolean) {
     if (next) {
+      if (bounds) preloadSlider();
       // Rentang kustom yang aktif langsung tampil terbuka; draft selalu mulai dari nilai aktif.
       setCustomOpen(bounds !== null && isCustomBudget(budget));
       if (bounds) setDraft(draftFromRange(budget, bounds));
@@ -140,29 +150,11 @@ export function BudgetField({ index, scope, scopeLabel, budget, onChange, isDesk
           <div ref={panelRef} id={panelId} hidden={!customOpen} className="px-3 pt-1 pb-2">
             {customOpen ? (
               <div className="flex flex-col gap-4">
-                <SliderPrimitive.Root
-                  min={bounds.min}
-                  max={bounds.max}
-                  step={PRICE_STEP}
-                  value={[slider.min, slider.max]}
-                  onValueChange={(values) => setDraft({ min: values[0] ?? null, max: values[1] ?? null })}
-                  className="relative flex h-11 w-full touch-none items-center select-none"
-                >
-                  <SliderPrimitive.Track className="relative h-1.5 grow overflow-hidden rounded-full bg-line">
-                    <SliderPrimitive.Range className="absolute h-full bg-brand-600" />
-                  </SliderPrimitive.Track>
-                  {/* Nama thumb sengaja beda dari label input supaya "Minimum"/"Maksimum" unik. */}
-                  <SliderPrimitive.Thumb
-                    aria-label="Batas bawah harga"
-                    aria-valuetext={formatRupiah(slider.min)}
-                    className={thumbClass}
-                  />
-                  <SliderPrimitive.Thumb
-                    aria-label="Batas atas harga"
-                    aria-valuetext={formatRupiah(slider.max)}
-                    className={thumbClass}
-                  />
-                </SliderPrimitive.Root>
+                <BudgetSlider
+                  bounds={bounds}
+                  value={slider}
+                  onChange={(min, max) => setDraft({ min, max })}
+                />
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex min-w-0 flex-col gap-1.5">
@@ -225,10 +217,3 @@ export function BudgetField({ index, scope, scopeLabel, budget, onChange, isDesk
     </HeroField>
   );
 }
-
-const thumbClass = cn(
-  "relative block size-6 rounded-full border-2 border-brand-600 bg-white shadow-card transition-[box-shadow] duration-150 ease-out",
-  // Area sentuh 44px.
-  "after:absolute after:-inset-2.5 after:rounded-full after:content-['']",
-  "hover:shadow-card-hover active:shadow-card-hover",
-);

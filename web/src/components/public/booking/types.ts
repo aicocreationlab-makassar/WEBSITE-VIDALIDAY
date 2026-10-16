@@ -42,4 +42,6 @@ export type BookingSource = "sticky" | "card" | "hero";
 export type BookingContextValue = {
   /** Buka form sewa (bottom sheet di mobile, modal di desktop). */
   open: (prefill?: BookingPrefill, source?: BookingSource) => void;
+  /** Unduh modul form lebih awal (hover/fokus/sentuh tombol pembuka), supaya terbuka tanpa jeda. */
+  preload: () => void;
 };

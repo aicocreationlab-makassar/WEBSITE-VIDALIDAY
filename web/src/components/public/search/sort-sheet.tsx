@@ -1,16 +1,20 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
+import dynamic from "next/dynamic";
 import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetBody, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { SORT_OPTIONS, type SortOption } from "@/lib/validation/filters";
-import { ChoiceList, type Choice } from "./choice-group";
 import { sortLabel } from "./filter-model";
 
-function sortChoices(value: SortOption): Choice[] {
-  return SORT_OPTIONS.map((option) => ({ value: option.value, label: option.label, selected: option.value === value }));
+// Sheet (Radix Dialog) diunduh saat tombol Urutkan pertama kali ditekan, disorot, atau difokus.
+const SortSheetDialog = dynamic(() => import("./sort-sheet-dialog").then((mod) => mod.SortSheetDialog), {
+  ssr: false,
+});
+
+function preloadDialog() {
+  void import("./sort-sheet-dialog");
 }
 
 function isSortOption(value: string | null): value is SortOption {
@@ -27,49 +31,34 @@ type SheetProps = {
 /** Tombol "Urutkan" + bottom sheet berisi baris 56px; ketuk = pilih, tutup, terapkan (mobile). */
 export function SortSheet({ value, onSelect, onChanged }: SheetProps) {
   const [open, setOpen] = useState(false);
-  const changed = useRef(false);
+  const [mounted, setMounted] = useState(false);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="secondary" className="w-full gap-2 px-3">
-          <ArrowUpDown aria-hidden="true" />
-          <span className="flex min-w-0 flex-col items-start text-left">
-            <span className="text-[15px] leading-[18px] font-semibold text-ink">Urutkan</span>
-            <span className="max-w-full truncate text-caption font-medium text-ink-2">{sortLabel(value)}</span>
-          </span>
-        </Button>
-      </SheetTrigger>
-
-      <SheetContent
-        side="bottom"
-        closeLabel="Tutup"
-        aria-describedby={undefined}
-        onCloseAutoFocus={() => {
-          // Fokus tetap kembali ke tombol Urutkan (bawaan Radix); hasil digulir ke atas kalau urutan berubah.
-          if (!changed.current) return;
-          changed.current = false;
-          requestAnimationFrame(onChanged);
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full gap-2 px-3"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onPointerEnter={preloadDialog}
+        onFocus={preloadDialog}
+        onClick={() => {
+          setMounted(true);
+          setOpen(true);
         }}
       >
-        <SheetHeader>
-          <SheetTitle>Urutkan</SheetTitle>
-        </SheetHeader>
-        <SheetBody className="px-2 pb-4">
-          <ChoiceList
-            label="Urutkan"
-            options={sortChoices(value)}
-            onSelect={(next) => {
-              setOpen(false);
-              if (isSortOption(next) && next !== value) {
-                changed.current = true;
-                onSelect(next);
-              }
-            }}
-          />
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
+        <ArrowUpDown aria-hidden="true" />
+        <span className="flex min-w-0 flex-col items-start text-left">
+          <span className="text-[15px] leading-[18px] font-semibold text-ink">Urutkan</span>
+          <span className="max-w-full truncate text-caption font-medium text-ink-2">{sortLabel(value)}</span>
+        </span>
+      </Button>
+
+      {mounted ? (
+        <SortSheetDialog open={open} onOpenChange={setOpen} value={value} onSelect={onSelect} onChanged={onChanged} />
+      ) : null}
+    </>
   );
 }
 
