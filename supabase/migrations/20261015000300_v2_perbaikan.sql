@@ -10,7 +10,7 @@
 --   2. Trigger updated_at di semua tabel konten
 --   3. Indeks kecil untuk admin (pencarian lead, filter check-in)
 --   4. Apartemen nonaktif: unitnya tidak terbaca publik dan tidak bisa disewa
---   5. backfill_v3(): perapian data hasil migrasi (lihat bagian 5)
+--   5. backfill_v3: perapian data lewat supabase/data-fixes/backfill_v3.sql (lihat bagian 5)
 -- =====================================================================
 
 
@@ -187,5 +187,7 @@ grant execute on function public.submit_lead(bigint, text, text, date, date, int
 
 
 -- ---------------------------------------------------------------------
---  5. backfill_v3(): DIFINALKAN SETELAH AUDIT DATA (Fase 2.0)
+--  5. backfill_v3: bukan fungsi di migrasi ini. Perapian data dibuat dari data asli
+--     oleh web/scripts/make-backfill-v3.mjs menjadi supabase/data-fixes/backfill_v3.sql
+--     (UPDATE per baris yang dijaga nilai lamanya) + pratinjau_backfill_v3.sql.
 -- ---------------------------------------------------------------------

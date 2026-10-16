@@ -72,6 +72,16 @@ describe("guessing icons from names", () => {
     ["Masjid 99 Kubah", "landmark"],
     ["Pantai Losari", "tree-palm"],
     ["Akses Tol Reformasi", "route"],
+    // Nama landmark dari data asli (impor 16 Okt 2026)
+    ["Pantai Losari & Kuliner Pisang Epe", "tree-palm"],
+    ["A.P Pettarrani Toll Road Southern End", "route"],
+    ["UC Makassar | Ciputra School of Business, CitraLand City CPI", "graduation-cap"],
+    ["RSUP Kemenkes Makassar", "hospital"],
+    ["Onyx Club Makassar", "music"],
+    ["Elite Bar Makassar", "music"],
+    ["Pallubasa Serigala", "utensils-crossed"],
+    ["Mie Titi Boulevard", "utensils-crossed"],
+    ["Trans Studio Mall Makassar", "shopping-bag"],
     ["Tempat lain", "map-pin"],
   ])("landmark %s → %s", (name, icon) => {
     expect(resolveLandmarkIcon(name, null)).toBe(icon);
@@ -82,5 +92,9 @@ describe("guessing icons from names", () => {
     expect(resolveFacilityIcon("Fitness Center", null)).toBe("dumbbell");
     expect(resolveFacilityIcon("Kolam Renang", "swimming-pool")).toBe("waves");
     expect(resolveFacilityIcon("Fasilitas misterius", null)).toBe("sparkles");
+    expect(resolveFacilityIcon("Kolam Renang Anak", null)).toBe("waves");
+    expect(resolveFacilityIcon("Kids Area & Relax", null)).toBe("baby");
+    expect(resolveFacilityIcon("Lobby Ashton", null)).toBe("door-open");
+    expect(resolveFacilityIcon("Working Space & Relax Area", null)).toBe("laptop");
   });
 });

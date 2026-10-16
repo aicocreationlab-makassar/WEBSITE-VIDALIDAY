@@ -2,6 +2,7 @@
 // Hanya ikon di daftar kurasi ini yang bisa dipilih admin (DESIGN 6). Tanpa emoji.
 
 import type { LucideIcon, LucideProps } from "lucide-react";
+import { guessAmenityIcon, guessFacilityIcon, guessLandmarkIcon } from "@/lib/icon-rules";
 import {
   AirVent,
   ArrowUpDown,
@@ -191,68 +192,23 @@ export function isKnownIconName(name: string | null | undefined): boolean {
 // Tebak ikon dari nama (untuk data lama yang ikonnya "check" atau kosong)
 // ---------------------------------------------------------------------------
 
-type KeywordRule = [RegExp, IconName];
-
-const AMENITY_RULES: KeywordRule[] = [
-  [/netflix|streaming/i, "clapperboard"],
-  [/\b(smart\s*)?tv\b|televisi/i, "tv"],
-  [/\bac\b|air\s*cond|pendingin/i, "air-vent"],
-  [/wi-?fi|internet/i, "wifi"],
-  [/water\s*heater|air\s*panas|pemanas\s*air/i, "shower-head"],
-  [/kulkas|refrigerator|lemari\s*es/i, "refrigerator"],
-  [/mesin\s*cuci|washing/i, "washing-machine"],
-  [/microwave/i, "microwave"],
-  [/dispenser|galon|air\s*minum/i, "glass-water"],
-  [/teko|kettle|kopi|coffee/i, "coffee"],
-  [/dapur|kitchen|kompor|rice\s*cooker|masak/i, "cooking-pot"],
-  [/meja\s*makan|alat\s*makan|peralatan\s*makan/i, "utensils"],
-  [/meja\s*(kerja|belajar)|work\s*desk|laptop/i, "laptop"],
-  [/sofa|ruang\s*(tamu|santai|keluarga)|living/i, "sofa"],
-  [/setrika|iron|lemari\s*pakaian|wardrobe|hanger/i, "shirt"],
-  [/balkon|balcony/i, "fence"],
-  [/\bview\b|pemandangan/i, "eye"],
-  [/handuk|towel|mandi|toiletries|bathtub|shampoo|sabun/i, "bath"],
-  [/king\s*bed|queen\s*bed|single\s*bed|kasur|ranjang|springbed|\bbed\b|kamar\s*tidur|bedroom/i, "bed-double"],
-  [/kapasitas|orang|tamu/i, "users"],
-  [/parkir|parking/i, "square-parking"],
-  [/kolam|pool/i, "waves"],
-];
-
-const LANDMARK_RULES: KeywordRule[] = [
-  [/bandara|airport|bandar\s*udara/i, "plane"],
-  [/rumah\s*sakit|\brs\b|hospital|siloam|primaya|hermina|klinik|awal\s*bros/i, "hospital"],
-  [/mall|transmart|\btsm\b|pipo|plaza|belanja|pasar|supermarket|square/i, "shopping-bag"],
-  [/kuliner|cafe|kafe|resto|restoran|topaz|pisang\s*epe|seafood|coto|konro|makan|kopi/i, "utensils-crossed"],
-  [/kampus|universitas|unhas|\bumi\b|unm|sekolah|politeknik|stikes/i, "graduation-cap"],
-  [/bioskop|cinema|\bxxi\b|karaoke|trans\s*studio|hiburan/i, "music"],
-  [/masjid|gereja|klenteng|pura|kubah|benteng|rotterdam|monumen|museum/i, "landmark"],
-  [/pantai|losari|pulau|wisata|danau|pelabuhan|dermaga/i, "tree-palm"],
-  [/\btol\b|jalan|terminal|stasiun|halte/i, "route"],
-];
-
-function guess(name: string | null | undefined, rules: KeywordRule[]): IconName | null {
-  if (!name) return null;
-  for (const [pattern, icon] of rules) if (pattern.test(name)) return icon;
-  return null;
-}
-
 /** Ikon fasilitas kamar: pakai ikon tersimpan kalau dikenal (dan bukan "check"), lalu tebak dari nama. */
 export function resolveAmenityIcon(name: string, icon: string | null | undefined): IconName {
   const stored = resolveIconName(icon, "check");
   if (stored !== "check") return stored;
-  return guess(name, AMENITY_RULES) ?? "check";
+  return guessAmenityIcon(name) ?? "check";
 }
 
 /** Ikon fasilitas gedung: ikon tersimpan dulu, lalu tebak dari nama, terakhir sparkles. */
 export function resolveFacilityIcon(name: string, icon: string | null | undefined): IconName {
   if (isKnownIconName(icon)) return resolveIconName(icon);
-  return guess(name, [...AMENITY_RULES, [/gym|fitness/i, "dumbbell"], [/taman|garden/i, "trees"], [/anak|kids|playground/i, "baby"], [/lobby|lobi/i, "door-open"], [/keamanan|security|satpam/i, "shield-check"], [/cctv/i, "cctv"], [/lift|elevator/i, "arrow-up-down"], [/minimarket|mart|toko/i, "store"], [/jogging|lari|track/i, "footprints"], [/sunset|sun|rooftop|deck/i, "sun"]]) ?? "sparkles";
+  return guessFacilityIcon(name) ?? "sparkles";
 }
 
 /** Ikon landmark: ikon tersimpan dulu, lalu tebak dari nama (pola situs lama), terakhir map-pin. */
 export function resolveLandmarkIcon(name: string, icon: string | null | undefined): IconName {
   if (isKnownIconName(icon)) return resolveIconName(icon, "map-pin");
-  return guess(name, LANDMARK_RULES) ?? "map-pin";
+  return guessLandmarkIcon(name) ?? "map-pin";
 }
 
 // ---------------------------------------------------------------------------
