@@ -73,7 +73,7 @@ export function StatusSection({ locations }: { locations: AdminLocationOption[] 
           description={
             available.field.value
               ? "Tamu bisa mengirim permintaan sewa seperti biasa."
-              : "Unit tampil dengan label Penuh dan turun ke bawah hasil pencarian."
+              : "Unit disembunyikan dari hasil pencarian (kecuali tamu memilih Tampilkan unit penuh); tombolnya jadi Tanya ketersediaan."
           }
           checked={Boolean(available.field.value)}
           onCheckedChange={(checked) => available.field.onChange(checked)}

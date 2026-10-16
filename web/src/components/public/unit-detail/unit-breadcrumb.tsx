@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /** Breadcrumb desktop: Beranda / {apartemen} / {unit} (PRD 6.4 no. 2). Item terakhir = halaman ini. */
 export function UnitBreadcrumb({ items, className }: { items: Crumb[]; className?: string }) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("min-w-0", className)}>
+    <nav aria-label="Jejak halaman" className={cn("min-w-0", className)}>
       <ol className="flex min-w-0 items-center gap-1 text-sm text-muted">
         {items.map((item, i) => {
           const last = i === items.length - 1;

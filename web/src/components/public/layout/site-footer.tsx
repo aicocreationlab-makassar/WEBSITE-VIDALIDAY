@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Clock, Mail, ShieldCheck } from "lucide-react";
+import { Clock, Mail, Phone, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { WhatsappIcon } from "@/components/icons/whatsapp";
 import type { SiteChrome } from "@/lib/data/chrome";
@@ -28,6 +28,8 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
   const waHref = waLink(settings.whatsappNumber, GENERAL_INQUIRY_MESSAGE);
   const officeHours = formatOfficeHours(settings.officeHours);
   const email = settings.contactEmail.trim();
+  const phone = settings.contactPhone.trim();
+  const phoneHref = phone.replace(/[^\d+]/g, "");
 
   return (
     <footer data-testid="site-footer" className="bg-linear-to-br from-night to-night-rose text-white/80">
@@ -102,6 +104,19 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
                   </span>
                 </a>
               </li>
+              {phone && phoneHref ? (
+                <li>
+                  <a href={`tel:${phoneHref}`} className="group inline-flex min-h-11 items-center gap-3 rounded-control">
+                    <Phone className="size-5 shrink-0 text-white/70" aria-hidden="true" />
+                    <span className="flex flex-col">
+                      <span className="text-caption text-white/70">Telepon</span>
+                      <span className="text-[15px] font-semibold text-white tabular-nums underline-offset-4 group-hover:underline">
+                        {phone}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ) : null}
               {officeHours ? (
                 <li className="flex min-h-11 items-center gap-3">
                   <Clock className="size-5 shrink-0 text-white/70" aria-hidden="true" />

@@ -43,7 +43,7 @@ export async function DashboardStats({ units, leadCounts }: Props) {
           value={stats?.full ?? null}
           icon={DoorClosed}
           href="/admin/units?status=tampil&stok=penuh"
-          detail={stats ? (stats.full > 0 ? "tamu tidak bisa memesan" : "semua unit tersedia") : null}
+          detail={stats ? (stats.full > 0 ? "tamu hanya bisa tanya ketersediaan" : "semua unit tersedia") : null}
         />
         <StatCard
           label="Unit promo aktif"

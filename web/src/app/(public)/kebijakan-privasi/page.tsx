@@ -64,8 +64,8 @@ export default async function PrivacyPolicyPage() {
 
         <Heading id="penyimpanan">Lama penyimpanan</Heading>
         <p>
-          Data permintaan sewa disimpan paling lama 12 bulan sejak dikirim, lalu dihapus. Data disimpan di layanan basis
-          data berbasis cloud yang hanya bisa diakses admin VIDALIDAY.
+          Data permintaan sewa disimpan selama diperlukan untuk melayani sewa dan administrasi, dan dihapus kalau kamu
+          memintanya. Data disimpan di layanan basis data berbasis cloud yang hanya bisa diakses admin VIDALIDAY.
         </p>
 
         <Heading id="perangkat">Data di perangkat kamu</Heading>
@@ -79,7 +79,11 @@ export default async function PrivacyPolicyPage() {
             pernah dikirim ke server kami.
           </li>
         </ul>
-        <p>Kamu bisa menghapus keduanya kapan saja lewat tombol &ldquo;Hapus riwayat&rdquo; atau pengaturan browser.</p>
+        <p>
+          Daftar &ldquo;Terakhir kamu lihat&rdquo; bisa dihapus kapan saja lewat tombol &ldquo;Hapus riwayat&rdquo;. Nama
+          dan nomor yang tersimpan terhapus kalau kamu mengirim form tanpa mencentang &ldquo;Ingat data saya&rdquo;.
+          Keduanya juga bisa dihapus lewat pengaturan browser (hapus data situs).
+        </p>
 
         <Heading id="berbagi">Berbagi data</Heading>
         <p>
