@@ -5,11 +5,19 @@ import dynamic from "next/dynamic";
 import { ChevronDown, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** true setelah modul popover termuat (popover benar-benar bisa tampil). */
+let popoverReady = false;
+
 // Popover (desktop) dan bottom sheet (mobile) diunduh saat field pertama kali dibuka, atau lebih
 // awal saat field disorot/difokus/disentuh. Mobile tidak pernah mengunduh kode popover, dan sebaliknya.
-const HeroFieldPopover = dynamic(() => import("./hero-field-popover").then((mod) => mod.HeroFieldPopover), {
-  ssr: false,
-});
+const HeroFieldPopover = dynamic(
+  () =>
+    import("./hero-field-popover").then((mod) => {
+      popoverReady = true;
+      return mod.HeroFieldPopover;
+    }),
+  { ssr: false },
+);
 const HeroFieldSheet = dynamic(() => import("./hero-field-sheet").then((mod) => mod.HeroFieldSheet), {
   ssr: false,
 });
@@ -79,7 +87,13 @@ export function HeroField({
         disabled={disabled}
         onPointerEnter={preload}
         onFocus={preload}
-        onClick={() => onOpenChange(!open)}
+        onClick={() => {
+          // Mobile: sheet modal menutupi tombol, jadi klik selalu membuka. Desktop: klik saat popover
+          // tampil menutupnya (seperti PopoverTrigger). Ketukan kedua selagi modul overlay masih
+          // diunduh tidak menutup field yang sedang dibuka.
+          if (!open) onOpenChange(true);
+          else if (isDesktop && popoverReady) onOpenChange(false);
+        }}
         className={cn(
           "group flex h-14 w-full min-w-0 items-center gap-3 rounded-control border-[1.5px] border-line bg-white px-3.5 text-left transition-[border-color,background-color] duration-150 ease-out hover:border-subtle aria-expanded:border-brand-500 disabled:cursor-not-allowed disabled:bg-surface-2 disabled:hover:border-line",
           className,
