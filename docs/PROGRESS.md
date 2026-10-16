@@ -2,19 +2,20 @@
 
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
-**Fase aktif:** 7. Kode Fase 1–6 selesai; QA kode Fase 7 (4 lensa + verifikasi) sudah diperbaiki; lint/typecheck/529 unit test/cek emoji lulus.
-Data lama sudah diimpor (16 Okt 2026): 2 apartemen, 55 unit (semua terhubung ke tipe kamar v2), 11 fasilitas gedung, 21 landmark, 5 FAQ, 19 pengaturan lama; 68 foto ada di bucket `media`. Migrasi 0003 dan `backfill_v3.sql` sudah dijalankan pemilik. Verifikasi dengan data asli sedang berjalan.
+**Status (17 Okt 2026):** Fase 0–7 selesai dan diverifikasi dengan data asli, tag `v2.0.0-rc1`. Sisa sebelum go-live ada di "Yang perlu dilakukan pemilik" dan "Checklist go-live".
+lint, typecheck, 546 unit test, cek emoji, dan cek secret bundle lulus. Data lama sudah diimpor: 2 apartemen, 55 unit (semua terhubung ke tipe kamar v2), 11 fasilitas gedung, 21 landmark, 5 FAQ, 19 pengaturan lama, dan 68 foto di bucket `media`. Migrasi 0003 dan `backfill_v3.sql` sudah dijalankan pemilik.
 
 Status verifikasi per fase:
 
-| Fase | Kode | Unit test | Build + e2e + screenshot dengan data asli |
+| Fase | Kode | Unit test | Verifikasi dengan data asli |
 |---|---|---|---|
-| 1 | selesai | lulus | lulus (tanpa data, bingkai saja); build dengan env asli lulus 16 Okt |
-| 2 | selesai | lulus | audit data + impor + `backfill_v3` selesai 16 Okt |
-| 3 | selesai | lulus | menunggu data |
-| 4 | selesai | lulus | menunggu data |
-| 5 | selesai | lulus | menunggu data + CP-C (login admin) |
-| 6 | selesai | lulus | menunggu data + CP-C (login admin) |
+| 1 | selesai | lulus | build + e2e lulus |
+| 2 | selesai | lulus | audit data, impor, `backfill_v3`; anon tidak bisa membaca `leads`; `submit_lead` menolak input salah |
+| 3 | selesai | lulus | e2e fase-3 lulus 390/1280; screenshot diperiksa |
+| 4 | selesai | lulus | e2e fase-4 lulus termasuk simulasi Supabase mati; 1 lead UJI QA asli tersimpan (`VDL-C523CB`, sudah Batal) |
+| 5 | selesai | lulus | CP-C: harga cepat langsung tampil di publik; apartemen + tipe + unit uji muncul di hero/filter/sitemap setelah aktif lalu dihapus; foto terunggah sebagai `image/webp`. Uji penolakan akun non-admin dilewati (tidak ada akun non-admin). |
+| 6 | selesai | lulus | satu perubahan per entitas (pengaturan, FAQ, landmark, fasilitas gedung, fasilitas kamar, About) tampil di publik lalu dikembalikan; CSV diawali BOM dan 15/15 kolom; "Segarkan data situs" bekerja |
+| 7 | selesai | lulus | e2e akhir fase 1/3/4: 78 lulus, 8 dilewati sesuai kondisi (lightbox butuh ≥ 2 foto, lead asli butuh `E2E_REAL_LEAD=1`, tes khusus ukuran layar), 0 gagal; QA kode 4 lensa (25 temuan diperbaiki); sapuan DOM elemen terpotong semua halaman publik (360/390/768) dan admin (390/1280); Lighthouse a11y/SEO 100 (performa: lihat Keterbatasan) |
 
 Rencana eksekusi lengkap yang disetujui pemilik: `docs/audit/rencana-eksekusi.md`.
 Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
@@ -28,18 +29,18 @@ Laporan audit dan desain (acuan untuk semua fase): `docs/audit/*.md`.
   - lint, typecheck, 150 unit test, build, cek emoji, cek secret: lulus
   - e2e `e2e/fase-1.spec.ts` terhadap `next start`: 33 lulus (390px & 1280px), screenshot diperiksa
   - `/admin` tanpa sesi → 307 ke `/admin/login`; header keamanan dan redirect URL lama berjalan
-- [ ] **Fase 2** — Lapisan data v2: query + cache tag, rekomendasi tahap 1, validasi zod, action `submitLead`
-- [ ] **Fase 3** — Beranda (hero + kotak pencarian) dan `/sewa` (filter, urutan, paginasi)
-- [ ] **Fase 4** — Detail unit, form sewa → WhatsApp, rekomendasi tahap 2, apartemen, about, privasi, SEO, analitik
-- [ ] **Fase 5** — Admin 1: login, layout, dashboard, unit (daftar + form + foto), apartemen & tipe kamar, fasilitas kamar
-- [ ] **Fase 6** — Admin 2: fasilitas gedung, landmark, FAQ, permintaan sewa, about, pengaturan
-- [ ] **Fase 7** — QA, performa, aksesibilitas, keamanan, README, checklist go-live
+- [x] **Fase 2** — Lapisan data v2: query + cache tag, rekomendasi tahap 1, validasi zod, action `submitLead`
+- [x] **Fase 3** — Beranda (hero + kotak pencarian) dan `/sewa` (filter, urutan, paginasi)
+- [x] **Fase 4** — Detail unit, form sewa → WhatsApp, rekomendasi tahap 2, apartemen, about, privasi, SEO, analitik
+- [x] **Fase 5** — Admin 1: login, layout, dashboard, unit (daftar + form + foto), apartemen & tipe kamar, fasilitas kamar
+- [x] **Fase 6** — Admin 2: fasilitas gedung, landmark, FAQ, permintaan sewa, about, pengaturan
+- [x] **Fase 7** — QA, performa, aksesibilitas, keamanan, README, checklist go-live (performa mobile lokal di bawah target; lihat Keterbatasan)
 
 ## Yang perlu dilakukan pemilik
 
 Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
 
-- [ ] **CP-A** (setelah scaffold Fase 1):
+- [x] **CP-A** (setelah scaffold Fase 1); butir 3–4 sisa, lihat di bawah:
   1. Buat `web/.env.local` berisi 3 variabel dari SETUP.md §4 (tanpa secret key).
   2. Opsional: jalankan `npx supabase login` di terminal sendiri, supaya tipe database bisa di-generate.
   3. Matikan sign-up publik di Supabase Auth (SETUP.md §3.2).
@@ -48,7 +49,16 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
 - [x] **Hapus `SUPABASE_SECRET_KEY` dari `web/.env.local`** (pindahkan ke env paket migrasi). Aplikasi tidak membacanya; jangan disalin ke Vercel (SETUP §3.4).
 - [x] **CP-B** (16 Okt 2026): migrasi `20261015000300_v2_perbaikan.sql` dan `supabase/data-fixes/backfill_v3.sql` sudah dijalankan; pertanyaan data dijawab (lihat Keputusan).
   Migrasi ini juga menyembunyikan unit milik apartemen nonaktif dari publik dan menolak permintaan sewa untuk unit itu (policy `units` + `submit_lead`).
-- [ ] **CP-C** (Fase 5): login sendiri sebagai `admin-qa` di panel browser aplikasi saat diminta, lalu sekali sebagai `nonadmin-qa`.
+- [x] **CP-C** (17 Okt 2026): pemilik login admin sendiri di panel browser; gate admin selesai.
+- [ ] **Uji penolakan akun non-admin** (opsional, dilewati 17 Okt): buat akun di Supabase Auth tanpa baris `admins`, login di `/admin/login`, pastikan muncul "Akun ini tidak punya akses admin."
+- [ ] **Matikan sign-up publik** di Supabase Auth (SETUP §3.2), kalau belum.
+- [ ] **Hapus file uji yatim** di Storage → bucket `media` → `locations/0ff2b8ba-2c68-4ec4-b3ac-a66a17363cf9.webp` (13,5 KB, dari percobaan unggah sebelum bug simpan apartemen diperbaiki).
+- [ ] **Rapikan data di admin** (tidak memblokir go-live):
+  - slug unit asal-asalan: "Studio AT 8X" → `asdasd-448`, "STUDIO 1026" → `tes-470` (Ubah unit → "Samakan dengan nama"; tautan lama ke slug itu akan 404);
+  - tower 19 unit Delft masih kosong (19 unit "perlu dicek" di dashboard);
+  - deskripsi "Studio AT 17S" masih menyebut Tower Brentsville, padahal tower-nya Ashton;
+  - dua unit "2BR BV 18Y" (id 479 dan 480): beri nama pembeda kalau perlu.
+- [ ] **Drive C: hampir penuh** di komputer pengembangan (sempat 0 GB, `ENOSPC`): file sementara build/Lighthouse dipindah ke `D:\vdl-tmp`. Bebaskan ruang di C: (mis. `npm cache clean --force` untuk cache npm 5,8 GB) supaya aplikasi Claude dan browser tidak bermasalah.
 
 - [ ] **Supabase Auth untuk lupa kata sandi admin** (Fase 5):
   1. Authentication → URL Configuration: Site URL `https://vidaliday.com`; Redirect URLs tambah `https://vidaliday.com/admin/auth/confirm` dan `http://localhost:3000/admin/auth/confirm`.
@@ -71,6 +81,8 @@ Ikuti `docs/SETUP.md` §5–8 (Vercel, domain, checklist A–E, rollback). Tamba
 - [ ] Supabase plan Pro disarankan: project Free bisa di-pause dan membuat build gagal (halaman data sengaja gagal keras tanpa database).
 
 **Di Vercel Preview**
+
+- [ ] PageSpeed Insights (mobile) untuk `/`, `/sewa?lokasi=vida-view`, dan satu `/unit/<slug>`: target Performance ≥ 90, Accessibility ≥ 95. Lokal hanya 74–77 di mesin lambat; kalau di Vercel masih < 90, minta Claude mengurangi JS bersama (lihat Keterbatasan).
 
 - [ ] Uji kesegaran cache: ubah harga satu unit di admin, lalu buka `/`, `/sewa`, `/unit/<slug>` dari browser lain. Harga baru harus langsung tampil (kalau masih basi, beri tahu Claude: cache diganti ke `'use cache: remote'`).
 - [ ] Tambah apartemen + tipe kamar uji, pastikan muncul di hero dan filter setelah diaktifkan, lalu hapus.
@@ -213,12 +225,27 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 16 Okt 2026 | Data lama diimpor lewat ekspor phpMyAdmin + konverter (`web/scripts/convert-mysql-dump.mjs`), bukan paket migrasi (tidak ada di repo). Hanya 6 tabel konten; `users` tidak ikut. Ekspor dan SQL impor di `export/` (di-ignore Git). | Paket `tools/` tidak tersedia; pemilik memilih jalur ekspor. |
 | 16 Okt 2026 | CP-B: ejaan tower **Brentsville** (tower, deskripsi, nama fasilitas); tower mengikuti kode nama unit (AT = Ashton, BV = Brentsville), termasuk "Studio AT 17S"; kapasitas "2BR CORNER BV 19V" 1 → 7 dan "2BR BV 29Q" 2 → 5; dua unit "2BR BV 18Y" dibiarkan. | Jawaban pemilik. |
 | 16 Okt 2026 | `backfill_v3` bukan fungsi DB, tapi SQL per baris yang dibuat `web/scripts/make-backfill-v3.mjs` dari data asli (aturan ikon sama dengan aplikasi lewat `lib/icon-rules.ts`). Jalankan ulang skrip setelah migrasi data final saat go-live. | Hasil tepat per baris, bisa ditinjau, aman diulang. |
+| 17 Okt 2026 | Skema zod admin dibuat idempoten (`nullish` untuk teks opsional, link YouTube, link Maps); ada tes `parse(parse(x))` per skema. Pesan bawaan zod memakai locale Indonesia (`lib/validation/locale.ts`). | Bug ditemukan di gate CP-C: form mengirim hasil parse (kosong → null) ke Server Action yang mem-parse ulang, jadi simpan apartemen dengan kolom kosong selalu gagal dengan pesan bahasa Inggris. |
+| 17 Okt 2026 | Form apartemen dan unit membuang foto yang diunggah tapi tidak jadi disimpan (`discardLocationUploads`, `discardUnitUploads`), sama seperti form fasilitas dan pengaturan. | Mencegah file yatim di Storage. |
+| 17 Okt 2026 | Grid daftar/kartu yang berisi teks `truncate` wajib `grid-cols-1` / `minmax(0,1fr)` (About, kartu unit/lead admin, pratinjau Google). Helper e2e `expectNoHorizontalOverflow` kini juga menangkap isi yang terpotong `overflow-x: clip`. | Kolom grid implisit `auto` ikut melebar mengikuti teks nowrap; body memakai `overflow-x: clip` sehingga cek `scrollWidth` saja tidak melihatnya. |
+| 17 Okt 2026 | Tes e2e: batas `expect` 15 detik; URL `/sewa` dicek dengan regex (`toHaveURL(fungsi)` ikut menunggu event load); tab WhatsApp desktop dicegat di tingkat context. | Mesin pengembangan lambat; tes tidak bergantung pada internet. |
+| 17 Okt 2026 | Lighthouse lokal: versi 13.5.0 (rilis ≥ 14 hari), median 3 run, `cpuSlowdownMultiplier=1` karena benchmarkIndex mesin 357. Angka resmi diambil dari PageSpeed Insights di Vercel Preview. | Pedoman Lighthouse untuk mesin lambat; hasil lokal tidak mewakili produksi. |
+| 17 Okt 2026 | File sementara (cache npm, TEMP build/Lighthouse/Playwright) di `D:\vdl-tmp` karena drive C: penuh. | Arahan pemilik ("pakai ruang D"). |
 
 ## Keterbatasan yang diketahui
 
 - Mengganti nama tipe kamar tidak memperbarui kolom lama `units.room_type` di unit yang sudah ada (kolom itu hanya untuk kompatibilitas; aplikasi membaca `room_type_id`).
 - Filter apartemen di admin permintaan sewa mencocokkan nama apartemen saat ini dengan `leads.location_name`; permintaan lama dengan nama apartemen yang sudah diganti tidak ikut tersaring.
 - Form admin belum memakai kunci versi (optimistic concurrency): kalau dua admin mengubah data yang sama bersamaan, simpanan terakhir yang berlaku.
+- **Performa Lighthouse mobile di mesin lokal di bawah target ≥ 90:** beranda 77, `/sewa` 74, detail unit 75 (median 3 run, Lighthouse 13.5.0). Accessibility dan SEO 100, Best Practices 96 (satu-satunya pengurang: skrip Vercel Analytics 404 di lokal), CLS 0, TBT 72–239 ms. Yang menahan: LCP sekitar 4,4–5,2 detik di simulasi 4G lambat (1,6 Mbps).
+  - Mesin pengembangan sangat lambat (benchmarkIndex 357; acuan Lighthouse sekitar 1500), jadi `cpuSlowdownMultiplier=1` dipakai sesuai pedoman Lighthouse.
+  - Server lokal masih HTTP/1.1 + gzip, sedangkan Vercel memakai HTTP/2 + Brotli + CDN.
+  - Pembanding: halaman privasi (hampir tanpa gambar) 85; beranda dengan skrip `_next` diblokir 88. Jadi sekitar 1,4 detik LCP berasal dari JS bersama (318 KB), sisanya HTML/CSS/font/foto hero.
+  - Sudah dilakukan: kualitas foto hero 50.
+  - Langkah berikutnya: ukur dengan PageSpeed Insights di Vercel Preview (checklist go-live). Kalau masih < 90, kurangi JS bersama, misalnya muat sheet menu, form sewa, dan popover hero secara dinamis.
+- **Pemeriksaan visual admin terbatas:** panel browser aplikasi terlalu kecil untuk screenshot 1280px yang terbaca. Admin diverifikasi lewat sapuan DOM (elemen terpotong) di semua halaman pada 390 dan 1280 plus uji fungsi per entitas. Playwright tidak bisa memakai sesi admin karena Claude tidak memegang kredensial.
+- **Cache CDN Storage:** file yang dihapus dari bucket (mis. foto unit yang dihapus) masih bisa terbuka lewat URL publik lama selama cache Cloudflare Supabase belum kedaluwarsa. Objeknya sendiri sudah terhapus (`NoSuchKey`).
+- **Lama penyimpanan data lead** belum ada mekanisme hapus otomatis; draf kebijakan privasi menulis "selama diperlukan, dihapus atas permintaan" (lihat Pertanyaan terbuka).
 
 ## Pertanyaan terbuka
 
