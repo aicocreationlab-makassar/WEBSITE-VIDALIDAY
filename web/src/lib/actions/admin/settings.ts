@@ -180,6 +180,17 @@ export async function saveAbout(input: unknown): Promise<ActionResult> {
  * dibatalkan, atau halaman ditinggalkan). Hanya unggahan baru `settings/<uuid>.webp` yang tidak
  * sedang dipakai sebagai foto hero atau logo.
  */
+/**
+ * Segarkan semua cache halaman publik. Perubahan lewat panel admin sudah langsung tampil;
+ * ini untuk data yang diubah langsung di database (paket migrasi, SQL Editor, Table Editor).
+ */
+export async function refreshPublicData(): Promise<ActionResult> {
+  const auth = await guardAdmin();
+  if (!auth.ok) return auth.result;
+  invalidate({ kind: "all" });
+  return { ok: true, message: "Data situs disegarkan" };
+}
+
 export async function discardSettingsUploads(paths: unknown): Promise<ActionResult> {
   const auth = await guardAdmin();
   if (!auth.ok) return auth.result;

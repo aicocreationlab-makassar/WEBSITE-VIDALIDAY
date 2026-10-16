@@ -23,7 +23,9 @@ export type InvalidateTarget =
   | { kind: "facility" }
   | { kind: "landmark" }
   | { kind: "faq" }
-  | { kind: "settings" };
+  | { kind: "settings" }
+  /** Semua data publik: dipakai setelah data diubah langsung di database (migrasi, SQL Editor). */
+  | { kind: "all" };
 
 /** Daftar tag yang harus kedaluwarsa untuk sebuah perubahan (fungsi murni, ada test). */
 export function tagsFor(target: InvalidateTarget): string[] {
@@ -48,5 +50,16 @@ export function tagsFor(target: InvalidateTarget): string[] {
       return [TAGS.faqs];
     case "settings":
       return [TAGS.settings];
+    case "all":
+      return [
+        TAGS.units,
+        TAGS.locations,
+        TAGS.amenities,
+        TAGS.facilities,
+        TAGS.landmarks,
+        TAGS.faqs,
+        TAGS.settings,
+        TAGS.popularity,
+      ];
   }
 }

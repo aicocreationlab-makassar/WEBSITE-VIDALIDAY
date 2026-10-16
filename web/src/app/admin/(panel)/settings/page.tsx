@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SectionError } from "@/components/admin/dashboard/dashboard-section";
+import { RefreshSiteCard } from "@/components/admin/settings/refresh-site-card";
 import { SettingsForm } from "@/components/admin/settings/settings-form";
 import { fieldsUsingDefault, toSettingsFormValues } from "@/components/admin/settings/settings-model";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -25,11 +26,14 @@ export default async function AdminSettingsPage() {
   }
 
   return (
-    <SettingsForm
-      key={data.settingsUpdatedAt ?? "baru"}
-      initial={toSettingsFormValues(data.settings)}
-      usingDefault={fieldsUsingDefault(data.filledKeys)}
-      savedAt={data.settingsUpdatedAt}
-    />
+    <>
+      <SettingsForm
+        key={data.settingsUpdatedAt ?? "baru"}
+        initial={toSettingsFormValues(data.settings)}
+        usingDefault={fieldsUsingDefault(data.filledKeys)}
+        savedAt={data.settingsUpdatedAt}
+      />
+      <RefreshSiteCard />
+    </>
   );
 }

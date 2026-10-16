@@ -84,4 +84,10 @@ describe("cache tags", () => {
     expect(tagsFor({ kind: "roomType" })).toEqual(["locations", "units"]);
     expect(tagsFor({ kind: "amenity" })).toEqual(["amenities", "units"]);
   });
+
+  it("refreshes every public tag after direct database changes", () => {
+    expect(new Set(tagsFor({ kind: "all" }))).toEqual(
+      new Set(["units", "locations", "amenities", "facilities", "landmarks", "faqs", "settings", "popularity"]),
+    );
+  });
 });

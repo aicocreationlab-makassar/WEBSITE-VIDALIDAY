@@ -161,6 +161,7 @@ Lakukan **setelah** langkah 7 bagian A–C.
 - [ ] Export ulang database (JSON) + zip foto dari hosting lama.
 - [ ] Jalankan ulang paket migrasi di `tools/vidaliday-migrasi-supabase` (`npm run migrate -- --file … --storage …`).
 - [ ] Di SQL Editor: `select public.backfill_v2();` (menghubungkan unit baru ke tipe kamar & fasilitas).
+- [ ] Admin → Pengaturan → **Segarkan data situs** (atau redeploy di Vercel). Data yang diubah langsung di database (paket migrasi, SQL Editor, Table Editor) tidak menyegarkan cache situs sendiri.
 - [ ] Cek jumlah unit dan beberapa foto di situs Vercel.
 
 **C. Pembersihan data di admin baru**
