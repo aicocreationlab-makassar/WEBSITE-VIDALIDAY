@@ -3,6 +3,7 @@
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
 **Status (17 Okt 2026):** Fase 0–7 selesai dan diverifikasi dengan data asli, tag `v2.0.0-rc1`. Sisa sebelum go-live ada di "Yang perlu dilakukan pemilik" dan "Checklist go-live".
+**Performa (17 Okt 2026):** JS awal situs publik dipangkas (beranda 284 → 198 KB gzip, `/sewa` 275 → 204 KB, detail unit 405 → 214 KB) dengan memuat overlay dan form sewa saat dibuka. Lighthouse lokal naik di beranda dan `/sewa`; angka resmi tetap dari PageSpeed Insights di Vercel Preview (lihat Keterbatasan). Diverifikasi: `npm run verify` lulus; e2e fase 1/3/4 terhadap build baru 78 lulus, 8 dilewati sesuai kondisi, 0 gagal; screenshot e2e 390/1280 identik per piksel dengan sebelumnya (kecuali gambar lazy yang belum/sudah termuat di belakang form sewa); lightbox, form sewa, popover hero, dan dropdown Apartemen dicek manual (fokus kembali ke tombol pembuka).
 lint, typecheck, 546 unit test, cek emoji, dan cek secret bundle lulus. Data lama sudah diimpor: 2 apartemen, 55 unit (semua terhubung ke tipe kamar v2), 11 fasilitas gedung, 21 landmark, 5 FAQ, 19 pengaturan lama, dan 68 foto di bucket `media`. Migrasi 0003 dan `backfill_v3.sql` sudah dijalankan pemilik.
 
 Status verifikasi per fase:
@@ -82,7 +83,7 @@ Ikuti `docs/SETUP.md` §5–8 (Vercel, domain, checklist A–E, rollback). Tamba
 
 **Di Vercel Preview**
 
-- [ ] PageSpeed Insights (mobile) untuk `/`, `/sewa?lokasi=vida-view`, dan satu `/unit/<slug>`: target Performance ≥ 90, Accessibility ≥ 95. Lokal hanya 74–77 di mesin lambat; kalau di Vercel masih < 90, minta Claude mengurangi JS bersama (lihat Keterbatasan).
+- [ ] PageSpeed Insights (mobile) untuk `/`, `/sewa?lokasi=vida-view`, dan satu `/unit/<slug>`: target Performance ≥ 90, Accessibility ≥ 95. JS bersama sudah dikurangi (17 Okt); lokal 66–72 di mesin lambat yang CPU-nya penuh. Kalau di Vercel masih < 90, lihat "Langkah berikutnya" di Keterbatasan (gambar AVIF, CSS inline).
 
 - [ ] Uji kesegaran cache: ubah harga satu unit di admin, lalu buka `/`, `/sewa`, `/unit/<slug>` dari browser lain. Harga baru harus langsung tampil (kalau masih basi, beri tahu Claude: cache diganti ke `'use cache: remote'`).
 - [ ] Tambah apartemen + tipe kamar uji, pastikan muncul di hero dan filter setelah diaktifkan, lalu hapus.
@@ -231,18 +232,34 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 17 Okt 2026 | Tes e2e: batas `expect` 15 detik; URL `/sewa` dicek dengan regex (`toHaveURL(fungsi)` ikut menunggu event load); tab WhatsApp desktop dicegat di tingkat context. | Mesin pengembangan lambat; tes tidak bergantung pada internet. |
 | 17 Okt 2026 | Lighthouse lokal: versi 13.5.0 (rilis ≥ 14 hari), median 3 run, `cpuSlowdownMultiplier=1` karena benchmarkIndex mesin 357. Angka resmi diambil dari PageSpeed Insights di Vercel Preview. | Pedoman Lighthouse untuk mesin lambat; hasil lokal tidak mewakili produksi. |
 | 17 Okt 2026 | File sementara (cache npm, TEMP build/Lighthouse/Playwright) di `D:\vdl-tmp` karena drive C: penuh. | Arahan pemilik ("pakai ruang D"). |
+| 17 Okt 2026 | Toaster (sonner) dan TooltipProvider pindah dari root layout ke `app/admin/layout.tsx`. | Situs publik tidak memakai toast/tooltip, tapi keduanya terunduh di setiap halaman (±19 KB gzip). |
+| 17 Okt 2026 | Overlay publik dimuat dengan `next/dynamic` (`ssr: false`) saat pertama dibuka, dan unduhan dimulai lebih awal saat tombol disorot, difokus, atau disentuh: menu mobile, field hero (popover desktop dan sheet mobile modul terpisah), slider budget hero, sheet Filter/Urutkan `/sewa`, form sewa, lightbox, video tur, panel "Lihat semua". | Kode Radix Dialog/Popover, react-hook-form, dan zod tidak dibutuhkan sebelum interaksi. Tombol pemicu tetap elemen yang sama sejak SSR (bukan Radix Trigger), jadi tidak dipasang ulang. Fokus kembali ke tombol lewat `onCloseAutoFocus`/`useReturnFocus`. Form GET hero tetap jalan tanpa JS. |
+| 17 Okt 2026 | Popover hero meniru perilaku `PopoverTrigger` secara manual (`PopoverAnchor virtualRef`): klik tombol saat terbuka menutup, klik di luar tidak memindah fokus. Ketukan kedua selagi modul overlay masih diunduh tidak menutup field. | Tanpa Trigger, Radix tidak tahu tombolnya; tanpa penjagaan, ketukan ganda di jaringan lambat menutup sheet sebelum tampil. |
+| 17 Okt 2026 | Dropdown "Apartemen" di header: Radix DropdownMenu dimuat dengan `React.lazy` hanya di layar ≥ 768px, dengan tombol pengganti yang identik sebagai fallback. Klik sebelum termuat tetap membuka menu. | Nav header tersembunyi di mobile; DropdownMenu + floating-ui ±26 KB gzip. `React.lazy` (bukan `next/dynamic`) supaya fallback bisa memakai props. |
+| 17 Okt 2026 | Batas dan pesan form sewa dipisah ke `lib/validation/booking-constants.ts` (tanpa zod); locale zod diimpor langsung (`zod/v4/locales/id.js`). | Kartu sewa dan galeri menarik zod ke muatan awal detail unit, dan `z.locales.id()` membundel semua locale zod (chunk 392 KB mentah / 91 KB gzip). |
+| 17 Okt 2026 | `ErrorFallback` memakai elemen biasa dengan kelas tombol yang sama (`buttonVariants` dipindah ke `button-variants.ts`), `<a>` biasa, dan `DEFAULT_WHATSAPP_NUMBER` saja. | Tiga error boundary dimuat di setiap halaman dan Turbopack memberi masing-masing salinan sendiri next/link, Slot/Button, lucide, dan seluruh `DEFAULT_SETTINGS` (±25 KB gzip). Muat ulang penuh setelah galat juga lebih aman. |
+| 17 Okt 2026 | Tidak dipakai: hidrasi sidebar filter `/sewa` hanya di desktop (Suspense yang tidak pernah selesai di mobile), `experimental.turbopackChunking`, dan `experimental.inlineCss`. | Di React 19, update transition ke boundary yang belum terhidrasi menunda commit, jadi navigasi filter di mobile bisa macet. Dua opsi lain eksperimental dan belum diuji di Vercel. |
+| 17 Okt 2026 | Pengukuran performa lokal memakai A/B bergantian (build lama vs baru diselang-seling per putaran, 5 putaran, median), skrip `D:\vdl-tmp\lh\ab.sh`. | Beban CPU mesin berubah-ubah (benchmarkIndex 97–1133 dalam satu sesi); pengukuran berurutan tidak bisa dibandingkan. |
 
 ## Keterbatasan yang diketahui
 
 - Mengganti nama tipe kamar tidak memperbarui kolom lama `units.room_type` di unit yang sudah ada (kolom itu hanya untuk kompatibilitas; aplikasi membaca `room_type_id`).
 - Filter apartemen di admin permintaan sewa mencocokkan nama apartemen saat ini dengan `leads.location_name`; permintaan lama dengan nama apartemen yang sudah diganti tidak ikut tersaring.
 - Form admin belum memakai kunci versi (optimistic concurrency): kalau dua admin mengubah data yang sama bersamaan, simpanan terakhir yang berlaku.
-- **Performa Lighthouse mobile di mesin lokal di bawah target ≥ 90:** beranda 77, `/sewa` 74, detail unit 75 (median 3 run, Lighthouse 13.5.0). Accessibility dan SEO 100, Best Practices 96 (satu-satunya pengurang: skrip Vercel Analytics 404 di lokal), CLS 0, TBT 72–239 ms. Yang menahan: LCP sekitar 4,4–5,2 detik di simulasi 4G lambat (1,6 Mbps).
-  - Mesin pengembangan sangat lambat (benchmarkIndex 357; acuan Lighthouse sekitar 1500), jadi `cpuSlowdownMultiplier=1` dipakai sesuai pedoman Lighthouse.
-  - Server lokal masih HTTP/1.1 + gzip, sedangkan Vercel memakai HTTP/2 + Brotli + CDN.
-  - Pembanding: halaman privasi (hampir tanpa gambar) 85; beranda dengan skrip `_next` diblokir 88. Jadi sekitar 1,4 detik LCP berasal dari JS bersama (318 KB), sisanya HTML/CSS/font/foto hero.
-  - Sudah dilakukan: kualitas foto hero 50.
-  - Langkah berikutnya: ukur dengan PageSpeed Insights di Vercel Preview (checklist go-live). Kalau masih < 90, kurangi JS bersama, misalnya muat sheet menu, form sewa, dan popover hero secara dinamis.
+- **Performa Lighthouse mobile di mesin lokal masih di bawah target ≥ 90.** Accessibility dan SEO tetap 100, Best Practices 96 (satu-satunya pengurang: skrip Vercel Analytics 404 di lokal), CLS 0.
+  - Mesin pengembangan sangat lambat dan CPU-nya penuh oleh aplikasi lain (benchmarkIndex 97–1133 dalam satu sesi; acuan Lighthouse sekitar 1500), jadi `cpuSlowdownMultiplier=1`. Bahkan tanpa throttling, FCP teramati di beranda 4,8 detik. Server lokal juga masih HTTP/1.1 + gzip, sedangkan Vercel memakai HTTP/2 + Brotli + CDN.
+  - Pengurangan JS bersama (17 Okt): A/B bergantian, build lama (A) vs baru (B), Lighthouse 13.5.0 mobile, median 5 run per halaman. JS awal = chunk yang dirujuk HTML, ukuran transfer.
+
+    | Halaman | Skor A → B | LCP A → B | TBT A → B | JS awal A → B |
+    |---|---|---|---|---|
+    | `/` | 65 → 72 | 4,76 → 4,75 s | 502 → 233 ms | 291 → 204 KB (22 → 16 file) |
+    | `/sewa?lokasi=vida-view` | 59 → 69 | 6,02 → 4,96 s | 476 → 346 ms | 281 → 209 KB (21 → 16 file) |
+    | `/unit/studio-at-26x-292` | 68 → 66 | 5,67 → 4,68 s | 210 → 155 ms | 410 → 220 KB (24 → 17 file) |
+
+    Detail unit: LCP, TBT, dan FCP membaik, tapi median skornya turun 2 poin karena Speed Index (6,7 → 7,6 s) dan sebaran antar-run besar (A 61–76, B 51–77). Skor sebelumnya (74–77) diukur saat mesin lebih senggang, jadi tidak bisa dibandingkan langsung dengan tabel ini.
+  - Yang tersisa di muatan awal: React + runtime Next (±120 KB gzip), tailwind-merge (`cn`, ±9 KB), komponen halaman yang memang tampil (hero, kartu, galeri, panel filter sidebar `/sewa`), dan Radix Accordion untuk FAQ.
+  - Yang menahan LCP di simulasi 4G (1,6 Mbps): foto hero berebut bandwidth dengan font (28 KB), CSS render-blocking (25 KB), JS, dan foto kartu di bawah lipatan yang ikut diminta sebelum LCP (±240 KB di beranda). TBT lokal didominasi hidrasi React dan style/layout, yang berayun 2× antar-run karena beban CPU.
+  - Langkah berikutnya (perlu keputusan pemilik): ukur PageSpeed Insights di Vercel Preview. Kalau masih < 90: (1) `images.formats: ["image/avif", "image/webp"]` untuk memperkecil foto hero dan kartu; (2) uji `experimental.inlineCss` (menghapus 2 CSS render-blocking, tapi CSS ikut terduplikasi di payload RSC); keduanya diuji dulu di Preview.
 - **Pemeriksaan visual admin terbatas:** panel browser aplikasi terlalu kecil untuk screenshot 1280px yang terbaca. Admin diverifikasi lewat sapuan DOM (elemen terpotong) di semua halaman pada 390 dan 1280 plus uji fungsi per entitas. Playwright tidak bisa memakai sesi admin karena Claude tidak memegang kredensial.
 - **Cache CDN Storage:** file yang dihapus dari bucket (mis. foto unit yang dihapus) masih bisa terbuka lewat URL publik lama selama cache Cloudflare Supabase belum kedaluwarsa. Objeknya sendiri sudah terhapus (`NoSuchKey`).
 - **Lama penyimpanan data lead** belum ada mekanisme hapus otomatis; draf kebijakan privasi menulis "selama diperlukan, dihapus atas permintaan" (lihat Pertanyaan terbuka).
