@@ -1,7 +1,8 @@
 // Ubah ekspor phpMyAdmin (SQL atau JSON) database Laravel lama menjadi SQL impor Postgres
 // untuk dijalankan pemilik di Supabase SQL Editor. Skrip ini TIDAK menyentuh database.
 //
-// Jalankan:  node scripts/convert-mysql-dump.mjs ../export/<file>.sql [../export/impor_data_lama.sql]
+// Jalankan:  node scripts/convert-mysql-dump.mjs [--perbarui] ../export/<file>.sql [../export/impor_data_lama.sql]
+//            --perbarui: untuk migrasi final (go-live), baris yang sudah ada diperbarui, bukan dilewati.
 //
 // Yang diambil hanya tabel konten (1:1 dengan migrasi 0001): locations, units, facilities,
 // landmarks, faqs, settings. Tabel lain (users, sessions, cache, jobs, dll.) dilewati: users berisi
@@ -270,7 +271,7 @@ function toPg(kind, value, warn) {
   }
 }
 
-function buildInsert(table, rows, warnings) {
+function buildInsert(table, rows, warnings, update) {
   const spec = TABLES[table];
   const dropped = new Set();
   const lines = [];
@@ -287,20 +288,26 @@ function buildInsert(table, rows, warnings) {
   }
   if (dropped.size) warnings.push(`${table}: kolom lama dilewati (tidak ada di Supabase): ${[...dropped].join(", ")}`);
   if (!lines.length) return "";
-  const conflict =
-    table === "settings"
-      ? "on conflict (key) do update set value = excluded.value, updated_at = excluded.updated_at"
-      : "on conflict (id) do nothing";
+  // --perbarui (migrasi final): baris yang sudah ada ditimpa nilai lama; kolom v2 (tower, tipe kamar,
+  // ikon, dll.) tidak ada di data lama jadi tidak tersentuh.
+  const conflictFor = (cols) => {
+    if (table === "settings") return "on conflict (key) do update set value = excluded.value, updated_at = excluded.updated_at";
+    if (!update) return "on conflict (id) do nothing";
+    const set = cols.filter((c) => c !== "id" && c !== "created_at").map((c) => `${c} = excluded.${c}`);
+    return set.length ? `on conflict (id) do update set ${set.join(", ")}` : "on conflict (id) do nothing";
+  };
   return lines
-    .map(({ cols, values }) => `insert into public.${table} (${cols.join(", ")}) values (${values.join(", ")}) ${conflict};`)
+    .map(({ cols, values }) => `insert into public.${table} (${cols.join(", ")}) values (${values.join(", ")}) ${conflictFor(cols)};`)
     .join("\n");
 }
 
 // ---------------------------------------------------------------------------
 
-const [input, outputArg] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const update = args.includes("--perbarui");
+const [input, outputArg] = args.filter((a) => !a.startsWith("--"));
 if (!input) {
-  console.error("Pakai: node scripts/convert-mysql-dump.mjs <ekspor.sql|ekspor.json> [keluaran.sql]");
+  console.error("Pakai: node scripts/convert-mysql-dump.mjs [--perbarui] <ekspor.sql|ekspor.json> [keluaran.sql]");
   process.exit(1);
 }
 const output = outputArg ?? join(dirname(input), "impor_data_lama.sql");
@@ -314,7 +321,7 @@ const summary = [];
 for (const table of ORDER) {
   const rows = data[table] ?? [];
   summary.push(`${table}: ${rows.length} baris`);
-  const sql = buildInsert(table, rows, warnings);
+  const sql = buildInsert(table, rows, warnings, update);
   if (sql) parts.push(`-- ${table} (${rows.length} baris)\n${sql}`);
 }
 
@@ -332,8 +339,8 @@ const header = `-- =============================================================
 --  Isi    : ${summary.join(", ")}
 --
 --  Cara pakai: Supabase Dashboard -> SQL Editor -> paste semua -> Run.
---  Aman dijalankan ulang: baris dengan id yang sudah ada dilewati; settings
---  memakai nilai lama untuk kunci yang sama.
+--  Mode   : ${update ? "perbarui (baris yang sudah ada ditimpa nilai lama)" : "tambah (baris dengan id yang sudah ada dilewati)"}
+--  Aman dijalankan ulang. Settings selalu memakai nilai lama untuk kunci yang sama.
 --  Setelah selesai: jalankan bagian "Sesudah impor" di bawah (sudah termasuk).
 -- =====================================================================
 

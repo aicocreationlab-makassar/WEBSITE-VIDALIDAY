@@ -3,14 +3,14 @@
 Diperbarui oleh Claude Code di akhir setiap fase. Posisi terakhir dibaca dari sini di awal sesi.
 
 **Fase aktif:** 7. Kode Fase 1–6 selesai; QA kode Fase 7 (4 lensa + verifikasi) sudah diperbaiki; lint/typecheck/529 unit test/cek emoji lulus.
-`web/.env.local` sudah ada (16 Okt 2026) dan build dengan env asli lulus, tapi **database Supabase masih kosong** (hanya skema + seed 0002: 0 apartemen, 0 unit, 0 FAQ, 0 landmark, 9 kunci settings v2). Verifikasi dengan data asli menunggu migrasi data oleh pemilik.
+Data lama sudah diimpor (16 Okt 2026): 2 apartemen, 55 unit (semua terhubung ke tipe kamar v2), 11 fasilitas gedung, 21 landmark, 5 FAQ, 19 pengaturan lama; 68 foto ada di bucket `media`. Migrasi 0003 dan `backfill_v3.sql` sudah dijalankan pemilik. Verifikasi dengan data asli sedang berjalan.
 
 Status verifikasi per fase:
 
 | Fase | Kode | Unit test | Build + e2e + screenshot dengan data asli |
 |---|---|---|---|
 | 1 | selesai | lulus | lulus (tanpa data, bingkai saja); build dengan env asli lulus 16 Okt |
-| 2 | selesai (kecuali `backfill_v3`, menunggu data) | lulus | audit data jalan: DB kosong |
+| 2 | selesai | lulus | audit data + impor + `backfill_v3` selesai 16 Okt |
 | 3 | selesai | lulus | menunggu data |
 | 4 | selesai | lulus | menunggu data |
 | 5 | selesai | lulus | menunggu data + CP-C (login admin) |
@@ -44,9 +44,9 @@ Checkpoint di sesi ini (Claude berhenti dan menunggu hanya di sini):
   2. Opsional: jalankan `npx supabase login` di terminal sendiri, supaya tipe database bisa di-generate.
   3. Matikan sign-up publik di Supabase Auth (SETUP.md §3.2).
   4. Buat dua akun uji di Supabase Auth: `admin-qa` (lalu `insert into public.admins`) dan `nonadmin-qa`. Password tidak dikirim ke chat.
-- [ ] **Migrasi data lama ke Supabase** (16 Okt 2026, menghambat semua verifikasi): jalankan paket `vidaliday-migrasi-supabase` (ekspor DB + foto dari hosting lama) ke project di `web/.env.local`, lalu kabari Claude. Folder `tools/` tidak ada di repo ini.
-- [ ] **Hapus `SUPABASE_SECRET_KEY` dari `web/.env.local`** (pindahkan ke env paket migrasi). Aplikasi tidak membacanya; jangan disalin ke Vercel (SETUP §3.4).
-- [ ] **CP-B** (setelah audit data Fase 2): tinjau SQL pratinjau, jalankan migrasi `20261015000300_v2_perbaikan.sql` di SQL Editor, jawab pertanyaan data.
+- [x] **Migrasi data lama ke Supabase** (16 Okt 2026): ekspor phpMyAdmin → `web/scripts/convert-mysql-dump.mjs` → `export/impor_data_lama.sql` (dijalankan pemilik); foto `export/{units,facilities,settings}` diunggah ke bucket `media`. 3 foto unit yang tidak ada di cadangan diunduh dari situs lama (izin pemilik).
+- [x] **Hapus `SUPABASE_SECRET_KEY` dari `web/.env.local`** (pindahkan ke env paket migrasi). Aplikasi tidak membacanya; jangan disalin ke Vercel (SETUP §3.4).
+- [x] **CP-B** (16 Okt 2026): migrasi `20261015000300_v2_perbaikan.sql` dan `supabase/data-fixes/backfill_v3.sql` sudah dijalankan; pertanyaan data dijawab (lihat Keputusan).
   Migrasi ini juga menyembunyikan unit milik apartemen nonaktif dari publik dan menolak permintaan sewa untuk unit itu (policy `units` + `submit_lead`).
 - [ ] **CP-C** (Fase 5): login sendiri sebagai `admin-qa` di panel browser aplikasi saat diminta, lalu sekali sebagai `nonadmin-qa`.
 
@@ -79,7 +79,7 @@ Ikuti `docs/SETUP.md` §5–8 (Vercel, domain, checklist A–E, rollback). Tamba
 
 **Data dan konten (klien)**
 
-- [ ] Setelah migrasi data final: `select public.backfill_v2(); select public.backfill_v3();`.
+- [ ] Setelah migrasi data final: jalankan `export/impor_data_lama.sql` versi baru (konverter), lalu `node --env-file=.env.local scripts/make-backfill-v3.mjs` dan jalankan `supabase/data-fixes/backfill_v3.sql`, lalu Admin → Pengaturan → Segarkan data situs.
 - [ ] Foto: hero gedung ≥ 1920px; foto unit landscape ≥ 1600px (bukan tangkapan layar video).
 - [ ] Link Google Maps (pin) kedua gedung diisi di Admin → Apartemen.
 - [ ] Teks kebijakan privasi (draf UU PDP) dan peraturan menginap disetujui klien.
@@ -210,6 +210,9 @@ Detail: `docs/audit/rencana-eksekusi.md`.
 | 16 Okt 2026 | Harga singkat tidak pernah dibulatkan: Rp1,05jt; kalau tidak bisa disingkat persis, ditulis penuh (Rp1.234.567). | Label budget dan "mulai" harus sama dengan harga sebenarnya. |
 | 16 Okt 2026 | Draf kebijakan privasi diubah: lama penyimpanan menjadi "selama diperlukan, dihapus atas permintaan" (sebelumnya 12 bulan, tanpa mekanisme hapus otomatis); cara menghapus data tersimpan dijelaskan sesuai perilaku. | Teks hukum tidak boleh menjanjikan hal yang tidak terjadi. Masih perlu disetujui klien. |
 | 16 Okt 2026 | Telepon kontak (`contact_phone`) tampil di footer sebagai tautan `tel:`. | Petunjuk admin menyebut "Tampil di footer". |
+| 16 Okt 2026 | Data lama diimpor lewat ekspor phpMyAdmin + konverter (`web/scripts/convert-mysql-dump.mjs`), bukan paket migrasi (tidak ada di repo). Hanya 6 tabel konten; `users` tidak ikut. Ekspor dan SQL impor di `export/` (di-ignore Git). | Paket `tools/` tidak tersedia; pemilik memilih jalur ekspor. |
+| 16 Okt 2026 | CP-B: ejaan tower **Brentsville** (tower, deskripsi, nama fasilitas); tower mengikuti kode nama unit (AT = Ashton, BV = Brentsville), termasuk "Studio AT 17S"; kapasitas "2BR CORNER BV 19V" 1 → 7 dan "2BR BV 29Q" 2 → 5; dua unit "2BR BV 18Y" dibiarkan. | Jawaban pemilik. |
+| 16 Okt 2026 | `backfill_v3` bukan fungsi DB, tapi SQL per baris yang dibuat `web/scripts/make-backfill-v3.mjs` dari data asli (aturan ikon sama dengan aplikasi lewat `lib/icon-rules.ts`). Jalankan ulang skrip setelah migrasi data final saat go-live. | Hasil tepat per baris, bisa ditinjau, aman diulang. |
 
 ## Keterbatasan yang diketahui
 
@@ -224,10 +227,9 @@ Dari PRD §14 (sisa):
 1. Apakah ada harga mingguan/bulanan per unit? (bisa diisi admin kapan saja)
 2. Koordinat atau link Google Maps persis tiap gedung.
 3. Teks final kebijakan privasi dan peraturan menginap. Termasuk lama penyimpanan data permintaan sewa: kalau mau tetap "12 bulan", Claude siapkan SQL penghapusan terjadwal.
-4. Jam layanan yang benar: data lama 08.00–23.00, situs live 10.00–23.00 WITA. (ditanyakan lagi di CP-B)
+4. Nama tower Delft CPI: 19 unit Delft belum punya tower (tampil "Delft CPI · Lantai N"). Isi di admin kalau ada.
+5. Deskripsi "Studio AT 17S" masih menyebut Tower Brentsville, padahal tower-nya Ashton (keputusan pemilik). Rapikan teksnya di admin.
+6. Dua unit bernama "2BR BV 18Y" (id 479 dan 480) sengaja dibiarkan; beri nama pembeda di admin kalau perlu.
+7. Logo: setting `site_logo` lama menunjuk file yang sudah tidak ada, dikosongkan saat impor; situs memakai logo bawaan. Unggah logo baru di Pengaturan kalau mau.
 
-Akan ditanyakan di CP-B (setelah data dicek):
-
-- Arti kode nama unit (AT = Tower Ashton? BV = Brentsville? angka = lantai?) dan nama tower di Delft.
-- Penulisan nama badan hukum di UI ("PT Perdana Mega Trans").
-- Boleh mengosongkan label promo lama yang berisi persen.
+Terjawab: jam layanan 10.00–23.00 WITA (dari data); nama badan hukum ditampilkan "PT Perdana Mega Trans" otomatis; label promo lama semuanya "Promo Spesial" dan dikosongkan (situs menampilkan "Hemat X%").
