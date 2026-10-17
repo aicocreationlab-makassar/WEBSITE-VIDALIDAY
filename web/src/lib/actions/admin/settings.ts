@@ -21,7 +21,7 @@ import { guardAdmin, invalidate, nowIso, toFieldErrors, type ActionResult } from
 import { aboutToRows, replacedImages, settingsToRows, type SettingRow } from "@/lib/admin/settings-rows";
 import { isKnownIconName, resolveIconName } from "@/lib/icons";
 import { isBucketPath, normalizeStoragePath } from "@/lib/media";
-import { deleteStorageFiles } from "@/lib/storage-cleanup";
+import { collectReferencedPaths, deleteStorageFiles, findUnreferenced } from "@/lib/storage-cleanup";
 import { aboutSchema, settingsSchema } from "@/lib/validation/admin";
 import type { SiteSettings } from "@/types/settings";
 
@@ -75,12 +75,17 @@ async function readImages(supabase: Supabase): Promise<{ ok: true; images: Image
   };
 }
 
-/** Hapus file Storage tanpa menggagalkan aksi (sisa file tidak merusak situs). */
+/**
+ * Hapus file Storage yang tidak dipakai baris lain (foto hero bisa juga dipakai apartemen/unit),
+ * tanpa menggagalkan aksi (sisa file tidak merusak situs).
+ */
 async function cleanupFiles(supabase: Supabase, paths: (string | null)[], context: string): Promise<void> {
   const list = paths.filter((path): path is string => Boolean(path));
   if (!list.length) return;
   try {
-    await deleteStorageFiles(supabase, list);
+    const referenced = await collectReferencedPaths(supabase);
+    if (!referenced) return;
+    await deleteStorageFiles(supabase, findUnreferenced(list, referenced), `pengaturan ${context}`);
   } catch (error) {
     console.error(`[admin/settings] hapus file ${context} gagal`, { name: (error as Error)?.name });
   }
