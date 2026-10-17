@@ -20,7 +20,11 @@ export const AMENITY_RULES: KeywordRule[] = [
   [/meja\s*makan|alat\s*makan|peralatan\s*makan/i, "utensils"],
   [/meja\s*(kerja|belajar)|work\s*desk|laptop/i, "laptop"],
   [/sofa|ruang\s*(tamu|santai|keluarga)|living/i, "sofa"],
-  [/setrika|iron|lemari\s*pakaian|wardrobe|hanger/i, "shirt"],
+  [/kursi|chair/i, "armchair"],
+  // "Lemari es" sudah ditangkap aturan kulkas di atas; sisanya lemari pakaian.
+  [/lemari|wardrobe|closet/i, "wardrobe"],
+  [/gantungan|hanger/i, "hanger"],
+  [/setrika|strika|\biron/i, "shirt"],
   [/balkon|balcony/i, "fence"],
   [/\bview\b|pemandangan/i, "eye"],
   [/handuk|towel|mandi|toiletries|bathtub|shampoo|sabun/i, "bath"],

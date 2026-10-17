@@ -2,9 +2,11 @@
 // Hanya ikon di daftar kurasi ini yang bisa dipilih admin (DESIGN 6). Tanpa emoji.
 
 import type { LucideIcon, LucideProps } from "lucide-react";
+import { Hanger, Wardrobe } from "@/components/icons/custom-lucide";
 import { guessAmenityIcon, guessFacilityIcon, guessLandmarkIcon } from "@/lib/icon-rules";
 import {
   AirVent,
+  Armchair,
   ArrowUpDown,
   Baby,
   Ban,
@@ -70,6 +72,7 @@ import {
 
 export const ICONS = {
   "air-vent": AirVent,
+  armchair: Armchair,
   "arrow-up-down": ArrowUpDown,
   baby: Baby,
   ban: Ban,
@@ -94,6 +97,7 @@ export const ICONS = {
   footprints: Footprints,
   "glass-water": GlassWater,
   "graduation-cap": GraduationCap,
+  hanger: Hanger,
   hospital: Hospital,
   house: House,
   "key-round": KeyRound,
@@ -127,6 +131,7 @@ export const ICONS = {
   users: Users,
   utensils: Utensils,
   "utensils-crossed": UtensilsCrossed,
+  wardrobe: Wardrobe,
   "washing-machine": WashingMachine,
   waves: Waves,
   wifi: Wifi,
@@ -168,6 +173,9 @@ const ALIASES: Record<string, IconName> = {
   "map-pinned": "map-pin",
   ac: "air-vent",
   tv: "tv",
+  chair: "armchair",
+  closet: "wardrobe",
+  "clothes-hanger": "hanger",
 };
 
 function isIconName(name: string): name is IconName {
@@ -231,9 +239,12 @@ export const ICON_CHOICES: IconChoice[] = [
   { name: "washing-machine", label: "Mesin cuci", keywords: "laundry" },
   { name: "microwave", label: "Microwave" },
   { name: "sofa", label: "Sofa / ruang tamu", keywords: "living room" },
+  { name: "armchair", label: "Kursi", keywords: "chair kursi santai" },
+  { name: "wardrobe", label: "Lemari", keywords: "lemari pakaian wardrobe closet" },
+  { name: "hanger", label: "Gantungan baju", keywords: "hanger" },
   { name: "laptop", label: "Meja kerja", keywords: "work desk belajar" },
   { name: "bath", label: "Perlengkapan mandi", keywords: "handuk toiletries" },
-  { name: "shirt", label: "Setrika / lemari", keywords: "iron pakaian" },
+  { name: "shirt", label: "Setrika / pakaian", keywords: "iron baju" },
   { name: "glass-water", label: "Dispenser air", keywords: "galon minum" },
   { name: "coffee", label: "Teko / kopi", keywords: "kettle" },
   { name: "utensils", label: "Alat makan", keywords: "meja makan" },
