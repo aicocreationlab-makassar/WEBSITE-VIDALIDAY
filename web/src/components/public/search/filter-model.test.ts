@@ -66,6 +66,7 @@ describe("toSearchLocations", () => {
   it("sorts apartments and room types by sort_order and keeps only what the client needs", () => {
     const base = {
       name: "x",
+      hasTowers: true,
       area: null,
       tagline: null,
       description: null,

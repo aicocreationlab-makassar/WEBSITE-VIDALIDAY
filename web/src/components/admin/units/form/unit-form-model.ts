@@ -382,12 +382,19 @@ type HealthValues = Pick<
 /** Penanda kesehatan data dari nilai form (promo_badge dan rental_period diberikan terpisah). */
 export function formHealthFlags(
   values: HealthValues,
-  context: { typeDefaultGuests: number | null; promoBadge: string | null; rentalPeriod: string | null },
+  context: {
+    typeDefaultGuests: number | null;
+    promoBadge: string | null;
+    rentalPeriod: string | null;
+    /** Apartemen terpilih punya beberapa tower (bawaan true). */
+    hasTowers?: boolean;
+  },
 ): HealthFlag[] {
   const photos = (values.photos ?? []).filter((photo) => !isStockPhoto(photo));
   return healthFlags(
     {
       tower: values.tower?.trim() || null,
+      has_towers: context.hasTowers ?? true,
       floor_number: values.floorNumber ?? null,
       max_guests: values.maxGuests ?? 0,
       promo_badge: context.promoBadge?.trim() || null,

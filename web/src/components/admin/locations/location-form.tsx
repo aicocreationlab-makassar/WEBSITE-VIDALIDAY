@@ -55,6 +55,7 @@ const FIELDS: readonly LocationField[] = [
   "heroImage",
   "sortOrder",
   "isActive",
+  "hasTowers",
 ];
 
 const DESCRIPTION_MAX = 2000;
@@ -109,6 +110,7 @@ export function LocationForm({ detail, roomTypes }: Props) {
   // Foto yang diunggah tapi tidak jadi disimpan dibuang dari Storage (saat simpan atau saat form ditinggal).
   const uploads = useUploadSession(discardLocationUploads);
   const activeField = useController({ control, name: "isActive" });
+  const towersField = useController({ control, name: "hasTowers" });
   const [name, shortName, slug, address, gmapsUrl, latitude, longitude, description, isActive] = useWatch({
     control,
     name: ["name", "shortName", "slug", "address", "gmapsUrl", "latitude", "longitude", "description", "isActive"],
@@ -234,6 +236,20 @@ export function LocationForm({ detail, roomTypes }: Props) {
             onText="Apartemen aktif"
             offText="Apartemen nonaktif"
             hint={activeHint}
+          />
+
+          <SwitchField
+            label="Tower"
+            checked={Boolean(towersField.field.value)}
+            onCheckedChange={(checked) => towersField.field.onChange(checked)}
+            onBlur={towersField.field.onBlur}
+            onText="Gedung punya beberapa tower"
+            offText="Satu gedung, tanpa tower"
+            hint={
+              towersField.field.value
+                ? "Form unit punya isian Tower; situs menulis \"Tower X lt. N\"."
+                : "Isian Tower disembunyikan di form unit dan situs hanya menulis lantainya."
+            }
           />
         </FormCard>
 

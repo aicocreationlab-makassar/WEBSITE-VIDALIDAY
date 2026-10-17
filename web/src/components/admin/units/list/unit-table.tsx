@@ -123,7 +123,9 @@ export function UnitTable({ rows, actions, desktop, selecting, selection, onTogg
                   <p className="truncate text-caption text-muted">
                     <span className="xl:hidden">{join([row.locationShortName, type, spot, guests])}</span>
                     <span className="hidden xl:inline 2xl:hidden">{join([spot, guests])}</span>
-                    <span className="hidden 2xl:inline">{spot ?? "Tower dan lantai belum diisi"}</span>
+                    <span className="hidden 2xl:inline">
+                      {spot ?? (row.hasTowers ? "Tower dan lantai belum diisi" : "Lantai belum diisi")}
+                    </span>
                   </p>
                 </td>
                 <td className={cn(TD, "hidden whitespace-nowrap xl:table-cell")}>

@@ -133,6 +133,8 @@ export const locationSchema = z.object({
   heroImage: z.string().trim().max(500).nullable().optional().transform((v) => v || null),
   sortOrder,
   isActive: z.boolean(),
+  /** Gedung punya beberapa tower (bawaan true). false (mis. Delft CPI) → unitnya tanpa tower. */
+  hasTowers: z.boolean().optional().default(true),
 });
 
 export type LocationInput = z.input<typeof locationSchema>;
@@ -207,6 +209,12 @@ export const leadUpdateSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(LEAD_STATUS_VALUES).optional(),
   adminNotes: z.string().trim().max(1000, "Catatan maksimal 1000 karakter.").optional(),
+});
+
+/** Hapus permanen satu atau banyak permintaan sewa (maks. 100 sekaligus, satu halaman daftar). */
+export const LEAD_DELETE_MAX = 100;
+export const leadDeleteSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1, "Pilih minimal satu permintaan.").max(LEAD_DELETE_MAX),
 });
 
 // ---------------------------------------------------------------------------

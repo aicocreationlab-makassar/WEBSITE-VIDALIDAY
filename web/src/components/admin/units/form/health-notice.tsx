@@ -34,7 +34,12 @@ export function HealthNotice({ initialFlags, locations }: Props) {
       photos: (values.photos ?? []).filter((photo): photo is string => typeof photo === "string"),
       roomTypeId: values.roomTypeId ?? 0,
     },
-    { typeDefaultGuests: type?.defaultMaxGuests ?? null, promoBadge: values.promoBadge ?? null, rentalPeriod: NIGHTLY_PERIOD },
+    {
+      typeDefaultGuests: type?.defaultMaxGuests ?? null,
+      promoBadge: values.promoBadge ?? null,
+      rentalPeriod: NIGHTLY_PERIOD,
+      hasTowers: location?.hasTowers ?? true,
+    },
   );
   const items = healthChecklist(initialFlags, live);
   if (!items.length) return null;

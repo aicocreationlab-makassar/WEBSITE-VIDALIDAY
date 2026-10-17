@@ -20,7 +20,7 @@ export async function getLocations(): Promise<LocationWithTypes[]> {
       .from("locations")
       .select(
         `id, slug, name, short_name, area, tagline, description, address, gmaps_url, latitude, longitude,
-         hero_image, sort_order, is_active,
+         hero_image, sort_order, is_active, has_towers,
          room_types(id, slug, name, category, default_max_guests, sort_order, is_active)`,
       )
       .eq("is_active", true)

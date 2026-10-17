@@ -15,6 +15,8 @@ export const HEALTH_LABELS: Record<HealthFlag, string> = {
 
 type HealthInput = {
   tower: string | null;
+  /** Apartemen punya beberapa tower (bawaan true); satu gedung → tower tidak dituntut. */
+  has_towers?: boolean;
   floor_number: number | null;
   max_guests: number;
   promo_badge: string | null;
@@ -32,7 +34,8 @@ const NIGHTLY = /^(harian|malam|per\s*malam|hari|night)$/i;
 export function healthFlags(unit: HealthInput, typeDefaultGuests: number | null): HealthFlag[] {
   const flags: HealthFlag[] = [];
   if (!unit.room_type_id) flags.push("tanpa-tipe");
-  if (!unit.tower?.trim() || unit.floor_number == null) flags.push("tanpa-tower-lantai");
+  const needsTower = unit.has_towers !== false && !unit.tower?.trim();
+  if (needsTower || unit.floor_number == null) flags.push("tanpa-tower-lantai");
   if (typeDefaultGuests && unit.max_guests < typeDefaultGuests - 2) flags.push("tamu-janggal");
   if (unit.promo_badge && /\d+\s*%/.test(unit.promo_badge)) flags.push("label-promo-lama");
   const gallery = Array.isArray(unit.gallery_images) ? unit.gallery_images : [];

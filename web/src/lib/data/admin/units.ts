@@ -16,6 +16,8 @@ export type AdminLocationOption = {
   name: string;
   shortName: string;
   isActive: boolean;
+  /** false = satu gedung: field Tower disembunyikan dan nilainya dikosongkan saat simpan. */
+  hasTowers: boolean;
   sortOrder: number;
   roomTypes: {
     id: number;
@@ -38,7 +40,7 @@ export async function getAdminLookups(supabase: Supabase): Promise<{
   const [locations, amenities] = await Promise.all([
     supabase
       .from("locations")
-      .select("id, slug, name, short_name, is_active, sort_order, room_types(id, name, slug, category, default_max_guests, is_active, sort_order)")
+      .select("id, slug, name, short_name, is_active, has_towers, sort_order, room_types(id, name, slug, category, default_max_guests, is_active, sort_order)")
       .order("sort_order")
       .order("id"),
     supabase.from("amenities").select("id, name, icon, is_active, sort_order").order("sort_order").order("name"),
@@ -53,6 +55,7 @@ export async function getAdminLookups(supabase: Supabase): Promise<{
       name: l.name,
       shortName: l.short_name ?? l.name,
       isActive: l.is_active,
+      hasTowers: l.has_towers !== false,
       sortOrder: l.sort_order,
       roomTypes: [...(l.room_types ?? [])]
         .sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
@@ -84,28 +87,30 @@ export async function getAdminUnitRows(supabase: Supabase): Promise<AdminUnitRow
       `id, name, slug, tower, floor_number, location_id, room_type_id, max_guests, normal_price, promo_price,
        is_promo_active, promo_badge, effective_price, is_published, is_available, is_featured, main_image,
        gallery_images, rental_period, updated_at,
-       location:locations(short_name, name),
+       location:locations(short_name, name, has_towers),
        room_type:room_types(name, default_max_guests)`,
     )
     .order("updated_at", { ascending: false });
   if (error) throw new Error(`getAdminUnitRows: ${error.message}`);
 
   type Row = NonNullable<typeof data>[number] & {
-    location: { short_name: string | null; name: string } | null;
+    location: { short_name: string | null; name: string; has_towers: boolean | null } | null;
     room_type: { name: string; default_max_guests: number | null } | null;
   };
 
   return ((data ?? []) as Row[]).map((u) => {
     const cover = [u.main_image, ...parseGallery(u.gallery_images)].find((p) => p && !isStockPhoto(p)) ?? null;
     const prices = { normal_price: Number(u.normal_price), promo_price: Number(u.promo_price), is_promo_active: u.is_promo_active };
+    const hasTowers = u.location?.has_towers !== false;
     return {
       id: u.id,
       name: u.name,
       slug: u.slug,
-      tower: u.tower,
+      tower: hasTowers ? u.tower : null,
       floorNumber: u.floor_number,
       locationId: u.location_id,
       locationShortName: u.location?.short_name ?? u.location?.name ?? "-",
+      hasTowers,
       roomTypeId: u.room_type_id,
       roomTypeName: u.room_type?.name ?? null,
       maxGuests: u.max_guests,
@@ -122,6 +127,7 @@ export async function getAdminUnitRows(supabase: Supabase): Promise<AdminUnitRow
       flags: healthFlags(
         {
           tower: u.tower,
+          has_towers: hasTowers,
           floor_number: u.floor_number,
           max_guests: u.max_guests,
           promo_badge: u.promo_badge,

@@ -37,7 +37,7 @@ export async function getAdminLocation(supabase: Supabase, id: number): Promise<
     supabase
       .from("locations")
       .select(
-        "id, slug, name, short_name, area, hero_image, sort_order, is_active, address, gmaps_url, latitude, longitude, tagline, description",
+        "id, slug, name, short_name, area, hero_image, sort_order, is_active, has_towers, address, gmaps_url, latitude, longitude, tagline, description",
       )
       .eq("id", id)
       .maybeSingle(),

@@ -79,6 +79,8 @@ export type RawLocationFull = RawLocation & {
   longitude: number | null;
   tagline: string | null;
   description: string | null;
+  /** Kolom migrasi 0004; tidak ada = dianggap punya tower. */
+  has_towers?: boolean | null;
 };
 
 export type RawRoomType = {
@@ -453,6 +455,7 @@ export function toLocationDetail(
       heroImage,
       sortOrder: row.sort_order,
       isActive: row.is_active,
+      hasTowers: row.has_towers !== false,
     },
   };
 }

@@ -54,6 +54,7 @@ function location(overrides: Partial<LocationWithTypes>): LocationWithTypes {
     slug: "vida-view",
     name: "Apartemen Vida View",
     shortName: "Vida View",
+    hasTowers: true,
     area: null,
     tagline: null,
     description: null,

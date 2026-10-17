@@ -23,7 +23,15 @@ type Supabase = AdminSession["supabase"];
 type UnitSaved = { id: number; slug: string };
 type Failure = { ok: false; error: string; fieldErrors?: Record<string, string> };
 type Prepared =
-  | { ok: true; roomTypeName: string; amenityIds: number[]; amenityNames: string[]; photos: string[] }
+  | {
+      ok: true;
+      roomTypeName: string;
+      amenityIds: number[];
+      amenityNames: string[];
+      photos: string[];
+      /** Apartemen satu gedung → tower selalu disimpan null walau form mengirim nilai. */
+      hasTowers: boolean;
+    }
   | { ok: false; result: Failure };
 
 const MSG_INVALID = "Periksa lagi isian yang ditandai.";
@@ -63,12 +71,14 @@ async function prepareUnit(supabase: Supabase, data: UnitData, exceptId?: number
   if (photos.some((photo) => !isAllowedPhotoValue(photo))) return { ok: false, result: invalid({ photos: MSG_PHOTOS }) };
   const amenityIds = [...new Set(data.amenityIds)];
 
-  const [typeResult, taken, amenityResult] = await Promise.all([
+  const [typeResult, locationResult, taken, amenityResult] = await Promise.all([
     supabase.from("room_types").select("id, name, location_id").eq("id", data.roomTypeId).maybeSingle(),
+    supabase.from("locations").select("has_towers").eq("id", data.locationId).maybeSingle(),
     getTakenUnitSlugs(supabase, exceptId),
     loadAmenities(supabase, amenityIds),
   ]);
   if (typeResult.error) return { ok: false, result: fail("cek tipe kamar", typeResult.error) };
+  if (locationResult.error) return { ok: false, result: fail("cek apartemen", locationResult.error) };
   if (amenityResult.error) return { ok: false, result: fail("cek fasilitas", amenityResult.error) };
 
   const fieldErrors: Record<string, string> = {};
@@ -79,7 +89,19 @@ async function prepareUnit(supabase: Supabase, data: UnitData, exceptId?: number
   if (amenities.length !== amenityIds.length) fieldErrors.amenityIds = MSG_AMENITIES;
   if (Object.keys(fieldErrors).length || !type) return { ok: false, result: invalid(fieldErrors) };
 
-  return { ok: true, roomTypeName: type.name, amenityIds, amenityNames: amenityNamesFor(amenityIds, amenities), photos };
+  return {
+    ok: true,
+    roomTypeName: type.name,
+    amenityIds,
+    amenityNames: amenityNamesFor(amenityIds, amenities),
+    photos,
+    hasTowers: locationResult.data?.has_towers !== false,
+  };
+}
+
+/** Data form dengan tower dikosongkan kalau apartemennya satu gedung. */
+function withTowerRule(data: UnitData, prepared: { hasTowers: boolean }): UnitData {
+  return prepared.hasTowers ? data : { ...data, tower: null };
 }
 
 /**
@@ -118,7 +140,7 @@ export async function createUnit(input: unknown): Promise<ActionResult<UnitSaved
     if (!prepared.ok) return prepared.result;
 
     const now = nowIso();
-    const row = buildUnitRow(data, prepared, now);
+    const row = buildUnitRow(withTowerRule(data, prepared), prepared, now);
     const { data: created, error } = await supabase
       .from("units")
       .insert({ ...row, created_at: now })
@@ -172,7 +194,7 @@ export async function updateUnit(id: unknown, input: unknown): Promise<ActionRes
 
     const { data: saved, error } = await supabase
       .from("units")
-      .update(buildUnitRow(data, prepared, nowIso()))
+      .update(buildUnitRow(withTowerRule(data, prepared), prepared, nowIso()))
       .eq("id", unitId)
       .select("id, slug")
       .maybeSingle();

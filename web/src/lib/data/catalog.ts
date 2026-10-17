@@ -15,10 +15,10 @@ const UNIT_FIELDS = `id, slug, name, location_id, room_type_id, tower, floor_num
   unit_amenities(amenity:amenities(id, name, icon, sort_order, is_active))`;
 
 const CATALOG_SELECT = `${UNIT_FIELDS},
-  location:locations!inner(id, slug, name, short_name, area, is_active)`;
+  location:locations!inner(id, slug, name, short_name, area, is_active, has_towers)`;
 
 const DETAIL_SELECT = `${UNIT_FIELDS}, description, youtube_video_url,
-  location:locations!inner(id, slug, name, short_name, area, address, gmaps_url, latitude, longitude, tagline, is_active)`;
+  location:locations!inner(id, slug, name, short_name, area, address, gmaps_url, latitude, longitude, tagline, is_active, has_towers)`;
 
 /** Semua unit published (±50 baris). Melempar error kalau Supabase gagal, supaya data kosong tidak ikut di-cache. */
 export async function getCatalog(): Promise<CatalogUnit[]> {
