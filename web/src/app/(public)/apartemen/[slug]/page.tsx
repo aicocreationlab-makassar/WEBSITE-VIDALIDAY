@@ -12,13 +12,17 @@ import { FacilityGrid } from "@/components/public/apartment/facility-grid";
 import { RoomTypeList } from "@/components/public/apartment/room-type-list";
 import { FaqList } from "@/components/public/shared/faq-list";
 import { Section, SectionHeading } from "@/components/public/shared/section-heading";
+import { SummaryBox, type SummaryItem } from "@/components/public/shared/summary-box";
 import { UnitBreadcrumb } from "@/components/public/unit-detail/unit-breadcrumb";
 import { getCatalog } from "@/lib/data/catalog";
 import { getFacilities, getFaqs, getLandmarks } from "@/lib/data/content";
 import { getListedLocations } from "@/lib/data/locations";
+import { getSettings } from "@/lib/data/settings";
 import { getSiteUrl } from "@/lib/env";
+import { formatOfficeHours, formatRupiah, formatWhatsappDisplay } from "@/lib/format";
 import { apartmentPath, buildApartmentPageJsonLd } from "@/lib/seo/apartment-jsonld";
 import { JsonLd } from "@/lib/seo/json-ld";
+import { roomTypeHref } from "@/lib/unit-display";
 
 const MAX_FAQS = 5;
 
@@ -60,17 +64,38 @@ export default async function ApartmentPage({ params }: PageProps<"/apartemen/[s
   const location = await getListedLocation(slug);
   if (!location) notFound();
 
-  const [catalog, facilities, landmarks, faqs] = await Promise.all([
+  const [catalog, facilities, landmarks, faqs, settings] = await Promise.all([
     getCatalog(),
     getFacilities(),
     getLandmarks(),
     getFaqs(),
+    getSettings(),
   ]);
 
   const types = roomTypeCards(location, catalog);
+  const units = catalog.filter((unit) => unit.locationId === location.id);
   const buildingFacilities = facilities.filter((facility) => facility.locationId === location.id);
   const nearby = landmarks.filter((landmark) => landmark.locationId === location.id);
   const shownFaqs = faqs.slice(0, MAX_FAQS);
+  const officeHours = formatOfficeHours(settings.officeHours);
+
+  // Ringkasan fakta (teks polos) untuk tamu, mesin pencari, dan AI Overview.
+  const summary: SummaryItem[] = [];
+  if (location.address) summary.push({ label: "Alamat", value: location.address, href: "#lokasi" });
+  if (location.area) summary.push({ label: "Area", value: `${location.area}, Makassar` });
+  summary.push({ label: "Unit", value: `${location.availableCount} tersedia dari ${location.unitCount} unit` });
+  for (const type of types) {
+    summary.push({
+      label: type.name,
+      value: type.minPrice ? `${type.availableCount} tersedia, mulai ${formatRupiah(type.minPrice)}/malam` : `${type.unitCount} unit, sedang penuh`,
+      href: roomTypeHref(location.slug, types.length ? location.roomTypes.find((item) => item.id === type.id)?.slug ?? "" : ""),
+    });
+  }
+  if (settings.checkinTime || settings.checkoutTime) {
+    summary.push({ label: "Check-in / check-out", value: `${settings.checkinTime || "-"} / ${settings.checkoutTime || "-"}` });
+  }
+  if (officeHours) summary.push({ label: "Jam layanan", value: officeHours });
+  summary.push({ label: "WhatsApp", value: formatWhatsappDisplay(settings.whatsappNumber) });
 
   return (
     <>
@@ -80,6 +105,8 @@ export default async function ApartmentPage({ params }: PageProps<"/apartemen/[s
           siteUrl: getSiteUrl(),
           facilities: buildingFacilities,
           faqs: shownFaqs,
+          units,
+          whatsappNumber: settings.whatsappNumber,
         })}
       />
 
@@ -94,12 +121,16 @@ export default async function ApartmentPage({ params }: PageProps<"/apartemen/[s
 
       <ApartmentHero location={location} typeCount={types.length} />
 
+      <div className="mx-auto w-full max-w-[1200px] px-4 pb-10 sm:px-6 md:pb-[72px] lg:px-8">
+        <SummaryBox items={summary} />
+      </div>
+
       {types.length ? (
         <Section aria-labelledby="tipe-kamar-judul" className="border-t border-line">
           <SectionHeading
             id="tipe-kamar-judul"
             title="Tipe kamar"
-            description={`Pilih tipe kamar untuk melihat unit yang tersedia di ${location.shortName}.`}
+            description={`Pilih tipe kamar untuk melihat harga, fasilitas, dan unit yang tersedia di ${location.shortName}.`}
           />
           <RoomTypeList types={types} apartmentName={location.shortName} />
         </Section>

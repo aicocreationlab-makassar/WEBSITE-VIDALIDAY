@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { AMENITY } from "./test-fixtures";
-import { cardAmenities, formatUnitPlace, formatUnitSpot, unitHref } from "./unit-display";
+import { cardAmenities, formatUnitPlace, formatUnitSpot, roomTypeHref, unitHref } from "./unit-display";
+
+describe("roomTypeHref", () => {
+  it("builds the landing path with encoded slugs", () => {
+    expect(roomTypeHref("vida-view", "studio")).toBe("/apartemen/vida-view/studio");
+    expect(roomTypeHref("a b", "2 br")).toBe("/apartemen/a%20b/2%20br");
+  });
+});
 
 const base = { locationShortName: "Vida View", locationArea: "Panakkukang", tower: null, floorNumber: null };
 

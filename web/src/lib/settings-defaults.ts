@@ -47,9 +47,13 @@ Kode permintaan: {kode}
   ].join("\n"),
   siteLogo: null,
   companyLegalName: "PT Perdana Mega Trans",
-  seoTitle: "VIDALIDAY | Sewa Apartemen Harian di Makassar, Vida View & Delft CPI",
+  seoTitle: "Sewa Apartemen Harian di Makassar | VIDALIDAY",
   seoDescription:
     "Sewa apartemen resmi di Makassar: Vida View Panakkukang dan Delft CPI. Harian, mingguan, bulanan. Pesan cepat via WhatsApp.",
+  instagramUrl: "",
+  facebookUrl: "",
+  tiktokUrl: "",
+  googleBusinessUrl: "",
   about: {
     tagline: "Your Comfort, Our Priority",
     heroTitle: "VIDALIDAY, partner terpercaya untuk menginap nyaman di Makassar",

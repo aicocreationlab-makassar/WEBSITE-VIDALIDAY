@@ -4,6 +4,7 @@ import {
   diffDays,
   formatDate,
   formatDateShort,
+  formatDateLong,
   formatDateTime,
   formatFileSize,
   formatOfficeHours,
@@ -102,6 +103,11 @@ describe("text helpers", () => {
   it("displays legal names in mixed case", () => {
     expect(toDisplayLegalName("PT PERDANA MEGA TRANS")).toBe("PT Perdana Mega Trans");
     expect(toDisplayLegalName("PT Perdana Mega Trans")).toBe("PT Perdana Mega Trans");
+  });
+
+  it("formats long dates in Indonesian", () => {
+    expect(formatDateLong("2026-10-18")).toBe("18 Oktober 2026");
+    expect(formatDateLong("2026-01-05T00:00:00+08:00")).toBe("5 Januari 2026");
   });
 
   it("formats file sizes in Indonesian", () => {

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSettings } from "@/lib/data/settings";
-import { formatWhatsappDisplay, toDisplayLegalName } from "@/lib/format";
+import { formatDateLong, formatWhatsappDisplay, toDisplayLegalName } from "@/lib/format";
+import { PRIVACY_POLICY_UPDATED } from "@/lib/seo/site";
 import { GENERAL_INQUIRY_MESSAGE, waLink } from "@/lib/whatsapp";
 
 // DRAF: teks final kebijakan privasi perlu disetujui klien sebelum go-live (PRD 6.8, PROGRESS.md).
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/kebijakan-privasi" },
 };
 
-const UPDATED = "18 Oktober 2026";
+const UPDATED = formatDateLong(PRIVACY_POLICY_UPDATED);
 
 function Heading({ id, children }: { id: string; children: React.ReactNode }) {
   return (

@@ -111,18 +111,19 @@ describe("unit JSON-LD", () => {
     expect(buildUnitOfferJsonLd({ unit: detail({ effectivePrice: 0 }), siteUrl: SITE })).toBeNull();
   });
 
-  it("builds the breadcrumb Beranda > apartemen > unit", () => {
+  it("builds the breadcrumb Beranda > apartemen > tipe > unit", () => {
     const crumbs = buildUnitBreadcrumbJsonLd({ unit: detail(), siteUrl: SITE });
     expect(crumbs.itemListElement).toEqual([
       { "@type": "ListItem", position: 1, name: "Beranda", item: "https://vidaliday.com/" },
       { "@type": "ListItem", position: 2, name: "Vida View", item: "https://vidaliday.com/apartemen/vida-view" },
-      { "@type": "ListItem", position: 3, name: "Studio AT 26X", item: "https://vidaliday.com/unit/studio-at-26x" },
+      { "@type": "ListItem", position: 3, name: "Studio", item: "https://vidaliday.com/apartemen/vida-view/studio" },
+      { "@type": "ListItem", position: 4, name: "Studio AT 26X", item: "https://vidaliday.com/unit/studio-at-26x" },
     ]);
   });
 
   it("returns all nodes and serializes safely", () => {
-    const all = buildUnitJsonLd({ unit: detail({ name: "Unit </script>" }), siteUrl: SITE });
-    expect(all.map((node) => node["@type"])).toEqual(["Apartment", "Offer", "BreadcrumbList"]);
+    const all = buildUnitJsonLd({ unit: detail({ name: "Unit </script>" }), siteUrl: SITE, faqs: [{ question: "Jam check-in?", answer: "14.00 WITA." }] });
+    expect(all.map((node) => node["@type"])).toEqual(["Apartment", "Offer", "FAQPage", "BreadcrumbList"]);
     expect(serializeJsonLd(all)).not.toContain("</script>");
     expect(buildUnitJsonLd({ unit: detail({ effectivePrice: 0 }), siteUrl: SITE })).toHaveLength(2);
     expect(unitPageUrl("https://vidaliday.com", "a b")).toBe("https://vidaliday.com/unit/a%20b");

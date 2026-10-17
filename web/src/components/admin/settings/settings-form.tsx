@@ -15,7 +15,7 @@ import { discardSettingsUploads, saveSettings } from "@/lib/actions/admin/settin
 import { settingsSchema, type SettingsInput } from "@/lib/validation/admin";
 import { focusFirstInvalid, SaveStatus, useUploadSession } from "./form-bits";
 import { SectionNav } from "./section-nav";
-import { BookingCard, BrandCard, ContactCard, HomeCard, SeoCard } from "./settings-cards";
+import { BookingCard, BrandCard, ContactCard, HomeCard, SeoCard, SocialCard } from "./settings-cards";
 import {
   SETTINGS_SECTIONS,
   adminIssueMessage,
@@ -190,6 +190,7 @@ export function SettingsForm({ initial, usingDefault, savedAt }: Props) {
             onUploadingChange={setUploadingLogo}
           />
           <SeoCard hidden={isHidden("seo")} isDefault={isDefault} />
+          <SocialCard hidden={isHidden("sosial")} isDefault={isDefault} />
         </div>
 
         <StickyActionBar status={<SaveStatus dirtyCount={dirtyList.length} savedAt={savedAt} />}>

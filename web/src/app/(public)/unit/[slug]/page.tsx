@@ -38,6 +38,7 @@ import {
   unitFacts,
   unitMetaDescription,
   unitMetaTitle,
+  unitSummarySentence,
 } from "@/lib/unit-detail";
 import { unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
@@ -118,7 +119,7 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
       siteUrl={getSiteUrl()}
       largerUnitsHref={largerUnitsHref}
     >
-      <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl() })} />
+      <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl(), faqs: faqs.slice(0, MAX_FAQS) })} />
       <RecordView unit={current} />
 
       {/* Ruang di bawah untuk bar CTA mobile (72px + safe area). */}
@@ -139,6 +140,10 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
             <div className="flex flex-col gap-5 pt-5 pb-8 md:pt-8 md:pb-10">
               <UnitTitle unit={current} />
               <UnitPriceBlock unit={current} />
+              {/* Kalimat ringkasan teks polos (SEO/AI Overview): semua angka utama tanpa ikon. */}
+              <p className="text-base leading-[26px] text-ink-2" data-testid="unit-summary">
+                {unitSummarySentence(current)}
+              </p>
             </div>
 
             {/* Unit penuh: alternatif yang tersedia langsung di bawah harga (PRD 6.4). */}

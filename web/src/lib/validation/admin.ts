@@ -221,6 +221,16 @@ export const leadDeleteSchema = z.object({
 // Pengaturan & About (PRD 7.9)
 // ---------------------------------------------------------------------------
 
+/** URL profil (https://...) atau kosong. */
+function socialUrl(max: number) {
+  return z
+    .string()
+    .trim()
+    .max(max, `Maksimal ${max} karakter.`)
+    .refine((v) => v === "" || /^https?:\/\/\S+$/i.test(v), "Tautan harus diawali https://")
+    .default("");
+}
+
 export const settingsSchema = z.object({
   whatsappNumber: z
     .string()
@@ -243,6 +253,11 @@ export const settingsSchema = z.object({
   companyLegalName: z.string().trim().min(2, "Isi nama badan hukum.").max(120, "Maksimal 120 karakter."),
   seoTitle: z.string().trim().min(10, "Judul SEO minimal 10 karakter.").max(70, "Judul SEO maksimal 70 karakter."),
   seoDescription: z.string().trim().min(30, "Deskripsi SEO minimal 30 karakter.").max(170, "Deskripsi SEO maksimal 170 karakter."),
+  // Tautan profil resmi untuk data terstruktur (sameAs); kosong = tidak dipakai.
+  instagramUrl: socialUrl(200),
+  facebookUrl: socialUrl(200),
+  tiktokUrl: socialUrl(200),
+  googleBusinessUrl: socialUrl(300),
 });
 
 export type SettingsInput = z.input<typeof settingsSchema>;

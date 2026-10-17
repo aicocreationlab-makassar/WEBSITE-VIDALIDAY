@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { PriceTag, unitBadge, unitStrikePrice } from "@/components/public/unit/price";
 import { UnitBadges } from "@/components/public/unit/unit-badges";
 import { formatRupiah } from "@/lib/format";
 import { rateRows } from "@/lib/unit-detail";
-import { formatUnitPlace } from "@/lib/unit-display";
+import { formatUnitPlace, roomTypeHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
 import type { CatalogUnit } from "@/types/domain";
 
@@ -25,6 +26,17 @@ export function UnitTitle({ unit, className }: { unit: CatalogUnit; className?: 
           </a>
         </span>
       </p>
+      {unit.roomTypeSlug && unit.roomTypeName ? (
+        <p className="mt-1 text-sm text-ink-2">
+          Tipe{" "}
+          <Link
+            href={roomTypeHref(unit.locationSlug, unit.roomTypeSlug)}
+            className="-my-3 inline-block py-3 font-semibold text-brand-700 underline-offset-4 hover:underline"
+          >
+            {unit.roomTypeName} di {unit.locationShortName}
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

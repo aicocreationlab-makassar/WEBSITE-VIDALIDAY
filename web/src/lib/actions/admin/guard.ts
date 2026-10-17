@@ -1,7 +1,10 @@
 import "server-only";
 import { refresh, updateTag } from "next/cache";
+import { after } from "next/server";
 import { getAdminStatus, type AdminSession } from "@/lib/auth/require-admin";
 import { tagsFor, type InvalidateTarget } from "@/lib/cache-tags";
+import { getSiteUrl } from "@/lib/env";
+import { indexNowKey, indexNowUrls, submitIndexNow } from "@/lib/seo/indexnow";
 
 /** Hasil standar Server Action admin (tidak melempar error ke UI). */
 export type ActionResult<T = undefined> =
@@ -28,6 +31,11 @@ export function invalidate(...targets: InvalidateTarget[]): void {
   const tags = new Set(targets.flatMap(tagsFor));
   for (const tag of tags) updateTag(tag);
   refresh();
+  // IndexNow (opsional, hanya bila INDEXNOW_KEY diisi): dikirim setelah respons, tidak memperlambat admin.
+  if (indexNowKey()) {
+    const base = getSiteUrl();
+    after(() => submitIndexNow(indexNowUrls(targets, base), base));
+  }
 }
 
 /** Ubah ZodError issues → { field: pesan pertama }. */

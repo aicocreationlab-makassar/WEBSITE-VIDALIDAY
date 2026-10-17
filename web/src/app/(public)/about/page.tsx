@@ -17,7 +17,7 @@ import { waLink } from "@/lib/whatsapp";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return {
-    title: "Tentang kami",
+    title: "Tentang Kami, Pengelola Sewa Apartemen Makassar",
     description: stripMarkdown(settings.about.introP1).slice(0, 160),
     alternates: { canonical: "/about" },
   };

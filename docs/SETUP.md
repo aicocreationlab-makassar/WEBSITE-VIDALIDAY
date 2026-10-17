@@ -101,7 +101,14 @@ NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxx
 ```
 
-Hanya tiga itu. Nomor WhatsApp, template pesan, dan teks lain diambil dari tabel `settings` (bisa diubah di admin).
+Hanya tiga itu yang wajib. Nomor WhatsApp, template pesan, dan teks lain diambil dari tabel `settings` (bisa diubah di admin).
+
+Variabel opsional (isi di Vercel → Settings → Environment Variables, lalu redeploy):
+
+| Variabel | Fungsi |
+|---|---|
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Verifikasi Google Search Console lewat tag HTML. Isi hanya nilai `content` dari tag yang diberikan Google (bukan seluruh tag). Tidak perlu kalau memakai properti *Domain* (verifikasi DNS). |
+| `INDEXNOW_KEY` | Mengaktifkan IndexNow: setiap admin menyimpan perubahan, URL yang berubah dilaporkan ke Bing/Yandex. Isi dengan 32 karakter acak (huruf dan angka); kunci dilayani di `/indexnow.txt`. |
 
 Untuk generate tipe TypeScript (diminta Claude Code di Fase 1–2):
 
@@ -175,7 +182,7 @@ Lakukan **setelah** langkah 7 bagian A–C.
 
 - [ ] Uji `https://vidaliday.com` dan `https://www.vidaliday.com` (harus dialihkan).
 - [ ] Kirim satu permintaan sewa uji, pastikan muncul di Admin → Permintaan sewa, lalu ubah statusnya jadi Batal.
-- [ ] Daftarkan `https://vidaliday.com/sitemap.xml` di Google Search Console.
+- [ ] Jalankan langkah SEO di bagian 9 (Search Console, sitemap, Google Business Profile).
 - [ ] Biarkan hosting lama hidup 2–4 minggu sebagai cadangan, lalu matikan (perhatikan catatan DNS di langkah 6).
 - [ ] Matikan akun admin lama Laravel dan ganti password yang pernah bocor di repo.
 
@@ -184,3 +191,18 @@ Lakukan **setelah** langkah 7 bagian A–C.
 ## 8. Rollback
 
 Kalau ada masalah serius setelah pindah domain: kembalikan record `@` dan `www` ke nilai lama yang dicatat di langkah 6.2. Dengan TTL 300 detik, situs lama aktif lagi dalam beberapa menit. Data yang masuk di situs baru tetap aman di Supabase.
+
+---
+
+## 9. SEO dan AI (langkah pemilik, urut)
+
+Situs sudah menyiapkan sendiri: `sitemap.xml` (dengan gambar), `robots.txt` (perayap AI diizinkan), data terstruktur JSON-LD (Organization, WebSite, LodgingBusiness, ApartmentComplex, Apartment, Offer, AggregateOffer, ItemList, BreadcrumbList, FAQPage), halaman landing per apartemen × tipe kamar (`/apartemen/vida-view/studio` dst.), kotak "Ringkasan" dan kalimat ringkasan teks polos untuk AI Overview, `llms.txt` + `llms-full.txt`, canonical/noindex di `/sewa`, dan IndexNow (opsional). Yang perlu dilakukan di luar kode:
+
+1. **Google Search Console** (https://search.google.com/search-console): tambah properti *Domain* `vidaliday.com` → verifikasi lewat record DNS TXT di registrar (nilai diberikan Google). Alternatif: properti *URL prefix* `https://vidaliday.com` + metode "Tag HTML": salin nilai `content` ke env `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` di Vercel, redeploy, lalu klik Verify. Setelah terverifikasi: menu *Sitemaps* → kirim `https://vidaliday.com/sitemap.xml`. Lalu *URL Inspection* → "Request indexing" untuk `/`, `/sewa`, `/apartemen/vida-view`, `/apartemen/delft-cpi`, dan tiap landing tipe (tautan ada di footer). Pantau tab *Pages* (halaman "noindex"/"duplicate canonical" hanya boleh berasal dari `/sewa?...` berfilter) dan *Core Web Vitals*.
+2. **Admin → Pengaturan**: SEO → judul `Sewa Apartemen Harian di Makassar | VIDALIDAY` (bawaan baru) dan deskripsi ≤ 155 karakter yang menyebut Vida View dan Delft CPI; "Media sosial dan Google" → isi tautan Instagram, Facebook, TikTok, dan Google Business Profile (dipakai `sameAs`); Kontak → jam layanan sesuai kenyataan (mis. `10.00–23.00 WITA`); Apartemen → pastikan alamat, koordinat (Delft: `-5.144628657051978, 119.39411188027171`), dan link Google Maps berbentuk `/maps/place/...` (bukan link embed).
+3. **Google Business Profile** (https://business.google.com): satu profil "VIDALIDAY" dengan kategori utama *Apartment rental agency* (tambahan: *Serviced accommodation*, *Holiday apartment rental*), nama persis "VIDALIDAY", nomor WhatsApp yang sama dengan situs, jam layanan yang sama, situs `https://vidaliday.com`, tombol "Booking/Appointment" ke `https://vidaliday.com/sewa`, minimal 10 foto gedung dan unit. Posting ringan tiap minggu (promo, unit baru) dan balas setiap ulasan. Profil per gedung hanya kalau ada alamat layanan fisik yang bisa diverifikasi di tiap gedung.
+4. **Ulasan**: setelah tamu check-out, kirim tautan ulasan Google Business Profile lewat WhatsApp. Target 10 ulasan pertama dalam 30 hari; jangan membeli ulasan.
+5. **Bing Webmaster Tools** (https://www.bing.com/webmasters): "Import from Google Search Console", lalu kirim sitemap yang sama. Ini yang mengisi Copilot dan pencarian ChatGPT. Kalau `INDEXNOW_KEY` dipasang, cek tab IndexNow.
+6. **Sitasi dan tautan**: profil OTA (Airbnb, Traveloka, Tiket.com, Booking.com) dan media sosial menautkan ke `https://vidaliday.com` dengan nama brand yang sama persis; bio Instagram/TikTok ke `/sewa`. Hindari spam di grup komunitas.
+7. **Konten lanjutan (bulan ke-2+)**: satu halaman panduan tiap 2–4 minggu dari data nyata, mis. "sewa apartemen harian Makassar: apa yang perlu disiapkan", "Vida View atau Delft CPI untuk keluarga", "tempat makan dekat Panakkukang". Minta Claude Code membuatkannya sebagai halaman statis.
+8. **Pantau tiap bulan**: PageSpeed Insights mobile (target ≥ 90), Search Console (query "sewa apartemen makassar", "sewa apartemen harian makassar", "vida view", "delft cpi"), Rich Results Test untuk `/`, `/apartemen/vida-view`, satu landing, satu unit (https://search.google.com/test/rich-results), dan buka `https://vidaliday.com/llms.txt` untuk memastikan datanya terbaru.

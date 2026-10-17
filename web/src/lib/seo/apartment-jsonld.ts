@@ -1,12 +1,13 @@
 // JSON-LD profil apartemen /apartemen/[slug] (PRD 6.7, 6.9): ApartmentComplex + FAQPage + BreadcrumbList.
 // Fungsi murni, ada test di apartment-jsonld.test.ts.
 
-import { stripMarkdown } from "@/lib/format";
+import { normalizeWhatsapp, stripMarkdown } from "@/lib/format";
 import { mapExternalUrl } from "@/lib/gmaps";
 import { isStockPhoto } from "@/lib/media";
 import { absoluteUrl, buildFaqPageJsonLd } from "@/lib/seo/home-jsonld";
 import type { JsonLdObject } from "@/lib/seo/json-ld";
-import type { Facility, Faq, LocationWithTypes } from "@/types/domain";
+import { unitHref } from "@/lib/unit-display";
+import type { CatalogUnit, Facility, Faq, LocationWithTypes } from "@/types/domain";
 
 const SCHEMA_CONTEXT = "https://schema.org";
 
@@ -34,6 +35,9 @@ export type ApartmentJsonLdInput = {
   facilities?: Pick<Facility, "name" | "imageUrl">[];
   /** FAQ yang tampil di halaman. Kosong → FAQPage tidak dibuat. */
   faqs?: Pick<Faq, "question" | "answer">[];
+  /** Unit published apartemen ini (ItemList + AggregateOffer). */
+  units?: Pick<CatalogUnit, "slug" | "name" | "effectivePrice" | "isAvailable">[];
+  whatsappNumber?: string | null;
 };
 
 function trimBase(siteUrl: string): string {
@@ -63,9 +67,10 @@ export function plainSummary(text: string | null | undefined, max = 300): string
   return `${base.replace(/[\s,.;:–—-]+$/, "")}…`;
 }
 
-export function buildApartmentComplexJsonLd({ location, siteUrl, facilities = [] }: ApartmentJsonLdInput): JsonLdObject {
+export function buildApartmentComplexJsonLd({ location, siteUrl, facilities = [], whatsappNumber }: ApartmentJsonLdInput): JsonLdObject {
   const base = trimBase(siteUrl);
   const url = apartmentPageUrl(base, location.slug);
+  const phone = whatsappNumber ? normalizeWhatsapp(whatsappNumber) : "";
   const description = plainSummary(location.description) ?? plainSummary(location.tagline);
   const images = [
     ...new Set(
@@ -96,6 +101,7 @@ export function buildApartmentComplexJsonLd({ location, siteUrl, facilities = []
     url,
     ...(description ? { description } : {}),
     ...(images.length ? { image: images } : {}),
+    ...(phone ? { telephone: `+${phone}` } : {}),
     address,
     ...(geo ? { geo } : {}),
     hasMap: mapExternalUrl({
@@ -132,8 +138,56 @@ export function buildApartmentBreadcrumbJsonLd({ location, siteUrl }: ApartmentJ
   };
 }
 
-/** Semua JSON-LD profil apartemen, urut: ApartmentComplex, FAQPage (kalau ada FAQ), BreadcrumbList. */
+/** Rentang harga unit tersedia (AggregateOffer); tanpa unit tersedia → null. */
+export function buildApartmentOffersJsonLd({ location, siteUrl, units = [] }: ApartmentJsonLdInput): JsonLdObject | null {
+  const prices = units.filter((unit) => unit.isAvailable && unit.effectivePrice > 0).map((unit) => unit.effectivePrice);
+  if (!prices.length) return null;
+  const base = trimBase(siteUrl);
+  const url = apartmentPageUrl(base, location.slug);
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "AggregateOffer",
+    "@id": `${url}#offers`,
+    url,
+    priceCurrency: "IDR",
+    lowPrice: Math.min(...prices),
+    highPrice: Math.max(...prices),
+    offerCount: prices.length,
+    availability: "https://schema.org/InStock",
+    itemOffered: { "@id": `${url}#apartemen` },
+  };
+}
+
+/** Daftar unit published apartemen ini (ItemList); tanpa unit → null. */
+export function buildApartmentUnitListJsonLd({ location, siteUrl, units = [] }: ApartmentJsonLdInput): JsonLdObject | null {
+  if (!units.length) return null;
+  const base = trimBase(siteUrl);
+  const url = apartmentPageUrl(base, location.slug);
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "ItemList",
+    "@id": `${url}#units`,
+    name: `Unit di ${location.shortName}`,
+    numberOfItems: units.length,
+    itemListElement: units.map((unit, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: unit.name,
+      url: absoluteUrl(base, unitHref(unit.slug)),
+    })),
+  };
+}
+
+/** Semua JSON-LD profil apartemen, urut: ApartmentComplex, AggregateOffer?, ItemList?, FAQPage?, BreadcrumbList. */
 export function buildApartmentPageJsonLd(input: ApartmentJsonLdInput): JsonLdObject[] {
+  const offers = buildApartmentOffersJsonLd(input);
+  const list = buildApartmentUnitListJsonLd(input);
   const faqPage = buildFaqPageJsonLd(input.faqs ?? []);
-  return [buildApartmentComplexJsonLd(input), ...(faqPage ? [faqPage] : []), buildApartmentBreadcrumbJsonLd(input)];
+  return [
+    buildApartmentComplexJsonLd(input),
+    ...(offers ? [offers] : []),
+    ...(list ? [list] : []),
+    ...(faqPage ? [faqPage] : []),
+    buildApartmentBreadcrumbJsonLd(input),
+  ];
 }

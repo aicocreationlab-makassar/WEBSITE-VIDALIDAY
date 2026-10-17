@@ -437,6 +437,39 @@ export function SeoCard({ hidden, isDefault }: CardProps) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Media sosial dan Google (sameAs di JSON-LD)
+// ---------------------------------------------------------------------------
+
+const SOCIAL_FIELDS: { field: "instagramUrl" | "facebookUrl" | "tiktokUrl" | "googleBusinessUrl"; placeholder: string }[] = [
+  { field: "instagramUrl", placeholder: "https://www.instagram.com/vidaliday" },
+  { field: "facebookUrl", placeholder: "https://www.facebook.com/vidaliday" },
+  { field: "tiktokUrl", placeholder: "https://www.tiktok.com/@vidaliday" },
+  { field: "googleBusinessUrl", placeholder: "https://maps.app.goo.gl/..." },
+];
+
+export function SocialCard({ hidden, isDefault }: CardProps) {
+  const {
+    register,
+    formState: { errors },
+  } = useSettingsFormContext();
+  return (
+    <FormCard {...sectionCard("sosial", hidden)} columns={2}>
+      {SOCIAL_FIELDS.map(({ field, placeholder }) => (
+        <Field
+          key={field}
+          label={LABEL[field]}
+          error={errors[field]?.message}
+          hint={field === "googleBusinessUrl" ? "Tautan bagikan dari Google Business Profile atau Google Maps." : "Opsional. Alamat profil lengkap."}
+          aside={<FieldAside isDefault={isDefault(field)} />}
+        >
+          <Input {...register(field)} type="url" inputMode="url" autoComplete="off" placeholder={placeholder} maxLength={SETTINGS_MAX[field]} />
+        </Field>
+      ))}
+    </FormCard>
+  );
+}
+
 /** Perkiraan tampilan di hasil pencarian Google (judul satu baris, deskripsi dua baris). */
 function SeoPreview({ title, description }: { title: string; description: string }) {
   const site = getSiteUrl();

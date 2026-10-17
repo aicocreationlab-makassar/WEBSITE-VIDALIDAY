@@ -42,6 +42,10 @@ export const SETTINGS_LABELS: Record<SettingsField, string> = {
   companyLegalName: "Nama badan hukum",
   seoTitle: "Judul SEO",
   seoDescription: "Deskripsi SEO",
+  instagramUrl: "Instagram",
+  facebookUrl: "Facebook",
+  tiktokUrl: "TikTok",
+  googleBusinessUrl: "Google Business Profile",
 };
 
 /** Batas karakter (sama dengan settingsSchema) untuk maxLength dan penghitung. */
@@ -60,6 +64,10 @@ export const SETTINGS_MAX = {
   companyLegalName: 120,
   seoTitle: 70,
   seoDescription: 170,
+  instagramUrl: 200,
+  facebookUrl: 200,
+  tiktokUrl: 200,
+  googleBusinessUrl: 300,
 } as const satisfies Partial<Record<SettingsField, number>>;
 
 /** Batas lunak SEO: lebih dari ini bisa terpotong di hasil Google. */
@@ -90,6 +98,10 @@ export function toSettingsFormValues(settings: SiteSettings): SettingsFormValues
     companyLegalName: settings.companyLegalName,
     seoTitle: settings.seoTitle,
     seoDescription: settings.seoDescription,
+    instagramUrl: settings.instagramUrl,
+    facebookUrl: settings.facebookUrl,
+    tiktokUrl: settings.tiktokUrl,
+    googleBusinessUrl: settings.googleBusinessUrl,
   };
 }
 
@@ -108,7 +120,7 @@ export function fieldsUsingDefault(filledKeys: Iterable<string>): SettingsField[
 // Bagian form, pencarian, status
 // ---------------------------------------------------------------------------
 
-export type SettingsSectionId = "kontak" | "beranda" | "pemesanan" | "brand" | "seo";
+export type SettingsSectionId = "kontak" | "beranda" | "pemesanan" | "brand" | "seo" | "sosial";
 
 export type SettingsSection = {
   id: SettingsSectionId;
@@ -154,6 +166,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     description: "Judul dan deskripsi bawaan untuk Google dan saat link situs dibagikan.",
     fields: ["seoTitle", "seoDescription"],
     keywords: "google pencarian meta judul deskripsi share bagikan",
+  },
+  {
+    id: "sosial",
+    title: "Media sosial dan Google",
+    description: "Tautan profil resmi; dipakai untuk data terstruktur (sameAs) supaya Google dan AI mengenali VIDALIDAY.",
+    fields: ["instagramUrl", "facebookUrl", "tiktokUrl", "googleBusinessUrl"],
+    keywords: "instagram facebook tiktok google business profile maps sosial media sameas tautan link",
   },
 ];
 

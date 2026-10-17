@@ -5,7 +5,8 @@ import { ShowAllPanel } from "./show-all-panel";
 
 const INITIAL = 8;
 
-function AmenityGrid({ amenities, className }: { amenities: Amenity[]; className?: string }) {
+/** Grid fasilitas berikon; dipakai juga landing tipe kamar ("Fasilitas kamar yang umum"). */
+export function AmenityGrid({ amenities, className }: { amenities: Amenity[]; className?: string }) {
   return (
     <ul className={cn("grid gap-x-4 gap-y-1", className)}>
       {amenities.map((amenity) => (

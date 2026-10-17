@@ -25,6 +25,11 @@ export function unitHref(slug: string): string {
   return `/unit/${encodeURIComponent(slug)}`;
 }
 
+/** Halaman landing tipe kamar per apartemen (SEO): "/apartemen/vida-view/studio". */
+export function roomTypeHref(locationSlug: string, typeSlug: string): string {
+  return `/apartemen/${encodeURIComponent(locationSlug)}/${encodeURIComponent(typeSlug)}`;
+}
+
 /** Fasilitas utama untuk kartu: yang bukan ikon generik, urut sort_order, maks. n. */
 export function cardAmenities(amenities: Amenity[], limit = 3): Amenity[] {
   const primary = amenities.filter((a) => a.icon !== "check");

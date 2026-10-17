@@ -68,7 +68,32 @@ describe("buildLodgingBusinessJsonLd", () => {
         addressCountry: "ID",
       },
       areaServed: { "@type": "City", name: "Makassar" },
+      parentOrganization: { "@id": "https://vidaliday.com/#organization" },
     });
+  });
+
+  it("menambah badan hukum, jam layanan, tautan sosial, dan gedung yang dikelola", () => {
+    const ld = buildLodgingBusinessJsonLd({
+      siteUrl: SITE,
+      whatsappNumber: "6285711696970",
+      prices: [250000],
+      legalName: "PT PERDANA MEGA TRANS",
+      officeHours: "10.00–23.00 WITA",
+      sameAs: ["https://www.instagram.com/vidaliday", "", "bukan url", "https://www.instagram.com/vidaliday"],
+      locations: [
+        { name: "Apartemen Vida View", url: `${SITE}/apartemen/vida-view`, address: "Jl. Topaz Raya", latitude: -5.15, longitude: 119.44 },
+        { name: "Apartemen Delft CPI", url: `${SITE}/apartemen/delft-cpi`, address: null, latitude: null, longitude: null },
+      ],
+    });
+    expect(ld.legalName).toBe("PT Perdana Mega Trans");
+    expect(ld.openingHoursSpecification).toHaveLength(1);
+    expect(ld.sameAs).toEqual(["https://www.instagram.com/vidaliday"]);
+    expect(ld.address).toMatchObject({ streetAddress: "Jl. Topaz Raya" });
+    expect(ld.geo).toEqual({ "@type": "GeoCoordinates", latitude: -5.15, longitude: 119.44 });
+    const locations = ld.location as Record<string, unknown>[];
+    expect(locations).toHaveLength(2);
+    expect(locations[0]).toMatchObject({ "@type": "ApartmentComplex", "@id": `${SITE}/apartemen/vida-view#apartemen` });
+    expect(locations[1]).not.toHaveProperty("geo");
   });
 
   it("melewati field kosong dan memakai logo sebagai gambar", () => {
@@ -106,15 +131,25 @@ describe("buildFaqPageJsonLd", () => {
 });
 
 describe("buildHomeJsonLd", () => {
-  const base = { siteUrl: SITE, whatsappNumber: "6285711696970", prices: [250000] };
+  const base = { siteUrl: SITE, whatsappNumber: "6285711696970", prices: [250000], officeHours: "08.00–23.00 WITA", email: "info@vidaliday.com" };
 
-  it("LodgingBusiness dulu, lalu FAQPage", () => {
+  it("Organization, WebSite, LodgingBusiness, lalu FAQPage", () => {
     const list = buildHomeJsonLd({ ...base, faqs: [{ question: "Jam check-in?", answer: "14.00 WITA." }] });
-    expect(list.map((item) => item["@type"])).toEqual(["LodgingBusiness", "FAQPage"]);
+    expect(list.map((item) => item["@type"])).toEqual(["Organization", "WebSite", "LodgingBusiness", "FAQPage"]);
+    expect(list[0]).toMatchObject({
+      "@id": "https://vidaliday.com/#organization",
+      name: "VIDALIDAY",
+      logo: { "@type": "ImageObject", url: "https://vidaliday.com/images/logo-vidaliday.jpg" },
+      email: "info@vidaliday.com",
+    });
+    const contact = (list[0].contactPoint as Record<string, unknown>[])[0];
+    expect(contact).toMatchObject({ "@type": "ContactPoint", telephone: "+6285711696970", contactType: "customer service" });
+    expect(contact.hoursAvailable).toHaveLength(1);
+    expect(list[1]).toMatchObject({ "@id": "https://vidaliday.com/#website", inLanguage: "id", publisher: { "@id": "https://vidaliday.com/#organization" } });
   });
 
-  it("tanpa FAQ hanya LodgingBusiness", () => {
-    expect(buildHomeJsonLd({ ...base, faqs: [] }).map((item) => item["@type"])).toEqual(["LodgingBusiness"]);
+  it("tanpa FAQ tiga node", () => {
+    expect(buildHomeJsonLd({ ...base, faqs: [] }).map((item) => item["@type"])).toEqual(["Organization", "WebSite", "LodgingBusiness"]);
   });
 });
 

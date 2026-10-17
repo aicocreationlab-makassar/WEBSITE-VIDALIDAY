@@ -2,6 +2,7 @@
 
 import { formatRupiah } from "@/lib/format";
 import { plainSummary } from "@/lib/seo/apartment-jsonld";
+import { roomTypeHref } from "@/lib/unit-display";
 import { sewaHref } from "@/lib/validation/filters";
 import type { CatalogUnit, LocationWithTypes } from "@/types/domain";
 
@@ -55,7 +56,10 @@ export function apartmentMetaDescription(location: MetaFields): string {
 export type RoomTypeCardData = {
   id: number;
   name: string;
+  /** Halaman landing tipe (SEO): /apartemen/{slug}/{tipe}. */
   href: string;
+  /** Daftar unit tipe ini di /sewa (unit penuh ikut tampil kalau semua penuh). */
+  unitsHref: string;
   /** Kapasitas maksimal: default tipe kamar, kalau kosong kapasitas terbesar unitnya. */
   capacity: number | null;
   minPrice: number | null;
@@ -66,8 +70,8 @@ export type RoomTypeCardData = {
 };
 
 /**
- * Kartu "Tipe kamar": hanya tipe yang punya unit published, urut sort_order.
- * Tipe yang semua unitnya penuh tetap tampil dan menautkan ke /sewa dengan unit penuh ikut terlihat.
+ * Kartu "Tipe kamar": hanya tipe yang punya unit published, urut sort_order. Kartu menuju halaman
+ * landing tipe; `unitsHref` menuju /sewa (unit penuh ikut terlihat kalau semua penuh).
  */
 export function roomTypeCards(location: LocationWithTypes, catalog: CatalogUnit[]): RoomTypeCardData[] {
   return location.roomTypes
@@ -88,7 +92,8 @@ export function roomTypeCards(location: LocationWithTypes, catalog: CatalogUnit[
       return {
         id: type.id,
         name: type.name,
-        href: sewaHref({ lokasi: location.slug, tipe: type.slug, penuh: type.availableCount === 0 }),
+        href: roomTypeHref(location.slug, type.slug),
+        unitsHref: sewaHref({ lokasi: location.slug, tipe: type.slug, penuh: type.availableCount === 0 }),
         capacity,
         minPrice: type.minPrice,
         unitCount: type.unitCount,

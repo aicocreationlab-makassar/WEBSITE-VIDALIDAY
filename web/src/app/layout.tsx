@@ -28,6 +28,17 @@ export const metadata: Metadata = {
     locale: "id_ID",
     siteName: "VIDALIDAY",
   },
+  twitter: { card: "summary_large_image" },
+  // Izin cuplikan dan pratinjau gambar penuh untuk hasil kaya dan AI Overview (PRD 6.9).
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  // Verifikasi Search Console lewat tag HTML (opsional; properti Domain via DNS tidak memerlukannya).
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {

@@ -60,6 +60,20 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
                 <Link href={`/apartemen/${location.slug}`} className={FOOTER_LINK}>
                   <span className="truncate">{location.name}</span>
                 </Link>
+                {location.types.length ? (
+                  <ul className="mb-1 pl-3">
+                    {location.types.map((type) => (
+                      <li key={type.slug} className="min-w-0">
+                        <Link href={`/apartemen/${location.slug}/${type.slug}`} className={`${FOOTER_LINK} text-sm`}>
+                          <span className="truncate">
+                            {type.name}
+                            <span className="sr-only"> di {location.shortName}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
             ))}
             <li>

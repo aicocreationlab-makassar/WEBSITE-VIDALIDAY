@@ -3,10 +3,10 @@
 // bukan properti tipe Place/Accommodation di schema.org.
 
 import { stripMarkdown } from "@/lib/format";
-import { absoluteUrl, BRAND_NAME } from "@/lib/seo/home-jsonld";
+import { absoluteUrl, BRAND_NAME, buildFaqPageJsonLd } from "@/lib/seo/home-jsonld";
 import type { JsonLdObject } from "@/lib/seo/json-ld";
 import { unitBreadcrumbs } from "@/lib/unit-detail";
-import type { RoomCategory, UnitDetail } from "@/types/domain";
+import type { Faq, RoomCategory, UnitDetail } from "@/types/domain";
 
 const SCHEMA_CONTEXT = "https://schema.org";
 
@@ -22,6 +22,8 @@ export type UnitJsonLdInput = {
   unit: UnitDetail;
   /** Dari getSiteUrl(), tanpa garis miring di akhir. */
   siteUrl: string;
+  /** FAQ yang tampil di halaman unit; kosong → FAQPage tidak dibuat. */
+  faqs?: Pick<Faq, "question" | "answer">[];
 };
 
 function trimBase(siteUrl: string): string {
@@ -133,8 +135,9 @@ export function buildUnitBreadcrumbJsonLd({ unit, siteUrl }: UnitJsonLdInput): J
   };
 }
 
-/** Semua JSON-LD detail unit, urut: Apartment, Offer (kalau harga valid), BreadcrumbList. */
+/** Semua JSON-LD detail unit, urut: Apartment, Offer (kalau harga valid), FAQPage (kalau ada), BreadcrumbList. */
 export function buildUnitJsonLd(input: UnitJsonLdInput): JsonLdObject[] {
   const offer = buildUnitOfferJsonLd(input);
-  return [buildApartmentJsonLd(input), ...(offer ? [offer] : []), buildUnitBreadcrumbJsonLd(input)];
+  const faqPage = buildFaqPageJsonLd(input.faqs ?? []);
+  return [buildApartmentJsonLd(input), ...(offer ? [offer] : []), ...(faqPage ? [faqPage] : []), buildUnitBreadcrumbJsonLd(input)];
 }
