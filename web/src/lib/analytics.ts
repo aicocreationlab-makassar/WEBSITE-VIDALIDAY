@@ -16,6 +16,11 @@ export type AnalyticsEvents = {
   booking_submit: { unit: string; code: string | null; nights: number; guests: number; saved: boolean };
   whatsapp_redirect: { unit: string | null; saved: boolean; context: "booking" | "general" };
   recommendation_click: { from: string; to: string; position: number };
+  // Bot chat (PRD 6.11): hanya jenis pertanyaan, tidak pernah teksnya.
+  chat_open: { page: string };
+  chat_question: { intent: string; matched: boolean; lokasi: string | null };
+  chat_unit_click: { unit: string; position: number };
+  chat_handoff: { intent: string | null; reason: "fallback" | "button" };
 };
 
 const FORBIDDEN = /nama|name|phone|telepon|whatsapp_number|wa_number|catatan|notes|email/i;

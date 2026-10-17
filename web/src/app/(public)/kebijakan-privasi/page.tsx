@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/kebijakan-privasi" },
 };
 
-const UPDATED = "16 Oktober 2026";
+const UPDATED = "18 Oktober 2026";
 
 function Heading({ id, children }: { id: string; children: React.ReactNode }) {
   return (
@@ -44,7 +44,7 @@ export default async function PrivacyPolicyPage() {
         <Heading id="data">Data yang kami kumpulkan</Heading>
         <p>Saat kamu mengisi form sewa, kami menyimpan:</p>
         <ul>
-          <li>nama lengkap dan nomor WhatsApp;</li>
+          <li>nama lengkap, kota asal, dan nomor WhatsApp;</li>
           <li>rencana tanggal check-in dan check-out, serta jumlah tamu;</li>
           <li>keperluan menginap dan catatan, kalau kamu mengisinya;</li>
           <li>unit yang kamu minati dan halaman tempat form dikirim.</li>
@@ -71,18 +71,24 @@ export default async function PrivacyPolicyPage() {
         <Heading id="perangkat">Data di perangkat kamu</Heading>
         <ul>
           <li>
-            Kalau kamu mencentang &ldquo;Ingat data saya&rdquo;, nama dan nomor WhatsApp disimpan di browser perangkat
+            Kalau kamu mencentang &ldquo;Ingat data saya&rdquo;, nama, kota asal, dan nomor WhatsApp disimpan di browser perangkat
             ini supaya form berikutnya terisi otomatis.
           </li>
           <li>
             Daftar &ldquo;Terakhir kamu lihat&rdquo; disimpan di browser perangkat ini untuk rekomendasi unit dan tidak
             pernah dikirim ke server kami.
           </li>
+          <li>
+            Percakapan dengan chat bantuan &ldquo;Asisten VIDALIDAY&rdquo; dijawab langsung di browser dari data unit
+            di situs ini. Riwayatnya disimpan sementara di perangkat ini (paling lama 24 jam atau sampai tab ditutup)
+            dan tidak pernah dikirim ke server kami.
+          </li>
         </ul>
         <p>
-          Daftar &ldquo;Terakhir kamu lihat&rdquo; bisa dihapus kapan saja lewat tombol &ldquo;Hapus riwayat&rdquo;. Nama
-          dan nomor yang tersimpan terhapus kalau kamu mengirim form tanpa mencentang &ldquo;Ingat data saya&rdquo;.
-          Keduanya juga bisa dihapus lewat pengaturan browser (hapus data situs).
+          Daftar &ldquo;Terakhir kamu lihat&rdquo; bisa dihapus kapan saja lewat tombol &ldquo;Hapus riwayat&rdquo;, dan
+          riwayat chat lewat tombol &ldquo;Mulai ulang&rdquo; di panel chat. Nama, kota asal, dan nomor yang tersimpan
+          terhapus kalau kamu mengirim form tanpa mencentang &ldquo;Ingat data saya&rdquo;. Semuanya juga bisa dihapus
+          lewat pengaturan browser (hapus data situs).
         </p>
 
         <Heading id="berbagi">Berbagi data</Heading>

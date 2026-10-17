@@ -153,6 +153,9 @@
   --radius: 0.75rem;
 }
 
+/* Halaman yang punya bar CTA menempel (detail unit mobile): elemen mengambang naik di atasnya. */
+@custom-variant above-cta (&:where(body:has([data-sticky-cta]) *));
+
 /* Varian data-* yang dipakai komponen shadcn (disalin dari shadcn/tailwind.css 4.21). */
 @custom-variant data-open {
   &:where([data-state="open"]),

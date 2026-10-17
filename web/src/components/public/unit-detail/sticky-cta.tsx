@@ -19,6 +19,7 @@ export function StickyCta({ unit }: Props) {
   return (
     <div
       data-testid="sticky-cta"
+      data-sticky-cta=""
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] shadow-sticky md:hidden"
     >
       <div className="mx-auto flex h-[72px] w-full max-w-[1200px] items-center gap-3 px-4 sm:px-6">
