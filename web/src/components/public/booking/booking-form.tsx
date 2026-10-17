@@ -19,6 +19,7 @@ import { diffDays, formatWhatsappDisplay, todayInMakassar } from "@/lib/format";
 import { unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
 import {
+  MAX_CITY,
   MAX_GUESTS,
   MAX_NOTES,
   PURPOSES,
@@ -95,7 +96,7 @@ async function submitSafely(input: BookingInput): Promise<SubmitLeadResult> {
   }
 }
 
-const IDENTITY_FIELDS: BookingField[] = ["fullName", "whatsapp"];
+const IDENTITY_FIELDS: BookingField[] = ["fullName", "originCity", "whatsapp"];
 
 /**
  * Form "Atur rencana menginap" (PRD 6.5, DESIGN 4.9, UX 2.5). Hanya dirender saat sheet/modal
@@ -135,9 +136,9 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
     shouldFocusError: false,
   });
 
-  const [fullName, whatsapp, checkIn, checkOut, guests, purpose, notes] = useWatch({
+  const [fullName, originCity, whatsapp, checkIn, checkOut, guests, purpose, notes] = useWatch({
     control,
-    name: ["fullName", "whatsapp", "checkIn", "checkOut", "guests", "purpose", "notes"],
+    name: ["fullName", "originCity", "whatsapp", "checkIn", "checkOut", "guests", "purpose", "notes"],
   });
 
   const [identityCollapsed, setIdentityCollapsed] = useState(initial.identityCollapsed);
@@ -186,6 +187,7 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
   // -------------------------------------------------------------------------
 
   const fullNameField = register("fullName");
+  const originCityField = register("originCity");
   const whatsappField = register("whatsapp");
   const checkInField = register("checkIn");
   const checkOutField = register("checkOut");
@@ -237,6 +239,7 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
     const result = await submitSafely({
       unitId: unit.id,
       fullName: data.fullName,
+      originCity: data.originCity,
       whatsapp: data.whatsapp,
       checkIn: data.checkIn,
       checkOut: data.checkOut,
@@ -268,6 +271,7 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
         unit,
         {
           fullName: data.fullName,
+          originCity: data.originCity,
           whatsapp: data.whatsapp,
           checkIn: data.checkIn,
           checkOut: data.checkOut,
@@ -288,7 +292,7 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
 
     const lead = { unit: unit.slug, code, url, at: Date.now() };
     rememberLastLead(lead);
-    saveGuest(remember ? { fullName: data.fullName, whatsapp: data.whatsapp } : null);
+    saveGuest(remember ? { fullName: data.fullName, originCity: data.originCity, whatsapp: data.whatsapp } : null);
     track("booking_submit", { unit: unit.slug, code, nights, guests: data.guests, saved: result.ok });
     track("whatsapp_redirect", { unit: unit.slug, saved: result.ok, context: "booking" });
     goToWhatsapp(pending, url);
@@ -332,9 +336,16 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
             <p className="min-w-0 flex-1 text-sm leading-5 text-ink-2">
               Atas nama <span className="font-semibold text-ink">{fullName}</span>
               {" · "}
+              {originCity}
+              {" · "}
               <span className="whitespace-nowrap">{formatWhatsappDisplay(whatsapp)}</span>
             </p>
-            <Button type="button" variant="ghost" onClick={editIdentity} aria-label="Ubah nama dan nomor WhatsApp">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={editIdentity}
+              aria-label="Ubah nama, kota asal, dan nomor WhatsApp"
+            >
               Ubah
             </Button>
           </div>
@@ -356,6 +367,25 @@ export function BookingForm({ unit, settings, siteUrl, prefill, largerUnitsHref,
                 {...fullNameField}
               />
               <FieldError id={errorIdFor("fullName")} message={errors.fullName?.message} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={idFor("originCity")}>Kota asal</Label>
+              <Input
+                id={idFor("originCity")}
+                type="text"
+                autoComplete="address-level2"
+                autoCapitalize="words"
+                enterKeyHint="next"
+                placeholder="mis. Makassar"
+                maxLength={MAX_CITY}
+                aria-invalid={errors.originCity ? true : undefined}
+                aria-describedby={describedBy("originCity")}
+                data-autofocus={autoFocusField === "originCity" ? "true" : undefined}
+                className="h-[52px]"
+                {...originCityField}
+              />
+              <FieldError id={errorIdFor("originCity")} message={errors.originCity?.message} />
             </div>
 
             <div className="flex flex-col gap-1.5">

@@ -316,6 +316,7 @@ export const PREVIEW_VALUES: TemplateValues = {
   lokasi_unit: "Tower Ashton lt. 26",
   harga: "Rp280.000",
   nama: "Budi Santoso",
+  kota: "Jakarta",
   whatsapp: "0812-3456-7890",
   checkin: "Sab, 17 Okt 2026",
   checkout: "Sen, 19 Okt 2026",

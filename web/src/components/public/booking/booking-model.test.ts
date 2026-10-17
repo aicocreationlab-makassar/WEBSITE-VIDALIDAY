@@ -183,6 +183,7 @@ describe("initialBookingState", () => {
     expect(state.values).toEqual({
       unitId: 7,
       fullName: "",
+      originCity: "",
       whatsapp: "",
       checkIn: "2026-10-17",
       checkOut: "2026-10-18",
@@ -199,14 +200,28 @@ describe("initialBookingState", () => {
       today: TODAY,
       unit: bookingUnit,
       prefill: { checkIn: "2026-10-20", checkOut: "2026-10-22", guests: 4 },
-      saved: { fullName: "Budi Santoso", whatsapp: "6281234567890" },
+      saved: { fullName: "Budi Santoso", originCity: "Jakarta", whatsapp: "6281234567890" },
       sourcePath: "/unit/studio-at-26x",
     });
     expect(state.identityCollapsed).toBe(true);
     expect(state.remember).toBe(true);
     expect(state.values.fullName).toBe("Budi Santoso");
+    expect(state.values.originCity).toBe("Jakarta");
     expect(state.values.checkOut).toBe("2026-10-22");
     expect(state.values.guests).toBe(4);
+  });
+
+  it("data tersimpan tanpa kota asal (sebelum field ada): terisi tapi tidak diringkas", () => {
+    const state = initialBookingState({
+      today: TODAY,
+      unit: bookingUnit,
+      saved: { fullName: "Budi Santoso", whatsapp: "6281234567890" },
+      sourcePath: "/unit/studio-at-26x",
+    });
+    expect(state.identityCollapsed).toBe(false);
+    expect(state.remember).toBe(true);
+    expect(state.values.fullName).toBe("Budi Santoso");
+    expect(state.values.originCity).toBe("");
   });
 
   it("data tersimpan kosong diabaikan", () => {
@@ -235,10 +250,11 @@ describe("urutan field", () => {
   });
 
   it("firstEmptyField", () => {
-    const empty = { fullName: "", whatsapp: "", checkIn: TODAY, checkOut: "2026-10-18" };
+    const empty = { fullName: "", originCity: "", whatsapp: "", checkIn: TODAY, checkOut: "2026-10-18" };
     expect(firstEmptyField(empty, false)).toBe("fullName");
-    expect(firstEmptyField({ ...empty, fullName: "Budi" }, false)).toBe("whatsapp");
-    expect(firstEmptyField({ ...empty, fullName: "Budi", whatsapp: "0812" }, false)).toBe("checkIn");
+    expect(firstEmptyField({ ...empty, fullName: "Budi" }, false)).toBe("originCity");
+    expect(firstEmptyField({ ...empty, fullName: "Budi", originCity: "Jakarta" }, false)).toBe("whatsapp");
+    expect(firstEmptyField({ ...empty, fullName: "Budi", originCity: "Jakarta", whatsapp: "0812" }, false)).toBe("checkIn");
     expect(firstEmptyField({ ...empty, checkOut: "" }, true)).toBe("checkOut");
   });
 });

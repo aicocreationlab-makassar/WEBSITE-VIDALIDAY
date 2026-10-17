@@ -16,6 +16,7 @@ const unit = {
 
 const input = {
   fullName: "Budi Santoso",
+  originCity: "Jakarta",
   whatsapp: "0812 3456 7890",
   checkIn: "2026-10-17",
   checkOut: "2026-10-19",
@@ -37,6 +38,7 @@ Lokasi unit: Tower Ashton lt. 26
 Harga: Rp280.000/malam
 
 Nama: Budi Santoso
+Kota asal: Jakarta
 No. WhatsApp: 0812-3456-7890
 Check-in: Sab, 17 Okt 2026
 Check-out: Sen, 19 Okt 2026 (2 malam)
@@ -58,6 +60,17 @@ https://vidaliday.com/unit/studio-at-26x`,
     );
     expect(message).not.toContain("Kode permintaan");
     expect(message).not.toContain("Lokasi unit");
+  });
+
+  it("drops the city line for guests saved before the field existed", () => {
+    const message = buildBookingMessage(
+      DEFAULT_SETTINGS.bookingWhatsappTemplate,
+      unit,
+      { ...input, originCity: undefined },
+      "https://vidaliday.com",
+    );
+    expect(message).not.toContain("Kota asal");
+    expect(message).toContain("Nama: Budi Santoso\nNo. WhatsApp");
   });
 
   it("uses weekly rates in the estimate and adds a note for full units", () => {

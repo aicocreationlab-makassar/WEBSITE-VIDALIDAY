@@ -21,6 +21,8 @@ export type BookingMessageUnit = Pick<
 
 export type BookingMessageInput = {
   fullName: string;
+  /** Kota asal tamu; kosong (data lama) → baris "Kota asal" dihapus dari pesan. */
+  originCity?: string | null;
   whatsapp: string;
   checkIn: string;
   checkOut: string;
@@ -54,6 +56,7 @@ export function bookingTemplateValues(
     lokasi_unit: formatUnitSpot(unit),
     harga: formatRupiah(unit.effectivePrice),
     nama: input.fullName.trim(),
+    kota: input.originCity?.trim() || null,
     whatsapp: formatWhatsappDisplay(normalizeWhatsapp(input.whatsapp)),
     checkin: formatDate(input.checkIn),
     checkout: formatDate(input.checkOut),

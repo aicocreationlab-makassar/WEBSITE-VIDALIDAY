@@ -6,6 +6,7 @@ export const BOOKING_PLACEHOLDERS = [
   { key: "lokasi_unit", label: "Tower dan lantai unit" },
   { key: "harga", label: "Harga per malam" },
   { key: "nama", label: "Nama tamu" },
+  { key: "kota", label: "Kota asal tamu" },
   { key: "whatsapp", label: "Nomor WhatsApp tamu" },
   { key: "checkin", label: "Tanggal check-in" },
   { key: "checkout", label: "Tanggal check-out" },

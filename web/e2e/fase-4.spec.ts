@@ -29,6 +29,7 @@ async function fillBooking(page: Page, name: string) {
   const fullName = dialog.getByLabel("Nama lengkap");
   if (await fullName.isVisible()) {
     await fullName.fill(name);
+    await dialog.getByLabel("Kota asal").fill("Makassar");
     await dialog.getByLabel("Nomor WhatsApp").fill("0812 0000 0101");
   }
   return dialog;

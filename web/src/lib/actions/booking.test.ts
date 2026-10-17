@@ -17,6 +17,7 @@ const { submitLead } = await import("./booking");
 const valid = {
   unitId: 12,
   fullName: "  Budi Santoso ",
+  originCity: " Jakarta ",
   whatsapp: "0812-3456-7890",
   checkIn: "2026-10-17",
   checkOut: "2026-10-19",
@@ -50,7 +51,17 @@ describe("submitLead", () => {
       p_purpose: "Liburan",
       p_notes: "Minta early check-in",
       p_source_path: "/unit/studio-at-26x",
+      p_origin_city: "Jakarta",
     });
+  });
+
+  it("blocks when the origin city is missing", async () => {
+    const result = await submitLead({ ...valid, originCity: " " });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.blocking).toBe(true);
+    expect(result.fieldErrors?.originCity).toBeTruthy();
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
   it("blocks on invalid fields without calling the database", async () => {

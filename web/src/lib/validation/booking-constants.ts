@@ -6,10 +6,13 @@ export type Purpose = (typeof PURPOSES)[number];
 
 export const MAX_GUESTS = 30;
 export const MAX_NOTES = 500;
+export const MAX_CITY = 60;
 
 export const BOOKING_MESSAGES = {
   name: "Tulis nama lengkap minimal 2 huruf.",
   nameLong: "Nama maksimal 100 karakter.",
+  city: "Tulis kota asalmu, mis. Makassar.",
+  cityLong: `Kota asal maksimal ${MAX_CITY} karakter.`,
   phone: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
   checkInPast: "Check-in tidak boleh sebelum hari ini.",
   checkInFar: "Check-in maksimal 365 hari dari sekarang.",
@@ -21,4 +24,12 @@ export const BOOKING_MESSAGES = {
   notes: `Catatan maksimal ${MAX_NOTES} karakter.`,
 } as const;
 
-export type BookingField = "fullName" | "whatsapp" | "checkIn" | "checkOut" | "guests" | "purpose" | "notes";
+export type BookingField =
+  | "fullName"
+  | "originCity"
+  | "whatsapp"
+  | "checkIn"
+  | "checkOut"
+  | "guests"
+  | "purpose"
+  | "notes";

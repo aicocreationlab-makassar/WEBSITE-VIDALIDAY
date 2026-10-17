@@ -95,7 +95,8 @@ export function clearLastLead(): void {
 
 export const GUEST_KEY = "vdl:guest";
 
-export type SavedGuest = { fullName: string; whatsapp: string };
+/** Kota asal opsional supaya data yang tersimpan sebelum field itu ada tetap terbaca. */
+export type SavedGuest = { fullName: string; whatsapp: string; originCity?: string };
 
 export function readSavedGuest(): SavedGuest | null {
   try {

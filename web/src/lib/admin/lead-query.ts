@@ -99,7 +99,7 @@ export function sanitizeSearch(q: string): string {
 export function leadSearchOr(q: string): string | null {
   const term = sanitizeSearch(q);
   if (!term) return null;
-  const parts = [`full_name.ilike.*${term}*`, `code.ilike.*${term}*`];
+  const parts = [`full_name.ilike.*${term}*`, `code.ilike.*${term}*`, `origin_city.ilike.*${term}*`];
   const digits = term.replace(/\D/g, "");
   if (digits.length >= 4) {
     parts.push(`whatsapp.ilike.*${digits.replace(/^0/, "")}*`);
@@ -112,6 +112,8 @@ export type LeadRow = {
   code: string;
   created_at: string;
   full_name: string;
+  /** Kota asal tamu (form sejak batch 2); null untuk permintaan lama. */
+  origin_city: string | null;
   whatsapp: string;
   unit_id: number | null;
   unit_name: string | null;
@@ -132,6 +134,7 @@ export const LEAD_CSV_HEADER = [
   "Waktu masuk",
   "Kode",
   "Nama",
+  "Kota asal",
   "WhatsApp",
   "Unit",
   "Apartemen",
@@ -153,6 +156,7 @@ export function leadCsvRow(lead: LeadRow): CsvValue[] {
     formatDateTime(lead.created_at),
     lead.code,
     lead.full_name,
+    lead.origin_city ?? "",
     formatWhatsappDisplay(lead.whatsapp),
     lead.unit_name ?? "",
     lead.location_name ?? "",

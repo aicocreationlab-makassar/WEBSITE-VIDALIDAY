@@ -22,6 +22,7 @@ Lokasi unit: {lokasi_unit}
 Harga: {harga}/malam
 
 Nama: {nama}
+Kota asal: {kota}
 No. WhatsApp: {whatsapp}
 Check-in: {checkin}
 Check-out: {checkout} ({malam} malam)

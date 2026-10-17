@@ -3,10 +3,11 @@
 import { z } from "zod";
 import "./locale";
 import { addDays, diffDays, isDateString, isValidWhatsapp, normalizeWhatsapp } from "@/lib/format";
-import { BOOKING_MESSAGES, MAX_GUESTS, MAX_NOTES, PURPOSES } from "./booking-constants";
+import { BOOKING_MESSAGES, MAX_CITY, MAX_GUESTS, MAX_NOTES, PURPOSES } from "./booking-constants";
 
 export {
   BOOKING_MESSAGES,
+  MAX_CITY,
   MAX_GUESTS,
   MAX_NOTES,
   PURPOSES,
@@ -25,6 +26,12 @@ export function makeBookingSchema(today: string) {
         .trim()
         .min(2, BOOKING_MESSAGES.name)
         .max(100, BOOKING_MESSAGES.nameLong),
+      /** Kota asal tamu (wajib, teks bebas) supaya admin tahu dari mana tamunya. */
+      originCity: z
+        .string()
+        .trim()
+        .min(2, BOOKING_MESSAGES.city)
+        .max(MAX_CITY, BOOKING_MESSAGES.cityLong),
       whatsapp: z
         .string()
         .trim()
