@@ -1,8 +1,9 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { Download, Inbox, LoaderCircle, SearchX } from "lucide-react";
+import { Download, Inbox, ListChecks, LoaderCircle, SearchX } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/admin/kit/confirm-dialog";
 import { Pagination } from "@/components/admin/kit/pagination";
 import { SearchInput } from "@/components/admin/kit/search-input";
 import { LEAD_STATUSES } from "@/components/admin/kit/status-badge";
@@ -10,7 +11,7 @@ import { useUrlParams } from "@/components/admin/kit/use-url-params";
 import { LG_QUERY, MD_QUERY, useBreakpoint } from "@/components/admin/units/list/use-breakpoint";
 import { EmptyState } from "@/components/public/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { updateLead } from "@/lib/actions/admin/leads";
+import { deleteLeads, updateLead } from "@/lib/actions/admin/leads";
 import {
   LEADS_EXPORT_LIMIT,
   LEADS_PAGE_SIZE,
@@ -19,7 +20,8 @@ import {
   type LeadStatusValue,
 } from "@/lib/admin/lead-query";
 import { cn } from "@/lib/utils";
-import type { LeadRowActions } from "./lead-bits";
+import type { LeadRowActions, LeadSelectionProps } from "./lead-bits";
+import { LeadBulkBar } from "./lead-bulk-bar";
 import { LeadCards } from "./lead-cards";
 import { LeadDetailDialog } from "./lead-detail-dialog";
 import { InlineLeadFilters, LeadFilterSheet } from "./lead-filters";
@@ -27,13 +29,17 @@ import {
   apartmentOptions,
   applyLeadPatch,
   chipCount,
+  deleteConfirmCopy,
   exportHref,
   firstName,
+  freshLeadSelection,
   hasActiveLeadFilters,
   panelChanges,
   panelFilterCount,
   panelFromFilter,
+  setLeadsPageSelected,
   STATUS_CHIP_KEYS,
+  toggleLeadSelected,
   type LeadStatusCounts,
 } from "./lead-list-model";
 import { LeadTable } from "./lead-table";
@@ -42,6 +48,7 @@ import { useMinWidth } from "./use-min-width";
 // Tabel dipakai kalau lebar daftar >= 1024px (sama dengan @5xl untuk fallback CSS); di bawahnya kartu.
 const TABLE_MIN_WIDTH = 1024;
 const NETWORK_ERROR = "Perubahan gagal disimpan. Periksa koneksi lalu coba lagi.";
+const DELETE_NETWORK_ERROR = "Gagal menghapus. Periksa koneksi lalu coba lagi.";
 const numberFormat = new Intl.NumberFormat("id-ID");
 
 export type LeadListProps = {
@@ -59,8 +66,8 @@ type DetailState = { lead: LeadRow; focusNotes: boolean; key: string };
 
 /**
  * Daftar permintaan sewa admin (PRD 7.8): pencarian, filter status/apartemen/tanggal, chip status,
- * tabel (desktop) / kartu (HP), ubah status langsung, catatan admin, chat WhatsApp, ekspor CSV.
- * State filter di URL (bisa di-bookmark).
+ * tabel (desktop) / kartu (HP), ubah status langsung, catatan admin, chat WhatsApp, ekspor CSV,
+ * hapus permanen (per baris atau mode "Pilih" dengan bar aksi massal). State filter di URL.
  */
 export function LeadList({ rows: serverRows, total, page, pageCount, filter, apartments, counts }: LeadListProps) {
   const { update, reset, pending } = useUrlParams();
@@ -74,6 +81,12 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
   const [detail, setDetail] = useState<DetailState | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [, startAction] = useTransition();
+
+  const [selecting, setSelecting] = useState(false);
+  const [selection, setSelection] = useState<Map<string, LeadRow>>(() => new Map());
+  const [deleteTarget, setDeleteTarget] = useState<LeadRow[]>([]);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   const panel = panelFromFilter(filter);
   const filtersActive = hasActiveLeadFilters(filter);
@@ -105,9 +118,55 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
     });
   }
 
+  function requestDelete(leads: LeadRow[]) {
+    if (!leads.length) return;
+    setDeleteTarget(leads);
+    setDeleteOpen(true);
+    // Dialog detail ditutup supaya konfirmasi hapus tidak bertumpuk di atasnya.
+    if (detailOpen && leads.some((lead) => lead.id === detail?.lead.id)) setDetailOpen(false);
+  }
+
+  function confirmDelete() {
+    const ids = deleteTarget.map((lead) => lead.id);
+    if (!ids.length) return;
+    startDelete(async () => {
+      applyPatch({ remove: ids });
+      try {
+        const result = await deleteLeads({ ids });
+        if (result.ok) {
+          toast.success(result.message ?? "Permintaan dihapus permanen");
+          setDeleteOpen(false);
+          setDeleteTarget([]);
+          setSelection((current) => {
+            const next = new Map(current);
+            for (const id of ids) next.delete(id);
+            return next;
+          });
+        } else {
+          toast.error(result.error);
+        }
+      } catch {
+        toast.error(DELETE_NETWORK_ERROR);
+      }
+    });
+  }
+
+  function exitSelecting() {
+    setSelecting(false);
+    setSelection(new Map());
+  }
+
+  const selectionProps: LeadSelectionProps = {
+    selecting,
+    selection,
+    onToggle: (lead) => setSelection((current) => toggleLeadSelected(current, lead)),
+    onTogglePage: (checked) => setSelection((current) => setLeadsPageSelected(current, rows, checked)),
+  };
+
   const actions: LeadRowActions = {
     savingIds,
     onStatus: changeStatus,
+    onDelete: requestDelete,
     onOpen: (lead, focusNotes = false) => {
       setDetail({ lead, focusNotes, key: `${lead.id}-${Date.now()}` });
       setDetailOpen(true);
@@ -211,6 +270,18 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
             </div>
           ) : null}
           {exportButton}
+          {total > 0 ? (
+            <Button
+              type="button"
+              variant={selecting ? "outline" : "secondary"}
+              aria-pressed={selecting}
+              className="h-12 shrink-0 max-sm:w-12 max-sm:px-0"
+              onClick={() => (selecting ? exitSelecting() : setSelecting(true))}
+            >
+              <ListChecks aria-hidden="true" />
+              <span className="max-sm:sr-only">Pilih</span>
+            </Button>
+          ) : null}
         </div>
         {lg !== false ? (
           <div className={cn("mt-3", lg === null && "hidden lg:block")}>
@@ -288,12 +359,12 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
           <>
             {wide !== false ? (
               <div className={cn(wide === null && "hidden @5xl:block")}>
-                <LeadTable rows={rows} actions={actions} />
+                <LeadTable rows={rows} actions={actions} {...selectionProps} />
               </div>
             ) : null}
             {wide !== true ? (
               <div className={cn(wide === null && "@5xl:hidden")}>
-                <LeadCards rows={rows} actions={actions} />
+                <LeadCards rows={rows} actions={actions} {...selectionProps} />
               </div>
             ) : null}
             <Pagination
@@ -306,6 +377,16 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
             />
           </>
         )}
+
+        {selecting ? (
+          <LeadBulkBar
+            selected={freshLeadSelection(selection, rows)}
+            pending={deleting}
+            onClear={() => setSelection(new Map())}
+            onExit={exitSelecting}
+            onDelete={requestDelete}
+          />
+        ) : null}
       </div>
 
       {detail ? (
@@ -316,8 +397,21 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
           open={detailOpen}
           onOpenChange={setDetailOpen}
           onChat={actions.onChat}
+          onDelete={(lead) => requestDelete([lead])}
         />
       ) : null}
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={(next) => {
+          setDeleteOpen(next);
+          if (!next) setDeleteTarget([]);
+        }}
+        {...deleteConfirmCopy(deleteTarget)}
+        destructive
+        loading={deleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

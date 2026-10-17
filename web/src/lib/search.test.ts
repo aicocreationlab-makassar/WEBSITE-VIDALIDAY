@@ -83,6 +83,7 @@ describe("cache tags", () => {
     expect(tagsFor({ kind: "unit", slugs: ["lama", "baru", null] })).toEqual(["units", "unit:lama", "unit:baru"]);
     expect(tagsFor({ kind: "roomType" })).toEqual(["locations", "units"]);
     expect(tagsFor({ kind: "amenity" })).toEqual(["amenities", "units"]);
+    expect(tagsFor({ kind: "lead" })).toEqual(["popularity"]);
   });
 
   it("refreshes every public tag after direct database changes", () => {

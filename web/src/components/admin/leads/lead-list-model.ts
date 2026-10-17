@@ -213,9 +213,16 @@ export function chipCount(counts: LeadStatusCounts | null, key: StatusChipKey): 
 // Pembaruan optimistis
 // ---------------------------------------------------------------------------
 
-export type LeadPatch = { id: string; status?: LeadStatusValue; adminNotes?: string | null };
+export type LeadPatch =
+  | { id: string; status?: LeadStatusValue; adminNotes?: string | null }
+  /** Baris dihapus: langsung hilang dari daftar sambil menunggu server. */
+  | { remove: string[] };
 
 export function applyLeadPatch(rows: LeadRow[], patch: LeadPatch): LeadRow[] {
+  if ("remove" in patch) {
+    const gone = new Set(patch.remove);
+    return rows.filter((row) => !gone.has(row.id));
+  }
   return rows.map((row) => {
     if (row.id !== patch.id) return row;
     return {
@@ -224,4 +231,58 @@ export function applyLeadPatch(rows: LeadRow[], patch: LeadPatch): LeadRow[] {
       ...(patch.adminNotes !== undefined ? { admin_notes: patch.adminNotes } : {}),
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Pilih banyak + hapus (PRD 7.8)
+// ---------------------------------------------------------------------------
+
+export type LeadSelection = ReadonlyMap<string, LeadRow>;
+
+export function toggleLeadSelected(selection: LeadSelection, row: LeadRow): Map<string, LeadRow> {
+  const next = new Map(selection);
+  if (next.has(row.id)) next.delete(row.id);
+  else next.set(row.id, row);
+  return next;
+}
+
+export function setLeadsPageSelected(selection: LeadSelection, rows: LeadRow[], checked: boolean): Map<string, LeadRow> {
+  const next = new Map(selection);
+  for (const row of rows) {
+    if (checked) next.set(row.id, row);
+    else next.delete(row.id);
+  }
+  return next;
+}
+
+/** Status checkbox "pilih semua di halaman ini". */
+export function leadPageSelectionState(selection: LeadSelection, rows: LeadRow[]): boolean | "indeterminate" {
+  if (!rows.length) return false;
+  const count = rows.filter((row) => selection.has(row.id)).length;
+  if (count === 0) return false;
+  return count === rows.length ? true : "indeterminate";
+}
+
+/** Data terbaru untuk baris terpilih (bisa lintas halaman): baris di halaman ini menggantikan salinan lama. */
+export function freshLeadSelection(selection: LeadSelection, rows: LeadRow[]): LeadRow[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return [...selection.values()].map((row) => byId.get(row.id) ?? row);
+}
+
+/** Teks dialog konfirmasi hapus (satu permintaan disebut kodenya, banyak disebut jumlahnya). */
+export function deleteConfirmCopy(leads: readonly Pick<LeadRow, "code" | "full_name">[]): {
+  title: string;
+  description: string;
+  confirmLabel: string;
+} {
+  const description =
+    "Data tamu terhapus permanen dari database dan tidak bisa dikembalikan. Hitungan popularitas unit ikut berkurang.";
+  if (leads.length === 1) {
+    return {
+      title: `Hapus permintaan ${leads[0].code}?`,
+      description: `Permintaan atas nama ${leads[0].full_name}. ${description}`,
+      confirmLabel: "Hapus permanen",
+    };
+  }
+  return { title: `Hapus ${leads.length} permintaan?`, description, confirmLabel: `Hapus ${leads.length} permintaan` };
 }

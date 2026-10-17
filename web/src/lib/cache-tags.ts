@@ -24,6 +24,8 @@ export type InvalidateTarget =
   | { kind: "landmark" }
   | { kind: "faq" }
   | { kind: "settings" }
+  /** Permintaan sewa dihapus: hitungan popularitas unit (urutan "Rekomendasi") ikut berubah. */
+  | { kind: "lead" }
   /** Semua data publik: dipakai setelah data diubah langsung di database (migrasi, SQL Editor). */
   | { kind: "all" };
 
@@ -50,6 +52,8 @@ export function tagsFor(target: InvalidateTarget): string[] {
       return [TAGS.faqs];
     case "settings":
       return [TAGS.settings];
+    case "lead":
+      return [TAGS.popularity];
     case "all":
       return [
         TAGS.units,

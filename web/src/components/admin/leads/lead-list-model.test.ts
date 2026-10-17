@@ -6,10 +6,13 @@ import {
   checkinChanges,
   chipCount,
   datePresets,
+  deleteConfirmCopy,
   EMPTY_LEAD_PANEL,
   exportHref,
   firstName,
+  freshLeadSelection,
   hasActiveLeadFilters,
+  leadPageSelectionState,
   masukChanges,
   matchingPreset,
   notePreview,
@@ -19,8 +22,10 @@ import {
   panelFilterCount,
   panelFromFilter,
   rangeLabel,
+  setLeadsPageSelected,
   stayNights,
   stayRangeLabel,
+  toggleLeadSelected,
   toStatus,
 } from "./lead-list-model";
 
@@ -29,6 +34,7 @@ const lead = (over: Partial<LeadRow> = {}): LeadRow => ({
   code: "VDL-ABC123",
   created_at: "2026-10-16T06:05:00Z",
   full_name: "Budi Santoso",
+  origin_city: null,
   whatsapp: "6281234567890",
   unit_id: 1,
   unit_name: "Studio AT 26X",
@@ -182,5 +188,51 @@ describe("row helpers", () => {
     expect(next[0]).toBe(rows[0]);
     expect(next[1]).toMatchObject({ status: "deal", admin_notes: "Lunas", code: "VDL-XYZ789" });
     expect(applyLeadPatch(rows, { id: rows[0].id, status: "batal" })[0].admin_notes).toBeNull();
+  });
+
+  it("removes deleted rows optimistically", () => {
+    const rows = [lead(), lead({ id: "6f1c9a4e-0000-4000-8000-000000000002", code: "VDL-XYZ789" })];
+    expect(applyLeadPatch(rows, { remove: [rows[0].id] }).map((row) => row.code)).toEqual(["VDL-XYZ789"]);
+    expect(applyLeadPatch(rows, { remove: ["tidak-ada"] })).toHaveLength(2);
+  });
+});
+
+describe("pilih banyak dan hapus", () => {
+  const rows = [lead(), lead({ id: "6f1c9a4e-0000-4000-8000-000000000002", code: "VDL-XYZ789", full_name: "Siti" })];
+
+  it("toggles rows and whole pages", () => {
+    let selection = toggleLeadSelected(new Map(), rows[0]);
+    expect(leadPageSelectionState(selection, rows)).toBe("indeterminate");
+    selection = toggleLeadSelected(selection, rows[0]);
+    expect(leadPageSelectionState(selection, rows)).toBe(false);
+    selection = setLeadsPageSelected(selection, rows, true);
+    expect(leadPageSelectionState(selection, rows)).toBe(true);
+    expect(leadPageSelectionState(new Map(), [])).toBe(false);
+    selection = setLeadsPageSelected(selection, rows, false);
+    expect(selection.size).toBe(0);
+  });
+
+  it("keeps selections from other pages and refreshes rows on this page", () => {
+    const stale = { ...rows[0], status: "baru" };
+    const other = lead({ id: "6f1c9a4e-0000-4000-8000-000000000003", code: "VDL-LAIN" });
+    const selection = new Map([
+      [stale.id, stale],
+      [other.id, other],
+    ]);
+    const fresh = freshLeadSelection(selection, [{ ...rows[0], status: "deal" }]);
+    expect(fresh.map((row) => [row.code, row.status])).toEqual([
+      ["VDL-ABC123", "deal"],
+      ["VDL-LAIN", "baru"],
+    ]);
+  });
+
+  it("writes the confirm copy for one or many leads", () => {
+    expect(deleteConfirmCopy([rows[0]])).toEqual({
+      title: "Hapus permintaan VDL-ABC123?",
+      description:
+        "Permintaan atas nama Budi Santoso. Data tamu terhapus permanen dari database dan tidak bisa dikembalikan. Hitungan popularitas unit ikut berkurang.",
+      confirmLabel: "Hapus permanen",
+    });
+    expect(deleteConfirmCopy(rows)).toMatchObject({ title: "Hapus 2 permintaan?", confirmLabel: "Hapus 2 permintaan" });
   });
 });
