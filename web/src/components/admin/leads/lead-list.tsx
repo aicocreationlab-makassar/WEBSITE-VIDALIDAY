@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 import { Download, Inbox, ListChecks, LoaderCircle, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/kit/confirm-dialog";
@@ -87,6 +87,7 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
   const [deleteTarget, setDeleteTarget] = useState<LeadRow[]>([]);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
+  const deletedRef = useRef(false);
 
   const panel = panelFromFilter(filter);
   const filtersActive = hasActiveLeadFilters(filter);
@@ -120,10 +121,10 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
 
   function requestDelete(leads: LeadRow[]) {
     if (!leads.length) return;
+    deletedRef.current = false;
     setDeleteTarget(leads);
     setDeleteOpen(true);
-    // Dialog detail ditutup supaya konfirmasi hapus tidak bertumpuk di atasnya.
-    if (detailOpen && leads.some((lead) => lead.id === detail?.lead.id)) setDetailOpen(false);
+    // Dialog detail tetap terbuka di belakang konfirmasi: batal hapus tidak membuang catatan yang sedang ditulis.
   }
 
   function confirmDelete() {
@@ -135,8 +136,9 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
         const result = await deleteLeads({ ids });
         if (result.ok) {
           toast.success(result.message ?? "Permintaan dihapus permanen");
+          deletedRef.current = true;
           setDeleteOpen(false);
-          setDeleteTarget([]);
+          if (detailOpen && detail && ids.includes(detail.lead.id)) setDetailOpen(false);
           setSelection((current) => {
             const next = new Map(current);
             for (const id of ids) next.delete(id);
@@ -350,8 +352,10 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
 
       <div
         ref={setListEl}
+        tabIndex={-1}
+        aria-label="Daftar permintaan sewa"
         aria-busy={pending || undefined}
-        className={cn("@container mt-2 transition-opacity duration-150", pending && "pointer-events-none opacity-60")}
+        className={cn("@container mt-2 transition-opacity duration-150 outline-none", pending && "pointer-events-none opacity-60")}
       >
         {empty ? (
           <div className="glass-card rounded-card">{empty}</div>
@@ -401,16 +405,21 @@ export function LeadList({ rows: serverRows, total, page, pageCount, filter, apa
         />
       ) : null}
 
+      {/* deleteTarget sengaja tidak dikosongkan saat ditutup: teks tidak berganti selama animasi tutup. */}
       <ConfirmDialog
         open={deleteOpen}
-        onOpenChange={(next) => {
-          setDeleteOpen(next);
-          if (!next) setDeleteTarget([]);
-        }}
+        onOpenChange={setDeleteOpen}
         {...deleteConfirmCopy(deleteTarget)}
         destructive
         loading={deleting}
         onConfirm={confirmDelete}
+        onCloseAutoFocus={(event) => {
+          // Baris (dan tombol pembuka) sudah hilang setelah dihapus: fokus ke daftar, bukan <body>.
+          if (!deletedRef.current) return;
+          deletedRef.current = false;
+          event.preventDefault();
+          listEl?.focus({ preventScroll: true });
+        }}
       />
     </div>
   );
