@@ -19,15 +19,19 @@ import {
   snap,
 } from "./helpers";
 
-const HOME_H1 = "Sewa apartemen harian di Makassar";
 const WA_HREF = /^https:\/\/wa\.me\/\d+/;
 const ACCESS_DENIED = "Akun ini tidak punya akses admin.";
 const FOOTER = "footer[data-testid='site-footer']";
 const APARTMENT_LINKS = "a[href^='/apartemen/']";
 
+/** Tautan profil apartemen di footer (`/apartemen/{slug}`), tanpa tautan tipe kamar di bawahnya. */
 async function countFooterApartmentLinks(page: Page): Promise<number> {
   await expect(page.locator(FOOTER)).toBeAttached();
-  return page.locator(FOOTER).locator(APARTMENT_LINKS).count();
+  const hrefs = await page
+    .locator(FOOTER)
+    .locator(APARTMENT_LINKS)
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+  return hrefs.filter((href) => /^\/apartemen\/[^/]+$/.test(href)).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +78,11 @@ test.describe("Beranda", () => {
   test("judul, logo, tombol WhatsApp, dan footer tampil tanpa geser samping", async ({ page }, testInfo) => {
     await gotoOk(page, "/");
 
-    await expect(page.getByRole("heading", { level: 1, name: HOME_H1 })).toBeVisible();
+    // Judul hero diatur pemilik di Pengaturan; cukup satu H1 yang berisi teks.
+    const h1 = page.getByRole("heading", { level: 1 });
+    await expect(h1).toHaveCount(1);
+    await expect(h1).toBeVisible();
+    await expect(h1).toHaveText(/\S{3,}/);
     await expect(page.getByRole("link", { name: "VIDALIDAY, ke beranda" })).toBeVisible();
     await expect(page.locator("main#konten")).toBeVisible();
 
@@ -94,7 +102,7 @@ test.describe("Beranda", () => {
     const launcher = page.getByTestId("chat-launcher");
     await expect(launcher).toBeVisible();
     await expect(launcher).toBeInViewport();
-    await expect(launcher).toHaveAttribute("aria-label", "Buka chat bantuan");
+    await expect(launcher).toHaveAttribute("aria-label", "Tanya kami, buka chat bantuan");
     await expect(page.getByTestId("fab-whatsapp")).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);
@@ -173,6 +181,13 @@ test.describe("Beranda", () => {
       await expect(dropdown.getByRole("menuitem")).toHaveCount(apartmentCount);
       await page.mouse.move(640, 640);
       await expect(dropdown).toBeHidden();
+
+      // Dibuka dengan hover, Esc menutupnya walau fokus tidak di menu (WCAG 1.4.13).
+      await apartmentsTrigger.hover();
+      await expect(dropdown).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(dropdown).toBeHidden();
+      await page.mouse.move(640, 640);
 
       // Klik dan Esc tetap bekerja (keyboard dan sentuh).
       await clickUntilVisible(apartmentsTrigger, dropdown);

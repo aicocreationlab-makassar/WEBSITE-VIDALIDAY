@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { expectNoHorizontalOverflow, gotoOk, snap } from "./helpers";
 
 // SEO dan AI-crawlability (PRD 6.9): landing tipe kamar, sitemap bergambar, robots untuk perayap AI,
-// llms.txt, canonical/noindex /sewa, breadcrumb dan FAQPage di unit.
+// llms.txt, canonical/noindex /sewa, breadcrumb dan ringkasan di unit.
 
 async function firstApartmentSlug(page: Page): Promise<string | null> {
   await gotoOk(page, "/");
@@ -89,14 +89,25 @@ test.describe("SEO", () => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`${landing}$`));
   });
 
-  test("unit: breadcrumb memuat tipe, kalimat ringkasan, FAQPage", async ({ page }) => {
+  test("/sewa: Googlebot menerima canonical dan robots di <head>, bukan di-stream ke <body>", async ({ request }) => {
+    const googlebot = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+    const response = await request.get("/sewa?urut=termurah", { headers: { "user-agent": googlebot } });
+    expect(response.status()).toBe(200);
+    const html = await response.text();
+    const head = html.slice(0, html.indexOf("</head>"));
+    expect(head).toMatch(/<meta name="robots" content="[^"]*noindex/);
+    expect(head).toMatch(/<link rel="canonical" href="[^"]+\/sewa"/);
+  });
+
+  test("unit: breadcrumb memuat tipe, kalimat ringkasan, tanpa FAQPage berulang", async ({ page }) => {
     await gotoOk(page, "/sewa");
     const href = await page.getByTestId("unit-card").first().getByRole("link").first().getAttribute("href");
     test.skip(!href, "Belum ada unit");
     await gotoOk(page, href!);
     await expect(page.getByTestId("unit-summary")).toContainText(/Rp\d/);
     const types = jsonLdTypes(await page.locator('script[type="application/ld+json"]').allTextContents());
-    expect(types).toContain("FAQPage");
+    // FAQ umum sudah ditandai di beranda dan profil apartemen, tidak diulang di setiap unit.
+    expect(types).not.toContain("FAQPage");
     expect(types).toContain("BreadcrumbList");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`${href}$`));
   });
