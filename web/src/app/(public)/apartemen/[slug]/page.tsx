@@ -22,6 +22,7 @@ import { getSiteUrl } from "@/lib/env";
 import { formatOfficeHours, formatRupiah, formatWhatsappDisplay } from "@/lib/format";
 import { apartmentPath, buildApartmentPageJsonLd } from "@/lib/seo/apartment-jsonld";
 import { JsonLd } from "@/lib/seo/json-ld";
+import { GENERAL_INQUIRY_MESSAGE, waLink } from "@/lib/whatsapp";
 
 const MAX_FAQS = 5;
 
@@ -94,7 +95,12 @@ export default async function ApartmentPage({ params }: PageProps<"/apartemen/[s
     summary.push({ label: "Check-in / check-out", value: `${settings.checkinTime || "-"} / ${settings.checkoutTime || "-"}` });
   }
   if (officeHours) summary.push({ label: "Jam layanan", value: officeHours });
-  summary.push({ label: "WhatsApp", value: formatWhatsappDisplay(settings.whatsappNumber) });
+  summary.push({
+    label: "WhatsApp",
+    value: formatWhatsappDisplay(settings.whatsappNumber),
+    href: waLink(settings.whatsappNumber, GENERAL_INQUIRY_MESSAGE),
+    external: true,
+  });
 
   return (
     <>

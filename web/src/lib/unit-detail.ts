@@ -207,10 +207,12 @@ export function unitSummarySentence(
 ): string {
   const spot = formatUnitSpot(unit);
   const rates = [`${formatRupiah(unit.effectivePrice)}/malam`];
-  if (unit.weeklyPrice) rates.push(`mingguan ${formatRupiah(unit.weeklyPrice)}`);
-  if (unit.monthlyPrice) rates.push(`bulanan ${formatRupiah(unit.monthlyPrice)}`);
+  if (unit.weeklyPrice) rates.push(`${formatRupiah(unit.weeklyPrice)}/minggu`);
+  if (unit.monthlyPrice) rates.push(`${formatRupiah(unit.monthlyPrice)}/bulan`);
+  // "A", "A atau B", "A, B, atau C".
+  const ratesText = rates.length > 2 ? `${rates.slice(0, -1).join(", ")}, atau ${rates.at(-1)}` : rates.join(" atau ");
   const amenities = cardAmenities(unit.amenities, 3).map((amenity) => amenity.name);
-  const first = `${unit.name} adalah unit ${unit.roomTypeName?.trim() || "apartemen"} di ${unit.locationName}${spot ? `, ${spot}` : ""}, untuk maksimal ${unit.maxGuests} tamu, ${rates.join(", ")}.`;
+  const first = `${unit.name} adalah unit ${unit.roomTypeName?.trim() || "apartemen"} di ${unit.locationName}${spot ? `, ${spot}` : ""}, muat maksimal ${unit.maxGuests} tamu, dengan harga ${ratesText}.`;
   return amenities.length ? `${first} Fasilitas: ${amenities.join(", ")}.` : first;
 }
 

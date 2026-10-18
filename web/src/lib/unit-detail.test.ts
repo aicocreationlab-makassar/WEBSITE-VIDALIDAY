@@ -179,10 +179,13 @@ describe("breadcrumbs and meta", () => {
 
   it("writes a plain summary sentence", () => {
     expect(unitSummarySentence({ ...unit, tower: "Ashton", floorNumber: 26 })).toBe(
-      "Studio AT 26X adalah unit Studio di Apartemen Vida View, Tower Ashton lt. 26, untuk maksimal 3 tamu, Rp280.000/malam. Fasilitas: AC, WiFi, Smart TV.",
+      "Studio AT 26X adalah unit Studio di Apartemen Vida View, Tower Ashton lt. 26, muat maksimal 3 tamu, dengan harga Rp280.000/malam. Fasilitas: AC, WiFi, Smart TV.",
     );
     expect(unitSummarySentence({ ...unit, tower: null, floorNumber: null, weeklyPrice: 1500000, monthlyPrice: 5000000, amenities: [] })).toBe(
-      "Studio AT 26X adalah unit Studio di Apartemen Vida View, untuk maksimal 3 tamu, Rp280.000/malam, mingguan Rp1.500.000, bulanan Rp5.000.000.",
+      "Studio AT 26X adalah unit Studio di Apartemen Vida View, muat maksimal 3 tamu, dengan harga Rp280.000/malam, Rp1.500.000/minggu, atau Rp5.000.000/bulan.",
+    );
+    expect(unitSummarySentence({ ...unit, tower: null, floorNumber: null, weeklyPrice: 1500000, monthlyPrice: null, amenities: [] })).toContain(
+      "dengan harga Rp280.000/malam atau Rp1.500.000/minggu.",
     );
   });
 

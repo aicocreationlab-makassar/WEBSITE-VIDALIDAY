@@ -160,7 +160,7 @@ Mengikuti pola referensi `docs/referensi/hero-search-referensi.png`.
 1. **Apartemen** — segmented control berisi apartemen aktif (label = `short_name`, urut `sort_order`), contoh: `Vida View | Delft CPI`. Default: apartemen pertama. Kalau apartemen aktif lebih dari 3, berubah jadi dropdown "Pilih apartemen" dengan opsi "Semua apartemen".
 2. **Tipe kamar** — dropdown yang isinya bergantung pada apartemen terpilih: tipe kamar aktif apartemen itu (urut `sort_order`). Tiap opsi menampilkan jumlah unit tersedia, misalnya "Studio (9 unit)". Tipe tanpa unit tetap tampil tapi nonaktif dengan teks "belum tersedia". Opsi pertama "Semua tipe". Ganti apartemen → tipe kembali ke "Semua tipe".
    - Data awal (bisa diubah admin): **Vida View** — Studio, Studio Plus, 2 Bedroom, 2 Bedroom Corner, 3 Bedroom. **Delft CPI** — Studio, Studio Corner, 2 Bedroom / Corner, 3 Bedroom.
-3. **Budget per malam** — pilihan cepat: Semua harga, di bawah Rp300rb, Rp300rb–500rb, Rp500rb–1jt, di atas Rp1jt; plus "Atur sendiri" (slider dua titik, langkah Rp50.000, batas dari harga unit terendah dan tertinggi yang tampil). Label field menampilkan pilihan aktif, misalnya "Rp300rb – Rp500rb".
+3. **Budget per malam** — pilihan cepat: Semua harga, sampai Rp300rb, Rp300rb–500rb, Rp500rb–1jt, mulai Rp1jt (batas inklusif); plus "Atur sendiri" (slider dua titik, langkah Rp50.000, batas dari harga unit terendah dan tertinggi yang tampil). Label field menampilkan pilihan aktif, misalnya "Rp300rb – Rp500rb".
 4. **Tombol "Cari unit"** (primary, lebar penuh) → `/sewa` dengan query.
 
 Di bawah kartu: satu baris kecil "Dikelola resmi oleh PT Perdana Mega Trans".

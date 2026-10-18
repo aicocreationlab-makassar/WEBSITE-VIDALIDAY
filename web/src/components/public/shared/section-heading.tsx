@@ -18,7 +18,7 @@ export function SectionHeading({ title, description, action, id, as: Tag = "h2",
         <Tag id={id} className="text-h2 font-bold text-ink md:text-h2-lg">
           {title}
         </Tag>
-        {description ? <p className="mt-1 max-w-[70ch] text-sm text-muted md:text-base">{description}</p> : null}
+        {description ? <p className="mt-1 max-w-[70ch] text-sm text-pretty text-muted md:text-base">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

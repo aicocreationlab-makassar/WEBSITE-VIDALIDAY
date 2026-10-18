@@ -72,7 +72,7 @@ export default async function AboutPage() {
                     </span>
                     <span className="min-w-0">
                       <span className="block font-bold text-ink">{location.shortName}</span>
-                      <span className="block truncate text-sm text-ink-2">{location.tagline ?? location.area}</span>
+                      <span className="line-clamp-2 text-sm text-ink-2">{location.tagline ?? location.area}</span>
                     </span>
                     <ArrowRight className="ml-auto size-4 shrink-0 text-muted" aria-hidden="true" />
                   </Link>

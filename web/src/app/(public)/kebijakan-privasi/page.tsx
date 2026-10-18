@@ -135,7 +135,7 @@ export default async function PrivacyPolicyPage() {
         </p>
 
         <p className="pt-6">
-          <Link href="/" className="font-semibold text-brand-700 underline underline-offset-2">
+          <Link href="/" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2">
             Kembali ke beranda
           </Link>
         </p>

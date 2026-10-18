@@ -219,7 +219,7 @@ describe("filterChips", () => {
   it("shows category, custom budget and no chips for an empty filter", () => {
     expect(labels(filterChips(f({ kategori: "2br", min: 1000000 }), locations, []))).toEqual([
       "2 Bedroom",
-      "Di atas Rp1jt",
+      "Mulai Rp1jt",
     ]);
     expect(labels(filterChips(f({ min: 350000, max: 650000 }), locations, []))).toEqual(["Rp350rb – Rp650rb"]);
     expect(filterChips(EMPTY_FILTER, locations, [])).toEqual([]);
@@ -318,10 +318,10 @@ describe("chip options with live counts", () => {
     const all = budgetOptions(index, EMPTY_FILTER);
     expect(all.map((o) => [o.label, o.count])).toEqual([
       ["Semua harga", 6],
-      ["Di bawah Rp300rb", 3],
+      ["Sampai Rp300rb", 3],
       ["Rp300rb – Rp500rb", 1],
       ["Rp500rb – Rp1jt", 1],
-      ["Di atas Rp1jt", 1],
+      ["Mulai Rp1jt", 1],
     ]);
     expect(all[0]).toMatchObject({ value: null, selected: true });
 

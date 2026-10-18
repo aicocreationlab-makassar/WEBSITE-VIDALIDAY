@@ -122,8 +122,8 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
       <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl() })} />
       <RecordView unit={current} />
 
-      {/* Ruang di bawah untuk bar CTA mobile (72px + safe area). */}
-      <div className="pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-0">
+      {/* Ruang untuk bar CTA mobile (72px + safe area) sudah ada di padding bawah footer (6rem + safe area). */}
+      <div>
         <div className={cn(CONTAINER, "hidden pt-3 pb-1 md:block")}>
           <UnitBreadcrumb items={unitBreadcrumbs(current)} />
         </div>
@@ -186,9 +186,9 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
               <SectionHeading
                 id="fasilitas-gedung-judul"
                 title="Fasilitas gedung"
-                description={`Bisa kamu pakai selama menginap di ${unit.location.name}.`}
+                description={`Bisa kamu pakai selama menginap di ${unit.location.shortName}.`}
               />
-              <BuildingFacilities facilities={buildingFacilities} apartmentName={unit.location.name} />
+              <BuildingFacilities facilities={buildingFacilities} apartmentName={unit.location.shortName} />
             </div>
           </section>
         ) : null}
