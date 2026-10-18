@@ -132,7 +132,11 @@ describe("buildLanding", () => {
       "Apa saja peraturan menginap di apartemen?",
       "Apakah boleh membawa hewan peliharaan?",
     ].map((question, index) => ({ id: index + 1, question, answer: "Jawaban.", sortOrder: index + 1 }));
-    expect(landingGlobalFaqs(globals, 4).map((faq) => faq.id)).toEqual([1, 5, 6]);
-    expect(landingGlobalFaqs(globals, 2).map((faq) => faq.id)).toEqual([1, 5]);
+    const allTypeFaqs = [-1, -2, -3, -4, -5, -6].map((id) => ({ id }));
+    expect(landingGlobalFaqs(globals, allTypeFaqs, 4).map((faq) => faq.id)).toEqual([1, 5, 6]);
+    expect(landingGlobalFaqs(globals, allTypeFaqs, 2).map((faq) => faq.id)).toEqual([1, 5]);
+    // Jam check-in kosong di Pengaturan → FAQ tipe -4 tidak dibuat → FAQ umum jam check-in tetap tampil.
+    const withoutCheckin = allTypeFaqs.filter((faq) => faq.id !== -4);
+    expect(landingGlobalFaqs(globals, withoutCheckin, 4).map((faq) => faq.id)).toEqual([1, 3, 5, 6]);
   });
 });

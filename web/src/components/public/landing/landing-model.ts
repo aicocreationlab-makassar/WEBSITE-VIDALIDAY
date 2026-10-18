@@ -276,18 +276,24 @@ export function landingFaqs(d: LandingData, s: LandingSettings, landmarks: Landm
  * Topik yang sudah dijawab `landingFaqs` (harga, tamu, mingguan/bulanan, jam check-in/out, lokasi, cara pesan).
  * FAQ umum dengan topik yang sama tidak ditampilkan lagi di landing supaya daftar tidak berulang.
  */
-const COVERED_TOPICS = [
-  /\b(harga|tarif|biaya)\b/,
-  /\b(tamu|kapasitas|penghuni)\b/,
-  /\b(mingguan|bulanan)\b/,
-  /\bjam\b.*check|check.*\bjam\b|check-?\s?in dan check-?\s?out/,
-  /\b(lokasi|alamat|di ?mana)\b/,
-  /\b(pesan|pemesanan|booking|cara sewa)\b/,
+const COVERED_TOPICS: [id: number, topic: RegExp][] = [
+  [-1, /\b(harga|tarif|biaya)\b/],
+  [-2, /\b(tamu|kapasitas|penghuni)\b/],
+  [-3, /\b(mingguan|bulanan)\b/],
+  [-4, /\bjam\b.*check|check.*\bjam\b|check-?\s?in dan check-?\s?out/],
+  [-5, /\b(lokasi|alamat|di ?mana)\b/],
+  [-6, /\b(pesan|pemesanan|booking|cara sewa)\b/],
 ];
 
-/** FAQ umum untuk landing tipe: tanpa topik yang sudah dijawab FAQ khusus tipe, maks. `max`. */
-export function landingGlobalFaqs(globalFaqs: Faq[], max: number): Faq[] {
-  return globalFaqs.filter((faq) => !COVERED_TOPICS.some((topic) => topic.test(faq.question.toLowerCase()))).slice(0, max);
+/**
+ * FAQ umum untuk landing tipe, maks. `max`: dibuang hanya kalau topiknya benar-benar sudah dijawab FAQ khusus
+ * tipe yang dibuat (`typeFaqs`). Mis. jam check-in kosong di Pengaturan → FAQ -4 tidak dibuat → FAQ umum
+ * tentang jam check-in tetap tampil.
+ */
+export function landingGlobalFaqs(globalFaqs: Faq[], typeFaqs: Pick<Faq, "id">[], max: number): Faq[] {
+  const present = new Set(typeFaqs.map((faq) => faq.id));
+  const topics = COVERED_TOPICS.filter(([id]) => present.has(id)).map(([, topic]) => topic);
+  return globalFaqs.filter((faq) => !topics.some((topic) => topic.test(faq.question.toLowerCase()))).slice(0, max);
 }
 
 export function landingCtaHref(d: LandingData): string {

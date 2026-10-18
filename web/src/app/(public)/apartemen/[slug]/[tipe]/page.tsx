@@ -85,7 +85,7 @@ export default async function RoomTypeLandingPage({ params }: PageProps<"/aparte
   // FAQPage hanya untuk tanya-jawab khusus tipe ini; FAQ umum sudah ditandai di beranda dan profil apartemen.
   const typeFaqs = landingFaqs(data, settings, nearby);
   // FAQ umum yang topiknya sudah dijawab di atas (harga, tamu, jam check-in, cara pesan) tidak diulang.
-  const faqs = [...typeFaqs, ...landingGlobalFaqs(globalFaqs, MAX_GLOBAL_FAQS)];
+  const faqs = [...typeFaqs, ...landingGlobalFaqs(globalFaqs, typeFaqs, MAX_GLOBAL_FAQS)];
   const otherTypes = roomTypeCards(location, catalog).filter((card) => card.id !== type.id);
   // Alamat menuju peta di halaman ini (bagian #lokasi), bukan pindah ke profil apartemen.
   const summary = landingSummary(data, settings).map((row) => (row.label === "Alamat" ? { ...row, href: "#lokasi" } : row));
