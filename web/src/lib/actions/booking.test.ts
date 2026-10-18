@@ -13,6 +13,7 @@ vi.mock("@/lib/supabase/public", () => ({
 }));
 
 const { submitLead } = await import("./booking");
+const { BOOKING_MESSAGES } = await import("@/lib/validation/booking-constants");
 
 const valid = {
   unitId: 12,
@@ -64,13 +65,22 @@ describe("submitLead", () => {
     expect(rpcMock).not.toHaveBeenCalled();
   });
 
+  it("empty WhatsApp asks to fill it in, not 'belum benar'", async () => {
+    const result = await submitLead({ ...valid, whatsapp: "  " });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.fieldErrors?.whatsapp).toBe(BOOKING_MESSAGES.phoneEmpty);
+    // Contoh nomor memakai spasi tak terputus supaya tidak terpotong di HP.
+    expect(BOOKING_MESSAGES.phone).toContain("0812 3456 7890");
+  });
+
   it("blocks on invalid fields without calling the database", async () => {
     const result = await submitLead({ ...valid, whatsapp: "12345", checkOut: "2026-10-17", guests: 0 });
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.blocking).toBe(true);
     expect(result.fieldErrors).toMatchObject({
-      whatsapp: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
+      whatsapp: BOOKING_MESSAGES.phone,
       checkOut: "Tanggal check-out harus setelah check-in.",
       guests: "Jumlah tamu 1 sampai 30 orang.",
     });

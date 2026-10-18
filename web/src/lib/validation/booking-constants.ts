@@ -13,7 +13,9 @@ export const BOOKING_MESSAGES = {
   nameLong: "Nama maksimal 100 karakter.",
   city: "Tulis kota asalmu, mis. Makassar.",
   cityLong: `Kota asal maksimal ${MAX_CITY} karakter.`,
-  phone: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
+  // Spasi tak terputus ( ) di contoh nomor supaya tidak terpotong ke baris berikutnya.
+  phoneEmpty: "Tulis nomor WhatsApp-mu, mis. 0812 3456 7890.",
+  phone: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
   checkInPast: "Check-in tidak boleh sebelum hari ini.",
   checkInFar: "Check-in maksimal 365 hari dari sekarang.",
   checkInInvalid: "Pilih tanggal check-in.",

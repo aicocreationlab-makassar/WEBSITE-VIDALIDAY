@@ -35,6 +35,8 @@ export function makeBookingSchema(today: string) {
       whatsapp: z
         .string()
         .trim()
+        // Kosong: minta diisi; terisi tapi salah format: "belum benar".
+        .min(1, BOOKING_MESSAGES.phoneEmpty)
         .transform((value) => normalizeWhatsapp(value))
         .refine((value) => isValidWhatsapp(value), BOOKING_MESSAGES.phone),
       checkIn: z
