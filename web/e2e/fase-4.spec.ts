@@ -153,17 +153,26 @@ test.describe("Form sewa", () => {
     const text = decodeURIComponent(new URL(url).searchParams.get("text") ?? "");
     expect(text).toContain("UJI QA tanpa simpan");
     expect(text).not.toContain("Kode permintaan");
+    // Kota asal di baris sendiri; tidak ada "\n" harfiah dari template (migrasi 0004 sebelum 0006).
+    expect(text).toMatch(/\nKota asal: Makassar\n/);
+    expect(text).not.toContain("\\n");
   });
 
   test("lead sungguhan tersimpan dan pesan berisi kode (E2E_REAL_LEAD=1)", async ({ page }, testInfo) => {
     test.skip(!REAL_LEAD, "Set E2E_REAL_LEAD=1 untuk menulis lead uji ke produksi");
     test.skip(!isMobile(testInfo), "Cukup satu lead uji per putaran");
+    // Server Action menunggu Supabase sungguhan; di mesin lambat bisa > 5 detik.
+    test.setTimeout(60_000);
     await gotoOk(page, await firstUnitPath(page));
     await page.getByTestId("sticky-cta").getByRole("button").click();
     const dialog = await fillBooking(page, "UJI QA");
     const url = await captureWhatsapp(page, true, () => dialog.getByRole("button", { name: "Kirim via WhatsApp" }).click());
     const text = decodeURIComponent(new URL(url).searchParams.get("text") ?? "");
     expect(text).toMatch(/Kode permintaan: VDL-[0-9A-F]{6}/);
+    // Template WA di database (migrasi 0004) memuat kota asal, di barisnya sendiri.
+    expect(text).toMatch(/\nKota asal: Makassar\n/);
+    expect(text).not.toContain("\\n");
+    console.log("[lead uji]", text.match(/VDL-[0-9A-F]{6}/)?.[0]);
   });
 });
 
