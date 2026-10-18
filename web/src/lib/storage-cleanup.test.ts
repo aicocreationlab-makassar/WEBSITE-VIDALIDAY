@@ -5,14 +5,17 @@ import {
   deleteStorageFiles,
   deleteUnusedUnitPhotos,
   findUnreferenced,
+  isSweepable,
   listBucketFiles,
+  referencedPath,
   removedPaths,
+  SWEEP_MIN_AGE_MS,
 } from "@/lib/storage-cleanup";
 
 type Supabase = Parameters<typeof deleteUnusedUnitPhotos>[0];
 type Row = Record<string, unknown>;
 type Tables = Partial<Record<"units" | "locations" | "facilities" | "settings", Row[]>>;
-type StorageItem = { name: string; id: string | null; metadata: { size?: number } | null };
+type StorageItem = { name: string; id: string | null; metadata: { size?: number } | null; created_at?: string };
 
 /**
  * Klien tiruan: tabel berisi baris polos (filter neq/in diterapkan di memori), `remove` dicatat,
@@ -31,16 +34,23 @@ function fakeSupabase(
     return { data: page, error: null };
   });
 
+  const pageCalls: { table: string; from: number; to: number }[] = [];
   function builder(table: keyof Tables) {
     let rows = tables[table] ?? [];
     const query = {
       select: () => query,
+      order: () => query,
       neq: (column: string, value: unknown) => {
         rows = rows.filter((row) => row[column] !== value);
         return query;
       },
       in: (column: string, values: unknown[]) => {
         rows = rows.filter((row) => values.includes(row[column]));
+        return query;
+      },
+      range: (from: number, to: number) => {
+        pageCalls.push({ table, from, to });
+        rows = rows.slice(from, to + 1);
         return query;
       },
       then: (resolve: (value: { data: Row[] | null; error: { code: string } | null }) => void) =>
@@ -50,7 +60,7 @@ function fakeSupabase(
   }
 
   const client = { from: vi.fn(builder), storage: { from: () => ({ remove, list }) } };
-  return { client: client as unknown as Supabase, remove, list, listCalls, from: client.from };
+  return { client: client as unknown as Supabase, remove, list, listCalls, pageCalls, from: client.from };
 }
 
 const content: Tables = {
@@ -111,6 +121,26 @@ describe("collectReferencedPaths", () => {
     expect(referenced?.has("units/b.webp")).toBe(true);
   });
 
+  it("URL publik bucket sendiri dihitung sebagai referensi, URL luar tidak", async () => {
+    expect(referencedPath("https://abc.supabase.co/storage/v1/object/public/media/units/foto%20lama.jpg")).toBe("units/foto lama.jpg");
+    expect(referencedPath("https://abc.supabase.co/storage/v1/object/media/locations/a.webp?t=1")).toBe("locations/a.webp");
+    expect(referencedPath("https://images.unsplash.com/photo-1")).toBeNull();
+    expect(referencedPath("/storage/units/a.webp")).toBe("units/a.webp");
+    expect(referencedPath("  ")).toBeNull();
+    const { client } = fakeSupabase({
+      units: [{ id: 1, main_image: "https://abc.supabase.co/storage/v1/object/public/media/units/penuh.webp", gallery_images: [] }],
+    });
+    expect((await collectReferencedPaths(client))?.has("units/penuh.webp")).toBe(true);
+  });
+
+  it("membaca semua baris per 1000 (batas PostgREST)", async () => {
+    const units = Array.from({ length: 1500 }, (_, i) => ({ id: i + 1, main_image: `units/${i}.webp`, gallery_images: [] }));
+    const { client, pageCalls } = fakeSupabase({ units });
+    const referenced = await collectReferencedPaths(client);
+    expect(referenced?.has("units/1499.webp")).toBe(true);
+    expect(pageCalls.filter((call) => call.table === "units").map((call) => call.from)).toEqual([0, 1000]);
+  });
+
   it("null kalau salah satu tabel gagal dibaca", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const { client } = fakeSupabase(content, { failTable: "facilities" });
@@ -169,18 +199,28 @@ describe("deleteUnusedUnitPhotos", () => {
   });
 });
 
+describe("isSweepable", () => {
+  it("melewati unggahan < 24 jam (bisa jadi form belum disimpan)", () => {
+    const now = Date.parse("2026-10-18T12:00:00Z");
+    expect(isSweepable({ createdAt: "2026-10-18T11:00:00Z" }, now)).toBe(false);
+    expect(isSweepable({ createdAt: new Date(now - SWEEP_MIN_AGE_MS).toISOString() }, now)).toBe(true);
+    expect(isSweepable({ createdAt: null }, now)).toBe(true);
+    expect(isSweepable({ createdAt: "bukan tanggal" }, now)).toBe(true);
+  });
+});
+
 describe("listBucketFiles", () => {
   it("melewati subfolder dan penanda folder kosong, lalu membaca halaman berikutnya", async () => {
     const page1: StorageItem[] = Array.from({ length: 1000 }, (_, i) => ({ name: `${i}.webp`, id: `id-${i}`, metadata: { size: 10 } }));
     const page2: StorageItem[] = [
-      { name: "x.webp", id: "id-x", metadata: { size: 2048 } },
+      { name: "x.webp", id: "id-x", metadata: { size: 2048 }, created_at: "2026-10-01T00:00:00Z" },
       { name: "sub", id: null, metadata: null },
       { name: ".emptyFolderPlaceholder", id: "id-p", metadata: { size: 0 } },
     ];
     const { client, listCalls } = fakeSupabase({}, { listing: { units: [page1, page2] } });
     const files = await listBucketFiles(client, "units");
     expect(files).toHaveLength(1001);
-    expect(files?.[1000]).toEqual({ path: "units/x.webp", bytes: 2048 });
+    expect(files?.[1000]).toEqual({ path: "units/x.webp", bytes: 2048, createdAt: "2026-10-01T00:00:00Z" });
     expect(listCalls).toEqual([
       { folder: "units", offset: 0 },
       { folder: "units", offset: 1000 },

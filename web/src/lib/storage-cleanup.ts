@@ -19,9 +19,48 @@ const SETTING_IMAGE_KEYS = ["hero_image", "site_logo"];
 /** Folder foto unit (sama di versi lama: `store('units')`). */
 const UNIT_PHOTO_PREFIX = "units/";
 
-/** Ukuran potongan untuk `storage.remove()` dan `storage.list()`. */
+/** Ukuran potongan untuk `storage.remove()` dan `storage.list()`, dan halaman baca tabel (batas PostgREST). */
 const REMOVE_CHUNK = 100;
 const LIST_PAGE = 1000;
+const ROW_PAGE = 1000;
+
+/**
+ * File yang baru diunggah belum tentu sudah disimpan di form (admin masih mengisi). Sapuan melewati file
+ * yang lebih muda dari ini supaya foto di form yang belum disimpan tidak ikut terhapus.
+ */
+export const SWEEP_MIN_AGE_MS = 24 * 60 * 60 * 1000;
+
+const OWN_BUCKET_URL = new RegExp(`/storage/v1/object/(?:public/)?${MEDIA_BUCKET}/([^?#]+)`);
+
+/**
+ * Nilai kolom foto → path bucket yang dirujuk: path biasa ("units/a.webp", "/storage/units/a.webp") atau
+ * URL publik bucket ini sendiri (".../storage/v1/object/public/media/units/a.webp"). URL luar → null.
+ */
+export function referencedPath(value: string | null | undefined): string | null {
+  const raw = value?.trim() ?? "";
+  if (!raw) return null;
+  if (isBucketPath(raw)) return normalizeStoragePath(raw);
+  const match = OWN_BUCKET_URL.exec(raw);
+  if (!match) return null;
+  try {
+    return normalizeStoragePath(decodeURIComponent(match[1]));
+  } catch {
+    return normalizeStoragePath(match[1]);
+  }
+}
+
+type PageResult<T> = PromiseLike<{ data: T[] | null; error: { code?: string } | null }>;
+
+/** Baca semua baris per 1000 (PostgREST memotong respons di max-rows). */
+async function readAllRows<T>(page: (from: number, to: number) => PageResult<T>): Promise<{ data: T[]; error: { code?: string } | null }> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += ROW_PAGE) {
+    const { data, error } = await page(from, from + ROW_PAGE - 1);
+    if (error) return { data: rows, error };
+    rows.push(...(data ?? []));
+    if ((data?.length ?? 0) < ROW_PAGE) return { data: rows, error: null };
+  }
+}
 
 /** Path bucket yang hilang dari daftar lama → baru (URL eksternal diabaikan, seperti StorageHelper lama). */
 export function removedPaths(before: (string | null | undefined)[], after: (string | null | undefined)[]): string[] {
@@ -44,13 +83,17 @@ export async function collectReferencedPaths(
   supabase: Supabase,
   options: { excludeUnitId?: number } = {},
 ): Promise<Set<string> | null> {
-  let units = supabase.from("units").select("id, main_image, gallery_images");
-  if (options.excludeUnitId) units = units.neq("id", options.excludeUnitId);
   const [unitRows, locationRows, facilityRows, settingRows] = await Promise.all([
-    units,
-    supabase.from("locations").select("hero_image"),
-    supabase.from("facilities").select("image"),
-    supabase.from("settings").select("value").in("key", SETTING_IMAGE_KEYS),
+    readAllRows<{ id: number; main_image: string | null; gallery_images: unknown }>((from, to) => {
+      let query = supabase.from("units").select("id, main_image, gallery_images").order("id");
+      if (options.excludeUnitId) query = query.neq("id", options.excludeUnitId);
+      return query.range(from, to);
+    }),
+    readAllRows<{ hero_image: string | null }>((from, to) => supabase.from("locations").select("hero_image").order("id").range(from, to)),
+    readAllRows<{ image: string | null }>((from, to) => supabase.from("facilities").select("image").order("id").range(from, to)),
+    readAllRows<{ value: string | null }>((from, to) =>
+      supabase.from("settings").select("value").in("key", SETTING_IMAGE_KEYS).order("key").range(from, to),
+    ),
   ]);
   const failed = [unitRows, locationRows, facilityRows, settingRows].find((result) => result.error);
   if (failed) {
@@ -60,7 +103,8 @@ export async function collectReferencedPaths(
 
   const referenced = new Set<string>();
   const add = (value: string | null | undefined) => {
-    if (isBucketPath(value)) referenced.add(normalizeStoragePath(value));
+    const path = referencedPath(value);
+    if (path) referenced.add(path);
   };
   for (const row of unitRows.data ?? []) {
     add(row.main_image);
@@ -134,7 +178,19 @@ export async function deleteUnusedUnitPhotos(
   return { deleted: result.deleted, kept: [...kept, ...result.failed] };
 }
 
-export type BucketFile = { path: string; bytes: number };
+export type BucketFile = {
+  path: string;
+  bytes: number;
+  /** Waktu unggah (ISO) dari metadata Storage; null kalau tidak ada. */
+  createdAt: string | null;
+};
+
+/** File cukup tua untuk disapu (unggahan < 24 jam dilewati; tanpa tanggal dianggap tua). */
+export function isSweepable(file: Pick<BucketFile, "createdAt">, now: number, minAgeMs = SWEEP_MIN_AGE_MS): boolean {
+  if (!file.createdAt) return true;
+  const time = Date.parse(file.createdAt);
+  return Number.isNaN(time) || now - time >= minAgeMs;
+}
 
 /** Semua file di satu folder bucket (paginasi 1000). null kalau Storage gagal dibaca. */
 export async function listBucketFiles(supabase: Supabase, folder: MediaFolder): Promise<BucketFile[] | null> {
@@ -151,7 +207,11 @@ export async function listBucketFiles(supabase: Supabase, folder: MediaFolder): 
       // Subfolder (id null) dan penanda folder kosong bukan file.
       if (!item.id || item.name === ".emptyFolderPlaceholder") continue;
       const size = Number((item.metadata as { size?: unknown } | null)?.size ?? 0);
-      files.push({ path: `${folder}/${item.name}`, bytes: Number.isFinite(size) ? size : 0 });
+      files.push({
+        path: `${folder}/${item.name}`,
+        bytes: Number.isFinite(size) ? size : 0,
+        createdAt: item.created_at ?? item.updated_at ?? null,
+      });
     }
     if ((data?.length ?? 0) < LIST_PAGE) break;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Broom, ScanSearch } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/kit/confirm-dialog";
@@ -28,6 +28,7 @@ export function MediaCleanupCard() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [scanning, startScan] = useTransition();
   const [sweeping, startSweep] = useTransition();
+  const scanButtonRef = useRef<HTMLButtonElement>(null);
 
   function runScan() {
     startScan(async () => {
@@ -51,6 +52,8 @@ export function MediaCleanupCard() {
         else toast.error(result.error);
         setConfirmOpen(false);
         setScan(null);
+        // Tombol "Hapus N file" hilang bersama hasil periksa: fokus kembali ke tombol Periksa.
+        window.setTimeout(() => scanButtonRef.current?.focus({ preventScroll: true }), 0);
       } catch {
         toast.error(NETWORK_ERROR);
       }
@@ -69,17 +72,21 @@ export function MediaCleanupCard() {
             atau file yang diunggah langsung ke Supabase, supaya yang tersimpan sama dengan yang dipakai situs.
           </p>
         </div>
-        <Button type="button" variant="secondary" loading={scanning} onClick={runScan} className="shrink-0">
+        <Button ref={scanButtonRef} type="button" variant="secondary" loading={scanning} onClick={runScan} className="shrink-0">
           {scanning ? null : <ScanSearch aria-hidden="true" />}
           {scan ? "Periksa lagi" : "Periksa file"}
         </Button>
       </div>
 
+      {/* Live region selalu ada supaya hasil periksa pertama ikut dibacakan pembaca layar. */}
+      <div aria-live="polite">
       {scan ? (
-        <div aria-live="polite" className="mt-4 rounded-control border border-line bg-surface p-4">
+        <div className="mt-4 rounded-control border border-line bg-surface p-4">
           {scan.total === 0 ? (
             <p className="text-sm font-medium text-ink-2">
-              Semua {scan.files} file di Storage masih dipakai. Tidak ada yang perlu dihapus.
+              {scan.recent
+                ? `Tidak ada file lama yang perlu dihapus. ${scan.recent} file baru diunggah (kurang dari 24 jam) dilewati.`
+                : `Semua ${scan.files} file di Storage masih dipakai. Tidak ada yang perlu dihapus.`}
             </p>
           ) : (
             <>
@@ -106,16 +113,22 @@ export function MediaCleanupCard() {
                 <Broom aria-hidden="true" />
                 Hapus {scan.total} file
               </Button>
+              {scan.recent ? (
+                <p className="mt-2 text-caption text-muted">
+                  {scan.recent} file baru diunggah (kurang dari 24 jam) dilewati; bisa jadi foto di form yang belum disimpan.
+                </p>
+              ) : null}
             </>
           )}
         </div>
       ) : null}
+      </div>
 
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={(next) => !sweeping && setConfirmOpen(next)}
         title={`Hapus ${scan?.total ?? 0} file tak terpakai?`}
-        description="File dihapus permanen dari bucket media. Salinan di cache CDN bisa masih terbuka beberapa jam. File yang ternyata dipakai lagi sejak pemeriksaan dilewati."
+        description="File dihapus permanen dari bucket media. Salinan di cache CDN bisa masih terbuka beberapa jam. File yang ternyata dipakai lagi sejak pemeriksaan, atau baru diunggah, dilewati."
         confirmLabel="Hapus permanen"
         destructive
         loading={sweeping}
