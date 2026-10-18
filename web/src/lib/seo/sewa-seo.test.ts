@@ -19,20 +19,20 @@ describe("sewaSeo", () => {
     });
   });
 
-  it("apartemen + tipe: canonical ke landing tipe, tidak diindeks", () => {
+  it("apartemen + tipe: canonical ke landing tipe tanpa noindex", () => {
     expect(sewaSeo(f({ lokasi: "vida-view", tipe: "studio" }), locations)).toEqual({
       title: "Unit Studio di Vida View",
       canonical: "/apartemen/vida-view/studio",
-      index: false,
+      index: true,
     });
-    // Tipe tanpa unit → bukan landing; kembali ke canonical apartemen.
-    expect(sewaSeo(f({ lokasi: "vida-view", tipe: "tidak-ada" }), locations).canonical).toBe("/sewa?lokasi=vida-view");
+    // Tipe tanpa unit → bukan landing; noindex tanpa canonical.
+    expect(sewaSeo(f({ lokasi: "vida-view", tipe: "tidak-ada" }), locations)).toMatchObject({ canonical: null, index: false });
   });
 
-  it("filter lain: noindex, canonical ke versi tanpa filter", () => {
-    expect(sewaSeo(f({ urut: "termurah" }), locations)).toMatchObject({ canonical: "/sewa", index: false });
-    expect(sewaSeo(f({ lokasi: "delft-cpi", tamu: 4 }), locations)).toMatchObject({ canonical: "/sewa?lokasi=delft-cpi", index: false });
+  it("filter lain: noindex tanpa canonical (tidak dicampur)", () => {
+    expect(sewaSeo(f({ urut: "termurah" }), locations)).toMatchObject({ canonical: null, index: false });
+    expect(sewaSeo(f({ lokasi: "delft-cpi", tamu: 4 }), locations)).toMatchObject({ canonical: null, index: false });
     expect(sewaSeo(f({ hal: 2 }), locations).index).toBe(false);
-    expect(sewaSeo(f({ lokasi: "tidak-ada" }), locations)).toMatchObject({ canonical: "/sewa", index: false });
+    expect(sewaSeo(f({ lokasi: "tidak-ada" }), locations)).toMatchObject({ canonical: null, index: false });
   });
 });

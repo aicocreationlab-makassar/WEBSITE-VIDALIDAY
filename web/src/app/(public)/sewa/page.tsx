@@ -17,7 +17,7 @@ import { parseSewaFilter } from "@/lib/validation/filters";
 
 /**
  * Canonical dan robots mengikuti filter (PRD 6.9): tanpa filter dan per apartemen diindeks;
- * apartemen + tipe mengarah ke landing tipe; kombinasi lain noindex,follow. Membaca searchParams
+ * apartemen + tipe mengarah ke landing tipe; kombinasi lain noindex,follow tanpa canonical. Membaca searchParams
  * membuat metadata di-stream setelah kerangka statis (Cache Components); Googlebot, Bingbot, dan perayap
  * lain di `htmlLimitedBots` (next.config.ts) menerima metadata di <head> lewat render blocking.
  */
@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: PageProps<"/sewa">): Pr
   return {
     title: seo.title,
     description: SEWA_DESCRIPTION,
-    alternates: { canonical: seo.canonical },
+    ...(seo.canonical ? { alternates: { canonical: seo.canonical } } : {}),
     ...(seo.index ? {} : { robots: { index: false, follow: true } }),
   };
 }

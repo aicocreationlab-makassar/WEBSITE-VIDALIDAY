@@ -1,11 +1,13 @@
 // Canonical dan judul /sewa menurut filter (PRD 6.9): halaman tanpa filter dan per apartemen diindeks;
-// apartemen + tipe mengarah ke landing tipe; kombinasi lain noindex,follow. Fungsi murni, ada test.
+// apartemen + tipe mengarah ke landing tipe (canonical, tanpa noindex); kombinasi lain noindex,follow tanpa
+// canonical (Google menyarankan tidak menggabungkan noindex dengan canonical ke URL lain). Fungsi murni, ada test.
 
 import { roomTypeHref } from "@/lib/unit-display";
 import { sewaHref, type SewaFilter } from "@/lib/validation/filters";
 import type { LocationWithTypes } from "@/types/domain";
 
-export type SewaSeo = { title: string; canonical: string; index: boolean };
+/** `canonical` null = tidak ditulis (halaman noindex). */
+export type SewaSeo = { title: string; canonical: string | null; index: boolean };
 
 export const SEWA_TITLE = "Cari Unit Apartemen Harian di Makassar";
 export const SEWA_DESCRIPTION =
@@ -35,8 +37,8 @@ export function sewaSeo(filter: SewaFilter, locations: SeoLocation[]): SewaSeo {
   if (location && filter.tipe) {
     const type = location.roomTypes.find((item) => item.slug === filter.tipe && item.unitCount > 0);
     if (type) {
-      // Halaman landing tipe adalah versi kanonik dari daftar unit tipe ini.
-      return { title: `Unit ${type.name} di ${location.shortName}`, canonical: roomTypeHref(location.slug, type.slug), index: false };
+      // Halaman landing tipe adalah versi kanonik dari daftar unit tipe ini: sinyal digabung ke landing.
+      return { title: `Unit ${type.name} di ${location.shortName}`, canonical: roomTypeHref(location.slug, type.slug), index: true };
     }
   }
 
@@ -48,9 +50,5 @@ export function sewaSeo(filter: SewaFilter, locations: SeoLocation[]): SewaSeo {
     };
   }
 
-  return {
-    title: location ? `Unit di ${location.shortName}` : SEWA_TITLE,
-    canonical: location ? sewaHref({ lokasi: location.slug }) : "/sewa",
-    index: false,
-  };
+  return { title: location ? `Unit di ${location.shortName}` : SEWA_TITLE, canonical: null, index: false };
 }

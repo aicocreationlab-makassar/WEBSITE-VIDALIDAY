@@ -75,6 +75,8 @@ test.describe("SEO", () => {
   test("/sewa: berfilter noindex, apartemen + tipe canonical ke landing", async ({ page }) => {
     await gotoOk(page, "/sewa?urut=termurah");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    // noindex tidak dicampur dengan canonical.
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
 
     const slug = await firstApartmentSlug(page);
     test.skip(!slug, "Belum ada apartemen");
@@ -87,6 +89,7 @@ test.describe("SEO", () => {
     const tipe = landing!.split("/").pop();
     await gotoOk(page, `/sewa?lokasi=${slug}&tipe=${tipe}`);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`${landing}$`));
+    await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
   });
 
   test("/sewa: Googlebot menerima canonical dan robots di <head>, bukan di-stream ke <body>", async ({ request }) => {
@@ -96,7 +99,10 @@ test.describe("SEO", () => {
     const html = await response.text();
     const head = html.slice(0, html.indexOf("</head>"));
     expect(head).toMatch(/<meta name="robots" content="[^"]*noindex/);
-    expect(head).toMatch(/<link rel="canonical" href="[^"]+\/sewa"/);
+    expect(head).toMatch(/<title>[^<]+<\/title>/);
+
+    const plain = await (await request.get("/sewa", { headers: { "user-agent": googlebot } })).text();
+    expect(plain.slice(0, plain.indexOf("</head>"))).toMatch(/<link rel="canonical" href="[^"]+\/sewa"/);
   });
 
   test("unit: breadcrumb memuat tipe, kalimat ringkasan, tanpa FAQPage berulang", async ({ page }) => {
