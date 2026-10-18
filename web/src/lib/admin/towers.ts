@@ -3,18 +3,33 @@
 
 import { damerau } from "@/lib/chat/fuzzy";
 
-/** "Tower Brentsville " → "brentsville" (awalan "tower" diabaikan saat membandingkan). */
+/** "Tower Brentsville " → "brentsville" (awalan tower/blok/gedung/menara diabaikan saat membandingkan). */
 function towerKey(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/^tower\s+/, "");
+    .replace(/^(tower|blok|block|gedung|menara)[\s-]*/, "");
 }
 
-/** Dua nama tower dianggap ejaan yang sama dengan salah ketik 1 huruf (2 untuk nama ≥ 8 huruf). */
+/**
+ * Dua nama tower dianggap ejaan yang sama dengan salah ketik 1 huruf (2 untuk nama ≥ 8 huruf). Dibandingkan
+ * per kata: kata yang berbeda dan berisi angka atau pendek (≤ 3 huruf) menandai tower yang memang lain
+ * ("Blok A"/"Blok B", "Menara 1"/"Menara 2", "Tower A1"/"Tower A2"), bukan salah ketik.
+ */
 function similar(key: string, target: string): boolean {
+  if (key === target) return true;
+  const a = key.split(/[\s-]+/).filter(Boolean);
+  const b = target.split(/[\s-]+/).filter(Boolean);
+  if (!a.length || a.length !== b.length) return false;
   const max = target.length >= 8 ? 2 : 1;
-  return damerau(key, target, max) <= max;
+  let total = 0;
+  for (let index = 0; index < a.length; index++) {
+    if (a[index] === b[index]) continue;
+    if (/\d/.test(a[index]) || /\d/.test(b[index]) || a[index].length <= 3 || b[index].length <= 3) return false;
+    total += damerau(a[index], b[index], max);
+    if (total > max) return false;
+  }
+  return total <= max;
 }
 
 /**

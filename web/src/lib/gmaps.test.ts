@@ -23,6 +23,11 @@ describe("parseGmapsCoordinates", () => {
       precise: false,
     });
     expect(parseGmapsPoint("https://maps.google.com/?q=-5.135,119.405")?.precise).toBe(true);
+    // Link klasik: q = nama tempat, ll = tengah tampilan → bukan pin.
+    expect(parseGmapsPoint("https://maps.google.com/maps?q=Vida+View&ll=-5.15,119.44&z=17")).toEqual({
+      point: { lat: -5.15, lng: 119.44 },
+      precise: false,
+    });
     // Titik "@" lama Delft ke pin: ±3,8 km; titik migrasi 0004 ke pin: ±590 m.
     expect(Math.round(distanceMeters({ lat: -5.14462865705198, lng: 119.394111880272 }, { lat: -5.1499287, lng: 119.3944552 }))).toBe(591);
     expect(distanceMeters({ lat: -5.1, lng: 119.4 }, { lat: -5.1, lng: 119.4 })).toBe(0);

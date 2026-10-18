@@ -29,6 +29,16 @@ describe("towerSuggestion", () => {
     expect(towerSuggestion("Ashtom", towers)).toBe("Ashton");
   });
 
+  it("tower yang memang berbeda satu huruf/angka tidak dianggap salah ketik", () => {
+    expect(knownTowers(["Blok A", "Blok A", "Blok A", "Blok B"])).toEqual(["Blok A", "Blok B"]);
+    expect(knownTowers(["Menara 1", "Menara 2", "Tower A1", "Tower A2"])).toHaveLength(4);
+    expect(towerSuggestion("Blok B", ["Blok A"])).toBeNull();
+    expect(towerSuggestion("Menara 2", ["Menara 1"])).toBeNull();
+    expect(towerSuggestion("Gedung B", ["Gedung A"])).toBeNull();
+    // Salah ketik di kata panjang tetap dikenali.
+    expect(towerSuggestion("Tower Brentsvile", ["Brentsville"])).toBe("Brentsville");
+  });
+
   it("diam kalau sama, kosong, terlalu pendek, atau memang tower lain", () => {
     expect(towerSuggestion("Brentsville", towers)).toBeNull();
     expect(towerSuggestion("brentsville", towers)).toBeNull();

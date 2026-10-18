@@ -100,6 +100,7 @@ export function LocationForm({ detail, roomTypes }: Props) {
     setError,
     setValue,
     getValues,
+    setFocus,
     reset,
     resetField,
     formState: { errors, isSubmitting, isDirty },
@@ -281,7 +282,11 @@ export function LocationForm({ detail, roomTypes }: Props) {
               <GmapsNote
                 kind={noteKind}
                 meters={mismatch?.meters ?? null}
-                onFill={() => fillCoordinates(gmapsDecision(getValues("gmapsUrl")))}
+                onFill={() => {
+                  fillCoordinates(gmapsDecision(getValues("gmapsUrl")));
+                  // Tombol diganti pesan hasil: fokus ke isian link (pesan terbaca lewat aria-describedby).
+                  setFocus("gmapsUrl");
+                }}
               />
             }
           >
@@ -404,8 +409,9 @@ type GmapsNoteKind = GmapsDecision["kind"] | "can-fill" | "mismatch";
 function GmapsNote({ kind, meters, onFill }: { kind: GmapsNoteKind; meters: number | null; onFill: () => void }) {
   if (kind === "idle") return <>Buka lokasi di Google Maps, lalu salin link lengkap dari address bar browser.</>;
   if (kind === "mismatch") {
+    // Bukan role="status": teksnya berubah di tiap ketikan latitude/longitude; tetap terbaca lewat aria-describedby.
     return (
-      <span role="status" className="flex flex-wrap items-center gap-x-2 font-medium text-[#b45309]">
+      <span className="flex flex-wrap items-center gap-x-2 font-medium text-[#b45309]">
         <span className="flex items-start gap-1.5">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>

@@ -36,6 +36,9 @@ export function MediaCleanupCard() {
   useEffect(() => {
     if (scanning || !refocusScanRef.current) return;
     refocusScanRef.current = false;
+    // Hanya kalau fokus memang hilang; admin yang sudah pindah ke isian lain tidak ditarik kembali.
+    const active = document.activeElement;
+    if (active && active !== document.body && active !== scanButtonRef.current) return;
     scanButtonRef.current?.focus({ preventScroll: true });
   }, [scanning]);
 

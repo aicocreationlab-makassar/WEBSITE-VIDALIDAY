@@ -45,6 +45,7 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
     register,
     setValue,
     getValues,
+    setFocus,
     formState: { errors, isSubmitted },
   } = useUnitFormContext();
   // Unit baru: slug mengikuti nama. Unit lama: alamat halaman tidak berubah diam-diam saat nama diganti.
@@ -244,7 +245,11 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
                 <span>Ejaan berbeda dari unit lain. Mungkin maksudnya: {towerHint}?</span>
                 <button
                   type="button"
-                  onClick={() => setValue("tower", towerHint, set)}
+                  onClick={() => {
+                    setValue("tower", towerHint, set);
+                    // Tombol ini hilang setelah dipakai: fokus pindah ke isian, bukan jatuh ke <body>.
+                    setFocus("tower");
+                  }}
                   className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800"
                 >
                   Pakai {towerHint}

@@ -13,7 +13,7 @@ const NUM = "(-?\\d{1,3}(?:\\.\\d+)?)";
 
 /**
  * Titik dari link Google Maps. `precise` = pin tempat ("!3d<lat>!4d<lng>") atau titik yang ditulis eksplisit
- * ("q=" / "query=" / "ll=" / "destination="). "@<lat>,<lng>" dan "center=" hanya titik TENGAH tampilan peta
+ * ("q=" / "query=" / "destination="). "@<lat>,<lng>", "ll=", dan "center=" hanya titik TENGAH tampilan peta
  * saat link disalin (bisa ratusan meter dari gedung, bahkan di laut) → `precise: false`.
  * Link pendek (maps.app.goo.gl) tidak bisa dibaca → null.
  */
@@ -27,9 +27,9 @@ export function parseGmapsPoint(url: string | null | undefined): { point: LatLng
   }
   const patterns: [RegExp, boolean][] = [
     [new RegExp(`!3d${NUM}!4d${NUM}`), true],
-    [new RegExp(`[?&](?:q|query|ll|destination)=${NUM}\\s*,\\s*${NUM}`), true],
+    [new RegExp(`[?&](?:q|query|destination)=${NUM}\\s*,\\s*${NUM}`), true],
     [new RegExp(`@${NUM},${NUM}`), false],
-    [new RegExp(`[?&]center=${NUM}\\s*,\\s*${NUM}`), false],
+    [new RegExp(`[?&](?:ll|center)=${NUM}\\s*,\\s*${NUM}`), false],
   ];
   for (const [pattern, precise] of patterns) {
     const match = pattern.exec(text);
