@@ -45,6 +45,8 @@ export function ApartmentsDropdown({
     cancelClose();
     closeTimer.current = window.setTimeout(() => {
       closeTimer.current = null;
+      // Keyboard sedang di dalam daftar: jangan tutup karena mouse pergi (fokus akan jatuh ke <body>).
+      if (panelRef.current?.contains(document.activeElement)) return;
       setOpen(false);
     }, CLOSE_DELAY_MS);
   }, [cancelClose]);
@@ -56,15 +58,27 @@ export function ApartmentsDropdown({
 
   useEffect(() => cancelClose, [cancelClose]);
 
-  // Klik atau ketukan di luar menu menutupnya.
+  // Klik atau ketukan di luar menu menutupnya; Esc menutupnya di mana pun fokus berada (konten yang
+  // muncul karena disorot harus bisa ditutup tanpa memindah mouse, WCAG 1.4.13).
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) setOpen(false);
     };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      const inside = rootRef.current?.contains(document.activeElement) ?? false;
+      cancelClose();
+      setOpen(false);
+      if (inside) triggerRef.current?.focus();
+    };
     document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, cancelClose]);
 
   if (locations.length === 0) return null;
 
