@@ -8,6 +8,7 @@ import {
   viewParts,
   landingCtaHref,
   landingFaqs,
+  landingGlobalFaqs,
   landingH1,
   landingIntro,
   landingMetaDescription,
@@ -111,10 +112,27 @@ describe("buildLanding", () => {
     expect(faqs.map((faq) => faq.id)).toEqual([-1, -2, -3, -4, -5, -6]);
     expect(faqs[0].answer).toContain("mulai Rp250.000 per malam sampai Rp280.000");
     expect(faqs[2].answer).toContain("diatur langsung dengan admin");
-    expect(faqs[4].answer).toContain("Mall Panakkukang (5 menit) dan Bandara Sultan Hasanuddin (30 menit)");
+    expect(faqs[4].answer).toContain("Tempat terdekat: Mall Panakkukang, sekitar 5 menit; Bandara Sultan Hasanuddin, sekitar 30 menit.");
+    // Alamat yang sudah menyebut kota tidak ditambah ", Makassar" lagi.
+    const cityAddress = buildLanding({ ...vida, address: "Jl. Topaz Raya, Panakkukang, Kota Makassar" }, studio, catalog);
+    const cityFaq = landingFaqs(cityAddress, settings, []).find((faq) => faq.id === -5);
+    expect(cityFaq?.answer).toBe(`${vida.name} berada di Jl. Topaz Raya, Panakkukang, Kota Makassar.`);
     const withRates = buildLanding(vida, studio, [...catalog, makeUnit({ id: 50, roomTypeId: 11, weeklyPrice: 1500000, monthlyPrice: 5000000 })]);
     const rateFaq = landingFaqs(withRates, settings, [])[2];
     expect(rateFaq.answer).toContain("Tarif mingguan mulai Rp1.500.000 berlaku untuk 7 malam atau lebih, tarif bulanan mulai Rp5.000.000 berlaku untuk 30 malam atau lebih.");
     for (const faq of faqs) expect(faq.answer).not.toMatch(/undefined|null|NaN/);
+  });
+
+  it("FAQ umum yang topiknya sudah dijawab FAQ tipe tidak diulang", () => {
+    const globals = [
+      "Apa saja syarat check-in unit di apartemen?",
+      "Bagaimana tata cara pemesanan dan pembayaran sewa apartemen?",
+      "Bagaimana ketentuan jam check-in dan check-out unit?",
+      "Berapakah kapasitas maksimal penghuni setiap type Unit?",
+      "Apa saja peraturan menginap di apartemen?",
+      "Apakah boleh membawa hewan peliharaan?",
+    ].map((question, index) => ({ id: index + 1, question, answer: "Jawaban.", sortOrder: index + 1 }));
+    expect(landingGlobalFaqs(globals, 4).map((faq) => faq.id)).toEqual([1, 5, 6]);
+    expect(landingGlobalFaqs(globals, 2).map((faq) => faq.id)).toEqual([1, 5]);
   });
 });

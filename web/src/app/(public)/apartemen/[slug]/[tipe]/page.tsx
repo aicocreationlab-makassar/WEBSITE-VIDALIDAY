@@ -10,6 +10,7 @@ import {
   buildLanding,
   findLandingType,
   landingFaqs,
+  landingGlobalFaqs,
   landingMetaDescription,
   landingMetaTitle,
   landingPath,
@@ -83,11 +84,11 @@ export default async function RoomTypeLandingPage({ params }: PageProps<"/aparte
   const buildingFacilities = facilities.filter((facility) => facility.locationId === location.id);
   // FAQPage hanya untuk tanya-jawab khusus tipe ini; FAQ umum sudah ditandai di beranda dan profil apartemen.
   const typeFaqs = landingFaqs(data, settings, nearby);
-  const faqs = [...typeFaqs, ...globalFaqs.slice(0, MAX_GLOBAL_FAQS)];
+  // FAQ umum yang topiknya sudah dijawab di atas (harga, tamu, jam check-in, cara pesan) tidak diulang.
+  const faqs = [...typeFaqs, ...landingGlobalFaqs(globalFaqs, MAX_GLOBAL_FAQS)];
   const otherTypes = roomTypeCards(location, catalog).filter((card) => card.id !== type.id);
-  const summary = landingSummary(data, settings).map((row) =>
-    row.label === "Alamat" ? { ...row, href: `${apartmentPath(location.slug)}#lokasi` } : row,
-  );
+  // Alamat menuju peta di halaman ini (bagian #lokasi), bukan pindah ke profil apartemen.
+  const summary = landingSummary(data, settings).map((row) => (row.label === "Alamat" ? { ...row, href: "#lokasi" } : row));
 
   return (
     <>
@@ -138,9 +139,9 @@ export default async function RoomTypeLandingPage({ params }: PageProps<"/aparte
           <SectionHeading
             id="fasilitas-gedung-judul"
             title={`Fasilitas gedung ${location.shortName}`}
-            description={`Bisa kamu pakai selama menginap di ${location.name}.`}
+            description={`Bisa kamu pakai selama menginap di ${location.shortName}.`}
           />
-          <FacilityGrid facilities={buildingFacilities} apartmentName={location.name} />
+          <FacilityGrid facilities={buildingFacilities} apartmentName={location.shortName} />
         </Section>
       ) : null}
 

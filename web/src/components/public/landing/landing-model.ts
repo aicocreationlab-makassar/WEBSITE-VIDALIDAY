@@ -248,11 +248,18 @@ export function landingFaqs(d: LandingData, s: LandingSettings, landmarks: Landm
     });
   }
   if (d.location.address) {
-    const nearby = landmarks.slice(0, 3).map((landmark) => `${landmark.name} (${landmark.distanceTime})`);
+    // Alamat dari data biasanya sudah memuat kecamatan dan kota; area/kota hanya ditambah kalau belum ada.
+    const address = d.location.address.trim().replace(/[.\s]+$/, "");
+    const lower = address.toLowerCase();
+    const area = d.location.area && !lower.includes(d.location.area.toLowerCase()) ? `, kawasan ${d.location.area}` : "";
+    const city = lower.includes("makassar") ? "" : ", Makassar";
+    const nearby = landmarks
+      .slice(0, 3)
+      .map((landmark) => (landmark.distanceTime.trim() ? `${landmark.name}, sekitar ${landmark.distanceTime.trim().toLowerCase()}` : landmark.name));
     faqs.push({
       id: -5,
       question: `Di mana lokasi ${apt}?`,
-      answer: `${d.location.name} berada di ${d.location.address}${d.location.area ? `, kawasan ${d.location.area}` : ""}, Makassar${nearby.length ? `. Dekat dengan ${joinNames(nearby)}` : ""}.`,
+      answer: `${d.location.name} berada di ${address}${area}${city}.${nearby.length ? ` Tempat terdekat: ${nearby.join("; ")}.` : ""}`,
       sortOrder: 5,
     });
   }
@@ -263,6 +270,24 @@ export function landingFaqs(d: LandingData, s: LandingSettings, landmarks: Landm
     sortOrder: 6,
   });
   return faqs;
+}
+
+/**
+ * Topik yang sudah dijawab `landingFaqs` (harga, tamu, mingguan/bulanan, jam check-in/out, lokasi, cara pesan).
+ * FAQ umum dengan topik yang sama tidak ditampilkan lagi di landing supaya daftar tidak berulang.
+ */
+const COVERED_TOPICS = [
+  /\b(harga|tarif|biaya)\b/,
+  /\b(tamu|kapasitas|penghuni)\b/,
+  /\b(mingguan|bulanan)\b/,
+  /\bjam\b.*check|check.*\bjam\b|check-?\s?in dan check-?\s?out/,
+  /\b(lokasi|alamat|di ?mana)\b/,
+  /\b(pesan|pemesanan|booking|cara sewa)\b/,
+];
+
+/** FAQ umum untuk landing tipe: tanpa topik yang sudah dijawab FAQ khusus tipe, maks. `max`. */
+export function landingGlobalFaqs(globalFaqs: Faq[], max: number): Faq[] {
+  return globalFaqs.filter((faq) => !COVERED_TOPICS.some((topic) => topic.test(faq.question.toLowerCase()))).slice(0, max);
 }
 
 export function landingCtaHref(d: LandingData): string {
