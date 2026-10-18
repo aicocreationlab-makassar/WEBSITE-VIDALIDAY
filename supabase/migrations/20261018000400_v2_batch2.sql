@@ -152,7 +152,8 @@ update public.units u
 -- ---------------------------------------------------------------------
 -- Baris "Kota Asal: " kosong (diisi manual sebelum placeholder ada) diganti baris ber-placeholder.
 update public.settings
-   set value = regexp_replace(value, E'\\n[ \\t]*Kota [Aa]sal[ \\t]*:[ \\t]*(\\r?\\n)', E'\\nKota asal: {kota}\\1'),
+   -- Teks pengganti: E'\n' = ganti baris sungguhan ("\\n" di sini tertulis harfiah, lihat migrasi 0006).
+   set value = regexp_replace(value, E'\\n[ \\t]*Kota [Aa]sal[ \\t]*:[ \\t]*(\\r?\\n)', E'\nKota asal: {kota}\\1'),
        updated_at = now()
  where key = 'booking_whatsapp_template'
    and value !~ '\{kota\}'
@@ -160,7 +161,7 @@ update public.settings
 
 -- Template yang belum punya baris kota: sisipkan tepat setelah baris nama.
 update public.settings
-   set value = regexp_replace(value, E'(Nama:[^\\n]*\\n)', E'\\1Kota asal: {kota}\\n'),
+   set value = regexp_replace(value, E'(Nama:[^\\n]*\\n)', E'\\1Kota asal: {kota}\n'),
        updated_at = now()
  where key = 'booking_whatsapp_template'
    and value !~ '\{kota\}'

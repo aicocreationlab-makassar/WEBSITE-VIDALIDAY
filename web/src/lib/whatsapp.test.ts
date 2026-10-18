@@ -48,6 +48,16 @@ https://vidaliday.com/unit/studio-at-26x`);
   it("keeps unknown braces untouched", () => {
     expect(fillTemplate("Halo {admin} {unit}", { unit: "x" })).toBe("Halo {admin} x");
   });
+
+  it('treats a literal "\\n" in the template as a line break', () => {
+    // Bentuk template di database setelah migrasi 0004 (sebelum 0006): garis miring + n harfiah.
+    const stored = "Nama: {nama}\\nKota asal: {kota}\nNo. WhatsApp: {whatsapp}";
+    expect(fillTemplate(stored, { nama: "UJI QA", kota: "Makassar", whatsapp: "0812" })).toBe(
+      "Nama: UJI QA\nKota asal: Makassar\nNo. WhatsApp: 0812",
+    );
+    // Kota kosong hanya menghapus baris kota, bukan baris nama.
+    expect(fillTemplate(stored, { nama: "UJI QA", kota: null, whatsapp: "0812" })).toBe("Nama: UJI QA\nNo. WhatsApp: 0812");
+  });
 });
 
 describe("waLink", () => {
