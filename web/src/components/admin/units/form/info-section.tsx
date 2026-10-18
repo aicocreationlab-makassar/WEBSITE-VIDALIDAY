@@ -6,6 +6,7 @@ import { useController, useWatch } from "react-hook-form";
 import { Field, NativeSelect } from "@/components/admin/kit/field";
 import { FormCard } from "@/components/admin/kit/form-card";
 import { Input } from "@/components/ui/input";
+import { towerSuggestion } from "@/lib/admin/towers";
 import type { AdminLocationOption } from "@/lib/data/admin/units";
 import { GuestStepper, NoteText, NumberInput, useUnitFormContext } from "./form-bits";
 import {
@@ -55,13 +56,17 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
   const guestsField = useController({ control, name: "maxGuests" });
   const floorField = useController({ control, name: "floorNumber" });
   const sizeField = useController({ control, name: "sizeSqm" });
-  const [name, slug] = useWatch({ control, name: ["name", "slug"] });
+  const [name, slug, tower] = useWatch({ control, name: ["name", "slug", "tower"] });
 
   const location = findLocation(locations, locationField.field.value);
   const type = findRoomType(location, typeField.field.value);
   const typeOptions = roomTypeOptions(location, typeField.field.value);
   const currentAuto = autoSlug(name, location?.slug);
   const set = { shouldDirty: true, shouldValidate: isSubmitted } as const;
+  // Saran tower dari unit lain di apartemen ini; isian yang mirip tapi beda ejaan diberi petunjuk.
+  const towers = location?.towers ?? [];
+  const towerHint = towerSuggestion(tower, towers);
+  const towerListId = `tower-list-${location?.id ?? "none"}`;
 
   function syncSlug(nextName: string, nextLocation: AdminLocationOption | null) {
     if (!slugSynced) return;
@@ -230,10 +235,36 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
       </Field>
 
       {location && !location.hasTowers ? null : (
-        <Field label="Tower" error={errors.tower?.message}>
-          <Input {...register("tower")} maxLength={40} autoComplete="off" placeholder="mis. Tower A" />
+        <Field
+          label="Tower"
+          error={errors.tower?.message}
+          hint={
+            towerHint ? (
+              <span className="flex flex-wrap items-center gap-x-2">
+                <span>Ejaan berbeda dari unit lain. Mungkin maksudnya: {towerHint}?</span>
+                <button
+                  type="button"
+                  onClick={() => setValue("tower", towerHint, set)}
+                  className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800"
+                >
+                  Pakai {towerHint}
+                </button>
+              </span>
+            ) : towers.length ? (
+              `Tower yang sudah ada: ${towers.join(", ")}.`
+            ) : undefined
+          }
+        >
+          <Input {...register("tower")} list={towers.length ? towerListId : undefined} maxLength={40} autoComplete="off" placeholder="mis. Tower A" />
         </Field>
       )}
+      {towers.length && !(location && !location.hasTowers) ? (
+        <datalist id={towerListId}>
+          {towers.map((option) => (
+            <option key={option} value={option} />
+          ))}
+        </datalist>
+      ) : null}
 
       <Field
         label="Lantai"
