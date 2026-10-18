@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps<"/apartemen/[slug]"
   if (!location) return {};
 
   // openGraph sengaja tidak diisi: objek openGraph di sini akan menggantikan milik layout dan membuang
-  // gambar OG bawaan (app/opengraph-image.tsx). og:title dan og:description diisi Next dari title/description.
+  // gambar OG bawaan (app/opengraph-image.jpg). og:title dan og:description diisi Next dari title/description.
   return {
     title: { absolute: apartmentMetaTitle(location.name) },
     description: apartmentMetaDescription(location),
