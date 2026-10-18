@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { csvCell, toCsv } from "./csv";
-import { isShortGmapsLink, mapEmbedUrl, mapExternalUrl, parseGmapsCoordinates } from "./gmaps";
+import { distanceMeters, isShortGmapsLink, mapEmbedUrl, mapExternalUrl, parseGmapsCoordinates, parseGmapsPoint } from "./gmaps";
 import { slugify, uniqueSlug, unitSlug } from "./slug";
 
 describe("parseGmapsCoordinates", () => {
@@ -11,6 +11,21 @@ describe("parseGmapsCoordinates", () => {
     ["https://www.google.com/maps/search/?api=1&query=-5.135%2C119.405", { lat: -5.135, lng: 119.405 }],
   ])("reads %s", (url, expected) => {
     expect(parseGmapsCoordinates(url)).toEqual(expected);
+  });
+
+  it("membedakan pin tempat dari titik tengah tampilan peta", () => {
+    // Link Delft dari pemilik: "@" jatuh di laut, pin "!3d!4d" di gedung.
+    const delft =
+      "https://www.google.com/maps/place/APARTEMEN+DELFT+BY+VIDALIDAY/@-5.1578796,119.3608516,14.04z/data=!4m7!3m6!1s0x2dbf1dfd239b8747:0x8aaa8d0a5b125293!8m2!3d-5.1499287!4d119.3944552!16s%2Fg%2F11zykmx8hx";
+    expect(parseGmapsPoint(delft)).toEqual({ point: { lat: -5.1499287, lng: 119.3944552 }, precise: true });
+    expect(parseGmapsPoint("https://www.google.com/maps/@-5.1567,119.4456,15z")).toEqual({
+      point: { lat: -5.1567, lng: 119.4456 },
+      precise: false,
+    });
+    expect(parseGmapsPoint("https://maps.google.com/?q=-5.135,119.405")?.precise).toBe(true);
+    // Titik "@" lama Delft ke pin: ±3,8 km; titik migrasi 0004 ke pin: ±590 m.
+    expect(Math.round(distanceMeters({ lat: -5.14462865705198, lng: 119.394111880272 }, { lat: -5.1499287, lng: 119.3944552 }))).toBe(591);
+    expect(distanceMeters({ lat: -5.1, lng: 119.4 }, { lat: -5.1, lng: 119.4 })).toBe(0);
   });
 
   it("returns null for query-style and short links", () => {

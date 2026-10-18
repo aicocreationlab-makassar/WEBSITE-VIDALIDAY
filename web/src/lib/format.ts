@@ -28,6 +28,13 @@ export function formatFileSize(bytes: number): string {
   return `${fileSizeNumber.format(value / (1024 * 1024 * 1024))} GB`;
 }
 
+/** Jarak untuk teks admin: 140 → "140 m", 1250 → "1,3 km". */
+export function formatMeters(meters: number): string {
+  const value = Math.max(0, Number.isFinite(meters) ? meters : 0);
+  if (value < 1000) return `${Math.round(value)} m`;
+  return `${fileSizeNumber.format(value / 1000)} km`;
+}
+
 /** Bentuk singkat hanya kalau persis (tanpa pembulatan); selain itu null. 1050000, 1e6, 2 → "1,05". */
 function exactShort(n: number, unit: number, decimals: number): string | null {
   if (n % (unit / 10 ** decimals) !== 0) return null;

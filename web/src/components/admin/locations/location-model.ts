@@ -2,7 +2,7 @@
 // Dipakai komponen klien, Server Action (pesan, rencana urutan), dan lib/data/admin/locations.ts.
 
 import { z } from "zod";
-import { parseGmapsCoordinates, isShortGmapsLink } from "@/lib/gmaps";
+import { distanceMeters, isShortGmapsLink, parseGmapsPoint } from "@/lib/gmaps";
 import { isStockPhoto, locationImageUrl } from "@/lib/media";
 import { slugify } from "@/lib/slug";
 import { ROOM_CATEGORY_VALUES, locationSchema, type LocationInput, type RoomTypeInput } from "@/lib/validation/admin";
@@ -310,14 +310,18 @@ export function nextSortOrder(items: readonly { sortOrder: number }[]): number {
 // Link Google Maps → koordinat
 // ---------------------------------------------------------------------------
 
+/** "filled" = pin tempat di link; "filled-center" = hanya titik tengah tampilan peta (perlu dicek). */
 export type GmapsDecision =
   | { kind: "idle" }
   | { kind: "filled"; lat: number; lng: number }
+  | { kind: "filled-center"; lat: number; lng: number }
   | { kind: "short" }
   | { kind: "not-found" };
 
 export const GMAPS_MESSAGES = {
   filled: "Koordinat diambil dari link.",
+  "filled-center":
+    "Link ini hanya berisi titik tengah tampilan peta, belum tentu tepat di gedung. Cek pratinjau peta; untuk titik yang tepat, klik nama tempat di Google Maps lalu salin link-nya.",
   short:
     "Link pendek tidak bisa dibaca otomatis. Buka link di browser lalu salin alamat lengkapnya, atau isi koordinat manual.",
   "not-found":
@@ -328,11 +332,31 @@ export const GMAPS_MESSAGES = {
 export function gmapsDecision(url: string | null | undefined): GmapsDecision {
   const text = (url ?? "").trim();
   if (!text) return { kind: "idle" };
-  const point = parseGmapsCoordinates(text);
-  if (point) return { kind: "filled", lat: point.lat, lng: point.lng };
+  const parsed = parseGmapsPoint(text);
+  if (parsed) return { kind: parsed.precise ? "filled" : "filled-center", lat: parsed.point.lat, lng: parsed.point.lng };
   if (isShortGmapsLink(text)) return { kind: "short" };
   if (/^https?:\/\//i.test(text)) return { kind: "not-found" };
   return { kind: "idle" };
+}
+
+/** Selisih (meter) di atas ini dianggap koordinat tidak sama dengan pin di link. */
+export const PIN_MISMATCH_METERS = 50;
+
+/**
+ * Koordinat tersimpan dibanding pin tempat di link Google Maps. Hasil = pin + jarak (dibulatkan) kalau
+ * jaraknya lebih dari PIN_MISMATCH_METERS; null kalau sama, koordinat kosong, atau link tidak berisi pin.
+ * Data lama sering menyimpan titik tengah tampilan ("@lat,lng"), bukan pin (Delft sempat di laut).
+ */
+export function pinMismatch(
+  url: string | null | undefined,
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): { lat: number; lng: number; meters: number } | null {
+  if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const parsed = parseGmapsPoint(url);
+  if (!parsed?.precise) return null;
+  const meters = Math.round(distanceMeters({ lat, lng }, parsed.point));
+  return meters > PIN_MISMATCH_METERS ? { ...parsed.point, meters } : null;
 }
 
 function validCoordinate(value: unknown, limit: number): value is number {
