@@ -262,6 +262,16 @@ describe("percakapan", () => {
     expect(full.reply.handoff).toBeTruthy();
   });
 
+  it("chip apartemen lain tidak menawarkan apartemen yang sama dengan kartu unit", () => {
+    const { reply } = ask("harga studio berapa?");
+    const first = idx.unitBySlug.get(unitSlugs(reply)[0]);
+    const shownName = k.locations.find((location) => location.slug === first?.l)?.shortName;
+    const other = reply.chips.find((chip) => chip.label.startsWith("Cek di "));
+    expect(shownName).toBeTruthy();
+    expect(other).toBeTruthy();
+    expect(other?.label).not.toBe(`Cek di ${shownName}`);
+  });
+
   it("tidak ada emoji dan semua harga dari data", () => {
     const inputs = ["brp hrg studio di vida?", "ada promo?", "tipe kamar apa saja?", "2br muat berapa orang?", "unit termurah?"];
     for (const input of inputs) {

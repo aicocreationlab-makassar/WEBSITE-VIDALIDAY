@@ -62,7 +62,8 @@ function ChatDock({ open, onOpenChange, launcherRef, waHref }: ChatPanelProps) {
           onOpenChange(false);
         }
       }}
-      className="fixed right-6 bottom-24 z-50 flex h-[min(600px,calc(100dvh-8rem))] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-sheet bg-white text-ink shadow-raised ring-1 ring-line outline-none"
+      // Tinggi menyisakan ±112px di atas (bar promo + header) supaya tombol "Tanya admin" tidak tertutup.
+      className="fixed right-6 bottom-24 z-50 flex h-[min(600px,calc(100dvh-13rem))] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-sheet bg-white text-ink shadow-raised ring-1 ring-line outline-none"
     >
       <ChatBody waHref={waHref} onClose={() => onOpenChange(false)} autoFocusInput />
     </div>

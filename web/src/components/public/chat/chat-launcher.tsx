@@ -55,7 +55,9 @@ export function ChatLauncher({ waHref }: { waHref: string }) {
         onFocus={preloadChat}
         onTouchStart={preloadChat}
         onClick={toggle}
-        className="fixed right-[calc(1rem+env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 inline-flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-brand-600 px-4 font-bold text-white shadow-raised transition-colors duration-150 hover:bg-brand-700 focus-visible:outline-offset-4 active:bg-brand-800 above-cta:max-md:bottom-[calc(72px+1rem+env(safe-area-inset-bottom))] md:right-[calc(1.5rem+env(safe-area-inset-right))] md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
+        // Di HP disembunyikan (invisible: keluar dari urutan Tab) selama kotak pencarian hero terlihat,
+        // supaya tidak menutupi tombol Cari unit; muncul lagi setelah digulir. Kontak tetap ada di header.
+        className="fixed right-[calc(1rem+env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 inline-flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-brand-600 px-4 font-bold text-white shadow-raised transition-[background-color,opacity,translate,visibility] duration-150 hover:bg-brand-700 focus-visible:outline-offset-4 active:bg-brand-800 motion-reduce:transition-none above-cta:max-md:bottom-[calc(72px+1rem+env(safe-area-inset-bottom))] hero-visible:max-md:invisible hero-visible:max-md:translate-y-4 hero-visible:max-md:opacity-0 md:right-[calc(1.5rem+env(safe-area-inset-right))] md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
       >
         {open ? <X className="size-6" aria-hidden="true" /> : <MessageCircle className="size-6" aria-hidden="true" />}
         <span className={open ? "sr-only" : "sr-only md:not-sr-only"}>Tanya kami</span>

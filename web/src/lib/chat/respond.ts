@@ -173,8 +173,18 @@ function apartmentPath(slug: string): string {
 // Chip lanjutan
 // ---------------------------------------------------------------------------
 
-function otherApartment(slots: Slots, k: ChatKnowledge): ChatLocation | null {
-  return k.locations.find((location) => location.slug !== slots.apartment) ?? null;
+/**
+ * Apartemen lain untuk chip "Cek di ...". Tanpa apartemen di percakapan, acuannya apartemen unit yang
+ * sedang ditampilkan (`shown`) supaya chip tidak menawarkan apartemen yang sama dengan kartunya.
+ */
+function otherApartment(slots: Slots, k: ChatKnowledge, shown?: string | null): ChatLocation | null {
+  const current = slots.apartment ?? shown ?? null;
+  return k.locations.find((location) => location.slug !== current) ?? null;
+}
+
+/** Apartemen unit pertama di kartu jawaban (yang tersedia dulu). */
+function shownApartment(selection: Selection): string | null {
+  return (selection.available[0] ?? selection.units[0])?.l ?? null;
 }
 
 function helpChips(k: ChatKnowledge): Chip[] {
@@ -187,10 +197,10 @@ function helpChips(k: ChatKnowledge): Chip[] {
   return chips;
 }
 
-function searchChips(slots: Slots, k: ChatKnowledge, idx: KnowledgeIndex): Chip[] {
+function searchChips(slots: Slots, k: ChatKnowledge, idx: KnowledgeIndex, shown?: string | null): Chip[] {
   const chips: Chip[] = [];
   const type = typeLabel(slots, k);
-  const other = otherApartment(slots, k);
+  const other = otherApartment(slots, k, shown);
   chips.push({ label: "Yang bulanan?", send: `Ada harga bulanan untuk ${type.toLowerCase()} ${placeLabel(slots, idx)}?` });
   chips.push({ label: "Muat berapa orang?", send: `${type} ${placeLabel(slots, idx)} muat berapa orang?` });
   if (other) chips.push({ label: `Cek di ${other.shortName}`, send: `Yang di ${other.shortName}?` });
@@ -263,7 +273,7 @@ function replyPrice({ slots, k, idx, analysis }: Ctx): BotReply {
       if (otherMin !== null) blocks.push(text(`Di ${other.shortName}: ${type.toLowerCase()} mulai ${formatRupiah(otherMin)}/malam (${otherSel.available.length} tersedia).`));
     }
   }
-  return { blocks, chips: searchChips(slots, k, idx) };
+  return { blocks, chips: searchChips(slots, k, idx, shownApartment(selection)) };
 }
 
 /** Saat tipe tidak ada di apartemen itu: sebut tipe yang ada, lalu tawarkan apartemen lain. */
@@ -333,7 +343,7 @@ function replyAvailability(ctx: Ctx): BotReply {
   if (cards) blocks.push(cards);
 
   const guard = dateGuard(analysis, input, slots, k, idx);
-  const chips = searchChips(slots, k, idx);
+  const chips = searchChips(slots, k, idx, shownApartment(selection));
   if (guard) {
     blocks.push(guard.block);
     return { blocks, chips: [guard.chip, ...chips], handoff: guard.handoff };

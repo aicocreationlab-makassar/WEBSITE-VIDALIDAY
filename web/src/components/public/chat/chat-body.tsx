@@ -168,7 +168,7 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base leading-5 font-bold text-ink">{BOT_NAME}</p>
-          <p className="truncate text-caption text-muted">Jawaban dari data unit di situs ini</p>
+          <p className="truncate text-caption text-muted">Jawaban dari data situs ini</p>
         </div>
         <Button type="button" variant="quiet" size="icon" aria-label="Mulai ulang percakapan" onClick={restart} disabled={!knowledge}>
           <RotateCcw className="size-5" aria-hidden="true" />
@@ -232,7 +232,8 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
           autoComplete="off"
           enterKeyHint="send"
           disabled={!knowledge || loadFailed}
-          className="h-11 flex-1 text-[15px]"
+          // 16px di HP: iOS Safari memperbesar halaman kalau teks input < 16px.
+          className="h-11 flex-1 text-base md:text-[15px]"
         />
         <Button type="submit" size="icon" aria-label="Kirim" disabled={!knowledge || thinking || !draft.trim()}>
           <SendHorizontal className="size-5" aria-hidden="true" />

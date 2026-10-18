@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BedDouble, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,22 @@ export function HeroSearch({ locations, index }: Props) {
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<HeroState>(() => initialHeroState(locations));
   const [openField, setOpenField] = useState<"lokasi" | "tipe" | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Selama kotak ini terlihat, <body data-hero-visible> membuat gelembung chat di HP menyingkir supaya
+  // tidak menutupi tombol Cari unit (varian `hero-visible` di globals.css). Dilepas saat pindah halaman.
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      document.body.toggleAttribute("data-hero-visible", entry.isIntersecting);
+    });
+    observer.observe(form);
+    return () => {
+      observer.disconnect();
+      document.body.removeAttribute("data-hero-visible");
+    };
+  }, []);
 
   const dropdown = usesDropdown(locations);
   const location = findLocation(locations, state.lokasi);
@@ -72,6 +88,8 @@ export function HeroSearch({ locations, index }: Props) {
 
   return (
     <form
+      ref={formRef}
+      data-hero-search=""
       method="get"
       action="/sewa"
       role="search"

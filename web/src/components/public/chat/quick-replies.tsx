@@ -2,10 +2,10 @@
 
 import type { Chip } from "@/lib/chat/respond";
 
-/** Baris chip balasan cepat di atas kotak tulis (gulir mendatar di HP). */
+/** Baris chip balasan cepat di atas kotak tulis (gulir mendatar di HP, membungkus di panel desktop 380px). */
 export function QuickReplies({ chips, onSend }: { chips: Chip[]; onSend: (text: string) => void }) {
   return (
-    <div className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-2" role="group" aria-label="Balasan cepat">
+    <div className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-2 md:flex-wrap" role="group" aria-label="Balasan cepat">
       {chips.map((chip) => (
         <button
           key={chip.label}
