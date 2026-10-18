@@ -12,6 +12,7 @@ import { getListedLocations } from "@/lib/data/locations";
 import { getSettings } from "@/lib/data/settings";
 import { getSiteUrl } from "@/lib/env";
 import { pickFeatured } from "@/lib/featured";
+import { apartmentPageUrl } from "@/lib/seo/apartment-jsonld";
 import { buildHomeJsonLd } from "@/lib/seo/home-jsonld";
 import { JsonLd } from "@/lib/seo/json-ld";
 
@@ -40,13 +41,24 @@ export default async function HomePage() {
   ]);
 
   const featured = pickFeatured(catalog);
+  const siteUrl = getSiteUrl();
   const jsonLd = buildHomeJsonLd({
-    siteUrl: getSiteUrl(),
+    siteUrl,
     whatsappNumber: settings.whatsappNumber,
     prices: catalog.map((unit) => unit.effectivePrice),
     description: settings.seoDescription,
     email: settings.contactEmail,
     images: listed.map((location) => location.imageUrl),
+    legalName: settings.companyLegalName,
+    officeHours: settings.officeHours,
+    sameAs: [settings.instagramUrl, settings.facebookUrl, settings.tiktokUrl, settings.googleBusinessUrl],
+    locations: listed.map((location) => ({
+      name: location.name,
+      url: apartmentPageUrl(siteUrl, location.slug),
+      address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    })),
     faqs,
   });
 

@@ -33,6 +33,7 @@ function row(overrides: Partial<AdminUnitRow> = {}): AdminUnitRow {
     floorNumber: 26,
     locationId: 1,
     locationShortName: "Vida View",
+    hasTowers: true,
     roomTypeId: 11,
     roomTypeName: "Studio",
     maxGuests: 3,

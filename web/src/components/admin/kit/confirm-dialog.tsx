@@ -23,6 +23,8 @@ type ConfirmDialogProps = {
   destructive?: boolean;
   loading?: boolean;
   onConfirm: () => void;
+  /** Atur fokus sendiri saat ditutup (mis. elemen pembukanya sudah dihapus). */
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 /** Dialog konfirmasi dengan label tindakan spesifik (PRD 7.10). */
@@ -36,10 +38,11 @@ export function ConfirmDialog({
   destructive = false,
   loading = false,
   onConfirm,
+  onCloseAutoFocus,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !loading && onOpenChange(next)}>
-      <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+      <DialogContent className="sm:max-w-sm" showCloseButton={false} onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader className="pr-0">
           {destructive ? (
             <span className="mb-1 flex size-11 items-center justify-center rounded-control border border-brand-200 bg-brand-50 text-brand-700">

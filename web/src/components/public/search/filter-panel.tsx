@@ -52,6 +52,9 @@ export function FilterPanel({ value, onChange, locations, amenities, index, vari
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
   const size = variant;
+  // Sidebar: satu pilihan per baris (hitungan di kanan, seperti Budget) supaya chip tidak berpindah baris
+  // saat angka hitungan berubah. Sheet HP tetap membungkus.
+  const chipLayout = variant === "sidebar" ? "stack" : "wrap";
   const facets = visibleFacets(amenities, value.fasilitas, showAllAmenities);
   const guests = guestValue(value.tamu);
 
@@ -64,6 +67,7 @@ export function FilterPanel({ value, onChange, locations, amenities, index, vari
             options={lokasiOptions(index, value, locations)}
             onSelect={(slug) => onChange(withLokasi(value, slug, locations))}
             size={size}
+            layout={chipLayout}
           />
         </FilterSection>
       ) : null}
@@ -74,6 +78,7 @@ export function FilterPanel({ value, onChange, locations, amenities, index, vari
           options={typeOptions(index, value, locations)}
           onSelect={(option) => onChange(applyTypeOption(value, option))}
           size={size}
+          layout={chipLayout}
         />
       </FilterSection>
 

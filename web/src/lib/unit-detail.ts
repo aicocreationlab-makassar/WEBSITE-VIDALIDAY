@@ -5,8 +5,8 @@ import type { BookingUnit } from "@/components/public/booking/types";
 import { addDays, diffDays, formatRupiah, isDateString, stripMarkdown } from "@/lib/format";
 import type { IconName } from "@/lib/icons";
 import { estimateTotal, type Estimate } from "@/lib/pricing";
-import { cardAmenities, unitHref } from "@/lib/unit-display";
-import { MAX_GUESTS } from "@/lib/validation/booking";
+import { cardAmenities, formatUnitSpot, roomTypeHref, unitHref } from "@/lib/unit-display";
+import { MAX_GUESTS } from "@/lib/validation/booking-constants";
 import { ROOM_CATEGORIES, type CatalogUnit, type UnitDetail } from "@/types/domain";
 
 // ---------------------------------------------------------------------------
@@ -158,22 +158,62 @@ export function parseHouseRules(text: string | null | undefined): HouseRule[] {
 
 export type Crumb = { name: string; href: string };
 
-/** Beranda / {apartemen} / {unit}: dipakai breadcrumb dan JSON-LD BreadcrumbList. */
-export function unitBreadcrumbs(unit: Pick<CatalogUnit, "slug" | "name" | "locationSlug" | "locationShortName">): Crumb[] {
-  return [
+/** Beranda / {apartemen} / {tipe} / {unit}: dipakai breadcrumb dan JSON-LD BreadcrumbList. */
+export function unitBreadcrumbs(
+  unit: Pick<CatalogUnit, "slug" | "name" | "locationSlug" | "locationShortName"> &
+    Partial<Pick<CatalogUnit, "roomTypeSlug" | "roomTypeName">>,
+): Crumb[] {
+  const crumbs: Crumb[] = [
     { name: "Beranda", href: "/" },
     { name: unit.locationShortName, href: `/apartemen/${encodeURIComponent(unit.locationSlug)}` },
-    { name: unit.name, href: unitHref(unit.slug) },
   ];
+  if (unit.roomTypeSlug && unit.roomTypeName) {
+    crumbs.push({ name: unit.roomTypeName, href: roomTypeHref(unit.locationSlug, unit.roomTypeSlug) });
+  }
+  crumbs.push({ name: unit.name, href: unitHref(unit.slug) });
+  return crumbs;
 }
 
 // ---------------------------------------------------------------------------
 // SEO
 // ---------------------------------------------------------------------------
 
-/** "{nama} — {tipe kamar} di {apartemen}" (template layout menambah "| VIDALIDAY"). */
+/** "{nama} — {tipe kamar} di {apartemen} Makassar" (template layout menambah "| VIDALIDAY"). */
 export function unitMetaTitle(unit: Pick<CatalogUnit, "name" | "roomTypeName" | "locationShortName">): string {
-  return `${unit.name} — ${unit.roomTypeName?.trim() || "Unit"} di ${unit.locationShortName}`;
+  const place = /\bmakassar\b/i.test(unit.locationShortName) ? unit.locationShortName : `${unit.locationShortName} Makassar`;
+  return `${unit.name} — ${unit.roomTypeName?.trim() || "Unit"} di ${place}`;
+}
+
+/**
+ * Satu kalimat ringkasan unit dalam teks polos (untuk tamu dan AI Overview): tipe, apartemen, posisi,
+ * kapasitas, harga per malam (+ mingguan/bulanan), fasilitas utama.
+ */
+export function unitSummarySentence(
+  unit: Pick<
+    CatalogUnit,
+    | "name"
+    | "roomTypeName"
+    | "locationName"
+    | "locationShortName"
+    | "locationArea"
+    | "tower"
+    | "floorNumber"
+    | "maxGuests"
+    | "effectivePrice"
+    | "weeklyPrice"
+    | "monthlyPrice"
+    | "amenities"
+  >,
+): string {
+  const spot = formatUnitSpot(unit);
+  const rates = [`${formatRupiah(unit.effectivePrice)}/malam`];
+  if (unit.weeklyPrice) rates.push(`${formatRupiah(unit.weeklyPrice)}/minggu`);
+  if (unit.monthlyPrice) rates.push(`${formatRupiah(unit.monthlyPrice)}/bulan`);
+  // "A", "A atau B", "A, B, atau C".
+  const ratesText = rates.length > 2 ? `${rates.slice(0, -1).join(", ")}, atau ${rates.at(-1)}` : rates.join(" atau ");
+  const amenities = cardAmenities(unit.amenities, 3).map((amenity) => amenity.name);
+  const first = `${unit.name} adalah unit ${unit.roomTypeName?.trim() || "apartemen"} di ${unit.locationName}${spot ? `, ${spot}` : ""}, muat maksimal ${unit.maxGuests} tamu, dengan harga ${ratesText}.`;
+  return amenities.length ? `${first} Fasilitas: ${amenities.join(", ")}.` : first;
 }
 
 /** Deskripsi meta dari harga, kapasitas, dan 3 fasilitas utama. */

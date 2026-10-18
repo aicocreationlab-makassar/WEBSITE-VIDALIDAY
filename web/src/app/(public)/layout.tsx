@@ -1,9 +1,14 @@
+import { ChatWidget } from "@/components/public/chat/chat-widget";
 import { AnnouncementBar } from "@/components/public/layout/announcement-bar";
 import { SiteFooter } from "@/components/public/layout/site-footer";
 import { SiteHeader } from "@/components/public/layout/site-header";
 import { getCopyrightYear, getSiteChrome } from "@/lib/data/chrome";
 
-/** Bingkai situs publik: tautan lompat, pengumuman, header, konten, footer. */
+/**
+ * Bingkai situs publik: tautan lompat, pengumuman, header, konten, footer, dan gelembung chat
+ * "Asisten VIDALIDAY" di semua halaman (PRD 6.11). Layout ini bertahan antar navigasi, jadi panel
+ * chat desktop tetap terbuka saat tamu berpindah halaman.
+ */
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const [chrome, year] = await Promise.all([getSiteChrome(), getCopyrightYear()]);
 
@@ -25,6 +30,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <SiteFooter chrome={chrome} year={year} />
+      <ChatWidget settings={chrome.settings} />
     </>
   );
 }

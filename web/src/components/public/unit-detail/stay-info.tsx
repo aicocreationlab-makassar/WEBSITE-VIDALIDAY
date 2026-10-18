@@ -14,7 +14,8 @@ function TimeTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 items-start gap-3 rounded-card border border-line bg-white p-3.5 md:p-4">
       <Clock className="mt-0.5 size-6 shrink-0 text-brand-600" strokeWidth={1.75} aria-hidden="true" />
-      <div className="min-w-0">
+      {/* Label bisa dua baris di HP; nilai jam di kedua kotak tetap sejajar di baris bawah. */}
+      <div className="flex min-w-0 flex-col justify-between self-stretch">
         <p className="text-caption font-medium text-muted">{label}</p>
         <p className="text-base leading-6 font-bold text-ink">{value}</p>
       </div>

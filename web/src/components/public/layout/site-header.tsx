@@ -12,8 +12,8 @@ const NAV_LINK =
   "inline-flex h-11 items-center gap-1 rounded-control px-2.5 text-sm font-semibold whitespace-nowrap text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink aria-expanded:bg-surface-2 aria-expanded:text-ink lg:px-3 lg:text-[15px]";
 
 /**
- * Header publik, menempel di atas. Mobile: logo, tombol WhatsApp, tombol menu.
- * Desktop: logo, Cari unit, Apartemen, Tentang kami, Tanya admin, tombol WhatsApp.
+ * Header publik, menempel di atas. Mobile: logo, tombol WhatsApp (ikon saja), tombol menu.
+ * Desktop: logo, Cari unit, Apartemen, Tentang kami, satu tombol "Tanya admin" (ikon + teks).
  * Tanpa usePathname, jadi seluruh header ikut ter-prerender.
  */
 export function SiteHeader({ chrome }: { chrome: SiteChrome }) {
@@ -36,21 +36,15 @@ export function SiteHeader({ chrome }: { chrome: SiteChrome }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" className="hidden px-3 text-sm md:inline-flex lg:px-4 lg:text-[15px]">
-            <a href={waHref} target="_blank" rel="noopener noreferrer">
-              <WhatsappIcon className="hidden size-5 lg:block" />
-              Tanya admin
-            </a>
-          </Button>
-          <Button asChild size="icon">
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat admin via WhatsApp"
-              data-testid="header-whatsapp"
-            >
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="md:w-auto md:px-3 md:text-sm lg:px-4 lg:text-[15px]"
+          >
+            <a href={waHref} target="_blank" rel="noopener noreferrer" data-testid="header-whatsapp">
               <WhatsappIcon className="size-5" />
+              <span className="sr-only md:not-sr-only">Tanya admin</span>
             </a>
           </Button>
           <MobileMenu locations={locations} waHref={waHref} />

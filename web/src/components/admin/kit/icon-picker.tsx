@@ -18,14 +18,18 @@ type Props = {
   "aria-invalid"?: boolean;
 };
 
-/** Pemilih ikon (PRD 7.6, DESIGN 5): popover dengan pencarian, grid ikon 40px, terpilih ber-ring brand-500. */
+/**
+ * Pemilih ikon (PRD 7.6, DESIGN 5): popover dengan pencarian, grid ikon 40px, terpilih ber-ring brand-500.
+ * Popover modal supaya daftarnya bisa di-scroll walau dipakai di dalam dialog/sheet (react-remove-scroll
+ * dialog memblokir roda di luar kontennya); tingginya mengikuti ruang yang tersisa di layar.
+ */
 export function IconPicker({ value, onChange, choices = ICON_CHOICES, id, ...aria }: Props) {
   const [open, setOpen] = useState(false);
   const current = resolveIconName(value, choices[0]?.name ?? "check");
   const label = choices.find((c) => c.name === current)?.label ?? current;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <button
           id={id}
@@ -40,12 +44,12 @@ export function IconPicker({ value, onChange, choices = ICON_CHOICES, id, ...ari
           <ChevronDown className="size-4 text-muted" aria-hidden="true" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[min(92vw,340px)] p-0" align="start">
+      <PopoverContent className="w-[min(92vw,340px)] p-0" align="start" collisionPadding={16}>
         <Command
           filter={(itemValue, search) => (itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}
         >
           <CommandInput placeholder="Cari ikon, mis. kolam" />
-          <CommandList className="max-h-72">
+          <CommandList className="max-h-[min(22rem,calc(var(--radix-popover-content-available-height)-5rem))] pb-2 scroll-pb-2">
             <CommandEmpty>Ikon tidak ditemukan.</CommandEmpty>
             <CommandGroup>
               <div className="grid grid-cols-4 gap-1 p-1">
@@ -58,7 +62,7 @@ export function IconPicker({ value, onChange, choices = ICON_CHOICES, id, ...ari
                       setOpen(false);
                     }}
                     className={cn(
-                      "flex h-auto flex-col items-center gap-1 rounded-control px-1 py-2 text-center text-[11px] leading-tight text-ink-2",
+                      "flex h-auto flex-col items-center gap-1 rounded-control px-1 py-2 text-center text-[11px] leading-tight text-ink-2 [&>svg:last-child]:hidden",
                       choice.name === current && "bg-brand-50 text-brand-700 ring-2 ring-brand-500",
                     )}
                     aria-selected={choice.name === current}

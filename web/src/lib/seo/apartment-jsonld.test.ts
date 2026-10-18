@@ -113,6 +113,29 @@ describe("apartment JSON-LD", () => {
     expect(apartmentPageUrl("https://vidaliday.com", "a b")).toBe("https://vidaliday.com/apartemen/a%20b");
   });
 
+  it("adds telephone, AggregateOffer and ItemList when units are given", () => {
+    const units = [
+      { slug: "studio-a", name: "Studio A", effectivePrice: 280000, isAvailable: true },
+      { slug: "studio-b", name: "Studio B", effectivePrice: 250000, isAvailable: true },
+      { slug: "studio-c", name: "Studio C", effectivePrice: 400000, isAvailable: false },
+    ];
+    const all = buildApartmentPageJsonLd({ location: location(), siteUrl: SITE, units, whatsappNumber: "0857-1169-6970" });
+    expect(all.map((node) => node["@type"])).toEqual(["ApartmentComplex", "AggregateOffer", "ItemList", "BreadcrumbList"]);
+    expect(all[0].telephone).toBe("+6285711696970");
+    expect(all[1]).toMatchObject({
+      "@id": "https://vidaliday.com/apartemen/vida-view#offers",
+      lowPrice: 250000,
+      highPrice: 280000,
+      offerCount: 2,
+      itemOffered: { "@id": "https://vidaliday.com/apartemen/vida-view#apartemen" },
+    });
+    expect(all[2]).toMatchObject({ numberOfItems: 3 });
+    expect((all[2].itemListElement as { url: string }[])[0].url).toBe("https://vidaliday.com/unit/studio-a");
+    // Semua penuh → tanpa AggregateOffer.
+    const full = buildApartmentPageJsonLd({ location: location(), siteUrl: SITE, units: [units[2]] });
+    expect(full.map((node) => node["@type"])).toEqual(["ApartmentComplex", "ItemList", "BreadcrumbList"]);
+  });
+
   it("summarizes text on a word boundary", () => {
     expect(plainSummary(null)).toBeNull();
     expect(plainSummary("  **  ")).toBeNull();

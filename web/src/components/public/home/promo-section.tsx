@@ -14,7 +14,8 @@ import type { CatalogUnit } from "@/types/domain";
  */
 export function PromoSection({ units }: { units: CatalogUnit[] }) {
   if (!units.length) return null;
-  const hasArrows = units.length > 1;
+  // Tombol panah hanya muncul kalau kartu lebih dari 4 kolom lg (CardRail menyembunyikannya kalau tidak ada yang digeser).
+  const hasArrows = units.length > 4;
 
   return (
     <Section id="promo" aria-labelledby="promo-judul">

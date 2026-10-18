@@ -20,6 +20,7 @@ import {
   unitFacts,
   unitMetaDescription,
   unitMetaTitle,
+  unitSummarySentence,
 } from "./unit-detail";
 import type { UnitDetail } from "@/types/domain";
 
@@ -170,13 +171,27 @@ describe("breadcrumbs and meta", () => {
     expect(unitBreadcrumbs(unit)).toEqual([
       { name: "Beranda", href: "/" },
       { name: "Vida View", href: "/apartemen/vida-view" },
+      { name: "Studio", href: "/apartemen/vida-view/studio" },
       { name: "Studio AT 26X", href: "/unit/studio-at-26x" },
     ]);
+    expect(unitBreadcrumbs({ ...unit, roomTypeSlug: null, roomTypeName: null })).toHaveLength(3);
+  });
+
+  it("writes a plain summary sentence", () => {
+    expect(unitSummarySentence({ ...unit, tower: "Ashton", floorNumber: 26 })).toBe(
+      "Studio AT 26X adalah unit Studio di Apartemen Vida View, Tower Ashton lt. 26, muat maksimal 3 tamu, dengan harga Rp280.000/malam. Fasilitas: AC, WiFi, Smart TV.",
+    );
+    expect(unitSummarySentence({ ...unit, tower: null, floorNumber: null, weeklyPrice: 1500000, monthlyPrice: 5000000, amenities: [] })).toBe(
+      "Studio AT 26X adalah unit Studio di Apartemen Vida View, muat maksimal 3 tamu, dengan harga Rp280.000/malam, Rp1.500.000/minggu, atau Rp5.000.000/bulan.",
+    );
+    expect(unitSummarySentence({ ...unit, tower: null, floorNumber: null, weeklyPrice: 1500000, monthlyPrice: null, amenities: [] })).toContain(
+      "dengan harga Rp280.000/malam atau Rp1.500.000/minggu.",
+    );
   });
 
   it("formats title and description", () => {
-    expect(unitMetaTitle(unit)).toBe("Studio AT 26X — Studio di Vida View");
-    expect(unitMetaTitle({ ...unit, roomTypeName: null })).toBe("Studio AT 26X — Unit di Vida View");
+    expect(unitMetaTitle(unit)).toBe("Studio AT 26X — Studio di Vida View Makassar");
+    expect(unitMetaTitle({ ...unit, roomTypeName: null })).toBe("Studio AT 26X — Unit di Vida View Makassar");
     const description = unitMetaDescription(unit);
     expect(description).toContain("Rp280.000/malam");
     expect(description).toContain("maks. 3 tamu");

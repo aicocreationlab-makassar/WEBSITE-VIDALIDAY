@@ -36,6 +36,8 @@ export type CatalogUnit = {
   roomTypeSlug: string | null;
   roomTypeName: string | null;
   category: RoomCategory;
+  /** Gedungnya punya beberapa tower (PRD 7.5). false → `tower` selalu null. */
+  hasTowers: boolean;
   tower: string | null;
   floorNumber: number | null;
   viewType: string | null;
@@ -99,6 +101,8 @@ export type LocationWithTypes = {
   slug: string;
   name: string;
   shortName: string;
+  /** Gedungnya punya beberapa tower; false = satu gedung (mis. Delft CPI), tower tidak ditampilkan. */
+  hasTowers: boolean;
   area: string | null;
   tagline: string | null;
   description: string | null;

@@ -128,12 +128,12 @@ Param yang tidak valid diabaikan tanpa error.
 
 ### 6.1 Elemen global
 
-- **Header mobile (56–64px):** logo kiri (logo bulat + wordmark). Kanan: tombol ikon WhatsApp (pesan umum ke admin) dan tombol menu (sheet: Cari unit, daftar apartemen aktif, Tentang kami, FAQ).
-- **Header desktop:** logo, tautan (Cari unit, Apartemen ▾, Tentang kami), tombol "Tanya admin" (outline, ikon WA).
+- **Header mobile (56–64px):** logo kiri (logo bulat + wordmark). Kanan: satu tombol ikon WhatsApp (pesan umum ke admin) dan tombol menu (sheet: Cari unit, daftar apartemen aktif, Tentang kami, FAQ).
+- **Header desktop:** logo, tautan (Cari unit, Apartemen ▾ yang terbuka saat disorot mouse, Tentang kami), satu tombol "Tanya admin" (outline, ikon WA + teks). Hanya satu tombol WhatsApp di header.
 - **Tidak ada** tautan "Portal Admin" di situs publik.
 - **Pengumuman** (opsional, setting `promo_banner_text`): satu baris tipis di atas header, statis (bukan teks berjalan), bisa ditutup (diingat di sessionStorage). Tidak tampil kalau kosong.
 - **Footer:** logo, satu kalimat deskripsi, badan hukum, kontak (WA, jam layanan), tautan (apartemen, about, kebijakan privasi), hak cipta.
-- **Tombol WA mengambang:** hanya di beranda, `/sewa`, `/apartemen/*`, `/about`. Tidak di detail unit (sudah ada CTA menempel) dan tidak di admin.
+- **Gelembung chat (menggantikan tombol WA mengambang):** tombol 56px kanan bawah di semua halaman publik, termasuk detail unit (naik di atas bar CTA mobile) dan kebijakan privasi; tidak di admin. Membuka bot chat "Asisten VIDALIDAY" (§6.11). Tombol WhatsApp ke admin tetap ada di header dan di dalam panel chat.
 
 ### 6.2 Beranda `/`
 
@@ -160,7 +160,7 @@ Mengikuti pola referensi `docs/referensi/hero-search-referensi.png`.
 1. **Apartemen** — segmented control berisi apartemen aktif (label = `short_name`, urut `sort_order`), contoh: `Vida View | Delft CPI`. Default: apartemen pertama. Kalau apartemen aktif lebih dari 3, berubah jadi dropdown "Pilih apartemen" dengan opsi "Semua apartemen".
 2. **Tipe kamar** — dropdown yang isinya bergantung pada apartemen terpilih: tipe kamar aktif apartemen itu (urut `sort_order`). Tiap opsi menampilkan jumlah unit tersedia, misalnya "Studio (9 unit)". Tipe tanpa unit tetap tampil tapi nonaktif dengan teks "belum tersedia". Opsi pertama "Semua tipe". Ganti apartemen → tipe kembali ke "Semua tipe".
    - Data awal (bisa diubah admin): **Vida View** — Studio, Studio Plus, 2 Bedroom, 2 Bedroom Corner, 3 Bedroom. **Delft CPI** — Studio, Studio Corner, 2 Bedroom / Corner, 3 Bedroom.
-3. **Budget per malam** — pilihan cepat: Semua harga, di bawah Rp300rb, Rp300rb–500rb, Rp500rb–1jt, di atas Rp1jt; plus "Atur sendiri" (slider dua titik, langkah Rp50.000, batas dari harga unit terendah dan tertinggi yang tampil). Label field menampilkan pilihan aktif, misalnya "Rp300rb – Rp500rb".
+3. **Budget per malam** — pilihan cepat: Semua harga, sampai Rp300rb, Rp300rb–500rb, Rp500rb–1jt, mulai Rp1jt (batas inklusif); plus "Atur sendiri" (slider dua titik, langkah Rp50.000, batas dari harga unit terendah dan tertinggi yang tampil). Label field menampilkan pilihan aktif, misalnya "Rp300rb – Rp500rb".
 4. **Tombol "Cari unit"** (primary, lebar penuh) → `/sewa` dengan query.
 
 Di bawah kartu: satu baris kecil "Dikelola resmi oleh PT Perdana Mega Trans".
@@ -223,13 +223,14 @@ Dibuka dari "Sewa sekarang". Mobile: bottom sheet tinggi penuh. Desktop: modal. 
 | Field | Wajib | Aturan |
 |---|---|---|
 | Nama lengkap | ya | 2–100 karakter |
+| Kota asal | ya | 2–60 karakter, teks bebas (mis. Makassar); ikut di pesan WhatsApp (`{kota}`), tampil di admin dan CSV |
 | Nomor WhatsApp | ya | `type="tel"`, terima `08…`, `62…`, `+62…` dengan spasi/strip; disimpan sebagai `628…`; valid jika cocok `^628\d{7,11}$` |
 | Check-in | ya | ≥ hari ini (zona Asia/Makassar), ≤ 365 hari ke depan |
 | Check-out | ya | > check-in; tampilkan "2 malam" otomatis |
 | Jumlah tamu | ya | stepper 1 sampai kapasitas unit. Melebihi → peringatan + tautan ke unit serupa yang lebih besar |
 | Keperluan | tidak | chip: Liburan, Kerja/Bisnis, Staycation, Tinggal sementara, Lainnya |
 | Catatan | tidak | ≤ 500 karakter, placeholder "Contoh: minta early check-in" |
-| Ingat data saya | tidak | checkbox; simpan nama dan nomor di localStorage perangkat ini |
+| Ingat data saya | tidak | checkbox; simpan nama, kota asal, dan nomor di localStorage perangkat ini |
 
 - **Estimasi langsung** di atas tombol: "Estimasi Rp560.000 untuk 2 malam", dengan catatan "Harga final dikonfirmasi admin via WhatsApp."
 - **Tombol utama:** "Kirim via WhatsApp" (ikon WA, lebar penuh). Di bawahnya: "Pesanmu akan terbuka di WhatsApp, tinggal tekan kirim." dan "Data dipakai untuk memproses reservasi. Kebijakan privasi".
@@ -272,6 +273,7 @@ Lokasi unit: Tower Ashton lt. 26
 Harga: Rp280.000/malam
 
 Nama: Budi Santoso
+Kota asal: Jakarta
 No. WhatsApp: 0812-3456-7890
 Check-in: Sab, 18 Okt 2026
 Check-out: Sen, 20 Okt 2026 (2 malam)
@@ -331,12 +333,22 @@ Foto gedung, nama, area, deskripsi singkat; daftar tipe kamar (kartu: nama, kapa
 - `generateMetadata` di semua halaman; default dari setting `seo_title` dan `seo_description`.
 - OG image default (foto hero + logo, dibuat dengan `next/og`) dan per unit (foto utama).
 - `sitemap.xml` (beranda, `/sewa`, `/apartemen/*`, `/unit/*` yang published, `/about`, `/kebijakan-privasi`) dan `robots.txt` (blok `/admin`).
-- JSON-LD: `LodgingBusiness` (beranda), `Apartment` + `Offer` (detail), `FAQPage` (beranda, apartemen), `BreadcrumbList`.
+- JSON-LD: `LodgingBusiness` (beranda), `Apartment` + `Offer` (detail), `FAQPage` (beranda, apartemen; landing tipe hanya untuk tanya-jawab khusus tipe itu, FAQ umum tidak ditandai ulang di unit dan landing), `BreadcrumbList`.
 - `lang="id"`, format angka dan tanggal `id-ID`.
 
 ### 6.10 Analitik
 
-Vercel Web Analytics + Speed Insights. Event: `search_submit`, `filter_apply`, `unit_view`, `gallery_open`, `booking_open`, `booking_submit` (dengan kode permintaan), `whatsapp_redirect`, `recommendation_click`. Event tidak boleh berisi nama atau nomor telepon.
+Vercel Web Analytics + Speed Insights. Event: `search_submit`, `filter_apply`, `unit_view`, `gallery_open`, `booking_open`, `booking_submit` (dengan kode permintaan), `whatsapp_redirect`, `recommendation_click`, `chat_open`, `chat_question` (hanya jenis pertanyaan), `chat_unit_click`, `chat_handoff`. Event tidak boleh berisi nama, nomor telepon, atau teks pertanyaan chat.
+
+### 6.11 Bot chat "Asisten VIDALIDAY"
+
+Bot percakapan berbasis aturan (tanpa API/LLM) yang menjawab dari data situs yang sama dengan halaman publik.
+
+- **Data:** `GET /chat-data` (JSON ringkas: unit published, apartemen aktif + tipe, fasilitas, landmark, FAQ, pengaturan kontak/check-in/peraturan), di-cache dengan tag yang sama dengan halaman, kedaluwarsa saat admin menyimpan; tidak diindeks (`robots.txt` dan `X-Robots-Tag`). Diambil sekali per tab saat panel dibuka.
+- **Mesin (di browser):** normalisasi slang/singkatan chat Indonesia, toleransi typo (Damerau-Levenshtein per panjang kata), pengenalan apartemen (alias + nama), tipe/kategori, kode unit, budget (300rb/0,5jt/300.000), jumlah tamu, lama menginap, fasilitas, landmark, FAQ; satu maksud per giliran dengan memori slot (apartemen, tipe, unit, budget, tamu, malam) untuk pertanyaan lanjutan ("yang di Delft?").
+- **Jawaban:** harga mulai + hitungan tersedia/penuh (hitungan sama dengan `/sewa` lewat `matchesRow`), kartu unit (maks 3, tautan ke halaman unit, "Lihat semua N unit" ke `/sewa` dengan filter), tipe per apartemen, detail unit, kapasitas, harga mingguan/bulanan, estimasi N malam (rumus `estimateTotal`), promo, fasilitas kamar/gedung, landmark, alamat + Google Maps, jam check-in + syarat, peraturan, kontak, cara pesan, FAQ. Bahasa Indonesia, sapaan "kamu", tanpa emoji, tanpa mengarang angka.
+- **Batas:** tidak pernah mengonfirmasi tanggal (status "tersedia" mengikuti data situs; menyebut tanggal → arahan konfirmasi ke admin). Tidak paham → "belum paham" + tombol WhatsApp admin berisi pertanyaan tamu (`Halo Admin VIDALIDAY, saya mau tanya: …`).
+- **UI:** mobile bottom sheet 92dvh, desktop kartu 380×600 non-modal; gelembung tamu kanan (brand), bot kiri (abu); indikator "mengetik" tiga titik (statis bila reduced motion); chip balasan cepat; tombol Mulai ulang; Esc menutup dan fokus kembali ke tombol. Riwayat di `sessionStorage` perangkat (maks 30 pesan, 24 jam), tidak pernah dikirim ke server.
 
 ---
 

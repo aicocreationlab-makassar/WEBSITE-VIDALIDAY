@@ -16,7 +16,7 @@ import {
 } from "@/components/admin/locations/location-model";
 import { guardAdmin, invalidate, nowIso, toFieldErrors, type ActionResult } from "@/lib/actions/admin/guard";
 import { isBucketPath, normalizeStoragePath } from "@/lib/media";
-import { deleteStorageFiles } from "@/lib/storage-cleanup";
+import { collectReferencedPaths, deleteStorageFiles, findUnreferenced } from "@/lib/storage-cleanup";
 import { locationSchema, reorderSchema } from "@/lib/validation/admin";
 
 type PostgrestLikeError = { code?: string; message?: string } | null | undefined;
@@ -64,8 +64,8 @@ function samePath(a: string, b: string): boolean {
 }
 
 /**
- * Saring path yang masih dipakai baris lain (fasilitas atau apartemen lain), misalnya foto fasilitas
- * yang sama dipasang di dua gedung. Kalau pengecekan gagal, semua file dibiarkan (lebih aman tersisa).
+ * Saring path yang masih dipakai baris lain (unit, fasilitas, apartemen lain, pengaturan), misalnya
+ * foto fasilitas yang sama dipasang di dua gedung. Kalau pengecekan gagal, semua file dibiarkan.
  */
 async function unreferencedPaths(
   supabase: Parameters<typeof deleteStorageFiles>[0],
@@ -73,19 +73,9 @@ async function unreferencedPaths(
 ): Promise<string[]> {
   const list = [...new Set(paths.filter((p): p is string => Boolean(p)))];
   if (!list.length) return [];
-  const variants = list.flatMap((path) => [path, `storage/${path}`, `/storage/${path}`]);
   try {
-    const [facilities, locations] = await Promise.all([
-      supabase.from("facilities").select("image").in("image", variants),
-      supabase.from("locations").select("hero_image").in("hero_image", variants),
-    ]);
-    if (facilities.error || locations.error) return [];
-    const used = new Set(
-      [...(facilities.data ?? []).map((row) => row.image), ...(locations.data ?? []).map((row) => row.hero_image)]
-        .filter(isBucketPath)
-        .map(normalizeStoragePath),
-    );
-    return list.filter((path) => !used.has(path));
+    const referenced = await collectReferencedPaths(supabase);
+    return referenced ? findUnreferenced(list, referenced) : [];
   } catch {
     return [];
   }
@@ -100,7 +90,7 @@ async function cleanupFiles(
   const list = paths.filter((p): p is string => Boolean(p));
   if (!list.length) return;
   try {
-    await deleteStorageFiles(supabase, list);
+    await deleteStorageFiles(supabase, list, `apartemen ${context}`);
   } catch (error) {
     console.error(`[admin/locations] hapus file ${context} gagal`, { name: (error as Error)?.name });
   }
@@ -203,6 +193,7 @@ export async function updateLocation(id: unknown, input: unknown): Promise<Actio
         hero_image: heroImage,
         sort_order: values.sortOrder,
         is_active: values.isActive,
+        has_towers: values.hasTowers,
         updated_at: nowIso(),
       })
       .eq("id", locationId)
@@ -211,7 +202,8 @@ export async function updateLocation(id: unknown, input: unknown): Promise<Actio
     if (error) return failure(error, "ubah");
     if (!data?.length) return { ok: false, error: MSG_NOT_FOUND };
 
-    await cleanupFiles(supabase, [replacedImage], "foto lama");
+    // Foto lama dihapus hanya kalau tidak dipakai baris lain (unit yang memakainya sebagai sampul, dll.).
+    await cleanupFiles(supabase, await unreferencedPaths(supabase, [replacedImage]), "foto lama");
 
     invalidate({ kind: "location" });
     return { ok: true, message: "Perubahan disimpan", data: { slug: values.slug } };

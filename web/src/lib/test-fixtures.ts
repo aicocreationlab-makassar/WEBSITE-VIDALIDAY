@@ -27,6 +27,7 @@ export function makeUnit(overrides: Partial<CatalogUnit> = {}): CatalogUnit {
     roomTypeSlug: "studio",
     roomTypeName: "Studio",
     category: "studio",
+    hasTowers: true,
     tower: null,
     floorNumber: null,
     viewType: null,

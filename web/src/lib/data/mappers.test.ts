@@ -108,6 +108,8 @@ describe("mapCatalogUnit", () => {
       viewType: null,
       effectivePrice: 280000,
       monthlyPrice: 6500000,
+      hasTowers: true,
+      tower: "Ashton",
     });
     expect(unit.photos).toEqual([
       "https://abc.supabase.co/storage/v1/object/public/media/units/a.jpg",
@@ -123,6 +125,17 @@ describe("mapCatalogUnit", () => {
     expect(mapCatalogUnit({ ...row, location: null })).toBeNull();
     const unit = mapCatalogUnit({ ...row, room_type: { ...row.room_type!, is_active: false } })!;
     expect([unit.roomTypeId, unit.category]).toEqual([null, "other"]);
+  });
+
+  it("drops the tower for single-building apartments (Delft CPI)", () => {
+    const unit = mapCatalogUnit({
+      ...row,
+      tower: "Utama",
+      location: { ...row.location!, slug: "delft-cpi", short_name: "Delft CPI", has_towers: false },
+    })!;
+    expect(unit.hasTowers).toBe(false);
+    expect(unit.tower).toBeNull();
+    expect(unit.floorNumber).toBe(26);
   });
 
   it("computes the effective price when the generated column is missing", () => {

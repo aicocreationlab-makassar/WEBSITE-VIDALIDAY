@@ -13,7 +13,7 @@ import type { AdminSession } from "@/lib/auth/require-admin";
 type Supabase = AdminSession["supabase"];
 
 const LEAD_FIELDS =
-  "id, code, created_at, full_name, whatsapp, unit_id, unit_name, location_name, nightly_price, check_in, check_out, nights, guests, purpose, notes, estimated_total, status, admin_notes";
+  "id, code, created_at, full_name, origin_city, whatsapp, unit_id, unit_name, location_name, nightly_price, check_in, check_out, nights, guests, purpose, notes, estimated_total, status, admin_notes";
 
 /** PostgREST membatasi satu respons (default 1000 baris), jadi ekspor diambil per potongan. */
 const EXPORT_CHUNK = 1000;

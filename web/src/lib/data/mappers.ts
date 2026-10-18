@@ -149,6 +149,8 @@ export type UnitRow = {
     short_name: string | null;
     area: string | null;
     is_active?: boolean;
+    /** Kolom baru (migrasi 0004); tidak ada = dianggap punya tower. */
+    has_towers?: boolean | null;
   } | null;
   room_type: { id: number; slug: string; name: string; category: string; is_active?: boolean } | null;
   unit_amenities: { amenity: AmenityRow | null }[] | null;
@@ -179,6 +181,8 @@ export function mapCatalogUnit(row: UnitRow): CatalogUnit | null {
     .map(mapAmenity)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
   const roomType = row.room_type && row.room_type.is_active !== false ? row.room_type : null;
+  // Gedung satu tower: nilai tower lama diabaikan supaya tidak tampil "Tower Utama" di situs/pesan WA.
+  const hasTowers = row.location.has_towers !== false;
   return {
     id: row.id,
     slug: row.slug,
@@ -192,7 +196,8 @@ export function mapCatalogUnit(row: UnitRow): CatalogUnit | null {
     roomTypeSlug: roomType?.slug ?? null,
     roomTypeName: roomType?.name ?? null,
     category: category(roomType?.category),
-    tower: str(row.tower),
+    hasTowers,
+    tower: hasTowers ? str(row.tower) : null,
     floorNumber: numOrNull(row.floor_number),
     viewType: str(row.view_type),
     sizeSqm: numOrNull(row.size_sqm),
@@ -229,6 +234,7 @@ export type UnitDetailRow = Omit<UnitRow, "location"> & {
     longitude: number | null;
     tagline: string | null;
     is_active?: boolean;
+    has_towers?: boolean | null;
   } | null;
 };
 
@@ -273,6 +279,7 @@ export type LocationRow = {
   hero_image: string | null;
   sort_order: number;
   is_active: boolean;
+  has_towers?: boolean | null;
   room_types: {
     id: number;
     slug: string;
@@ -318,6 +325,7 @@ export function mapLocations(rows: LocationRow[], catalog: CatalogUnit[]): Locat
         slug: row.slug,
         name: row.name,
         shortName: str(row.short_name) ?? row.name,
+        hasTowers: row.has_towers !== false,
         area: str(row.area),
         tagline: str(row.tagline),
         description: str(row.description),

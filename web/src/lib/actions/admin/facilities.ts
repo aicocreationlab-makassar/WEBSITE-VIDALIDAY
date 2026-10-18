@@ -13,7 +13,7 @@ import {
 import { guardAdmin, invalidate, nowIso, toFieldErrors, type ActionResult } from "@/lib/actions/admin/guard";
 import { isKnownIconName } from "@/lib/icons";
 import { isBucketPath, normalizeStoragePath } from "@/lib/media";
-import { deleteStorageFiles } from "@/lib/storage-cleanup";
+import { collectReferencedPaths, deleteStorageFiles, findUnreferenced } from "@/lib/storage-cleanup";
 import { facilitySchema, reorderSchema } from "@/lib/validation/admin";
 
 // Fasilitas gedung (PRD 7.7). Setiap aksi: guardAdmin() → validasi zod (skema yang sama dengan form)
@@ -72,27 +72,18 @@ function invalidImage(): Failure {
 }
 
 /**
- * Hapus file foto fasilitas dari bucket kalau tidak dipakai fasilitas lain (data lama bisa berbagi foto).
- * Dipanggil SETELAH baris diubah/dihapus. Kegagalan tidak membatalkan aksi (sisa file tidak merusak situs).
+ * Hapus file foto fasilitas dari bucket kalau tidak dipakai baris lain (fasilitas lain, apartemen, unit,
+ * pengaturan; data lama bisa berbagi foto). Dipanggil SETELAH baris diubah/dihapus. Kegagalan tidak
+ * membatalkan aksi (sisa file tidak merusak situs).
  */
 async function removeUnusedImages(supabase: Supabase, paths: (string | null | undefined)[], context: string): Promise<void> {
   const candidates = [...new Set(paths.filter(isBucketPath).map(normalizeStoragePath))];
   if (!candidates.length) return;
   try {
-    const variants = candidates.flatMap((path) => [path, `storage/${path}`, `/storage/${path}`]);
-    const { data, error } = await supabase.from("facilities").select("image").in("image", variants);
-    if (error) {
-      console.error(`[admin/facilities] cek foto ${context} gagal`, { code: error.code });
-      return;
-    }
-    const used = new Set(
-      (data ?? [])
-        .map((row) => row.image)
-        .filter(isBucketPath)
-        .map(normalizeStoragePath),
-    );
-    const unused = candidates.filter((path) => !used.has(path));
-    if (unused.length) await deleteStorageFiles(supabase, unused);
+    const referenced = await collectReferencedPaths(supabase);
+    if (!referenced) return;
+    const unused = findUnreferenced(candidates, referenced);
+    if (unused.length) await deleteStorageFiles(supabase, unused, `fasilitas ${context}`);
   } catch (error) {
     console.error(`[admin/facilities] hapus file ${context} gagal`, { name: (error as Error)?.name });
   }

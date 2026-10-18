@@ -72,7 +72,7 @@ export function NativeSelect({ className, children, ...props }: React.ComponentP
   return (
     <select
       className={cn(
-        "glass-input h-12 w-full min-w-0 appearance-none rounded-control bg-[url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:16px] bg-[right_14px_center] bg-no-repeat px-3.5 pr-10 text-base text-ink disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted",
+        "glass-input h-12 w-full min-w-0 appearance-none rounded-control bg-[url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-size-[16px] bg-position-[right_14px_center] bg-no-repeat px-3.5 pr-10 text-base text-ink disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted",
         className,
       )}
       {...props}

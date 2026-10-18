@@ -1,6 +1,8 @@
-// Pembentuk JSON-LD beranda (PRD 6.9): LodgingBusiness + FAQPage. Fungsi murni, ada test.
+// Pembentuk JSON-LD beranda (PRD 6.9): Organization, WebSite, LodgingBusiness (+ lokasi gedung,
+// jam layanan, sameAs), FAQPage. Fungsi murni, ada test.
 
-import { formatRupiah, normalizeWhatsapp, stripMarkdown } from "@/lib/format";
+import { formatRupiah, normalizeWhatsapp, stripMarkdown, toDisplayLegalName } from "@/lib/format";
+import { openingHoursSpecification } from "@/lib/seo/hours";
 import type { JsonLdObject } from "@/lib/seo/json-ld";
 import type { Faq } from "@/types/domain";
 
@@ -27,6 +29,20 @@ export function priceRangeOf(prices: number[]): string | null {
   return min === max ? formatRupiah(min) : `${formatRupiah(min)} - ${formatRupiah(max)}`;
 }
 
+/** Tautan profil resmi (Instagram, Facebook, TikTok, Google Business); yang kosong/tidak valid dibuang. */
+export function cleanSameAs(links: (string | null | undefined)[] | undefined): string[] {
+  return [...new Set((links ?? []).map((link) => link?.trim() ?? "").filter((link) => ABSOLUTE.test(link)))];
+}
+
+export type JsonLdLocation = {
+  name: string;
+  /** URL absolut halaman apartemen. */
+  url: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+};
+
 export type LodgingBusinessInput = {
   /** Dari getSiteUrl(), tanpa garis miring di akhir. */
   siteUrl: string;
@@ -37,7 +53,26 @@ export type LodgingBusinessInput = {
   email?: string | null;
   /** Foto gedung (path situs atau URL penuh). Kosong → logo. */
   images?: (string | null | undefined)[];
+  legalName?: string | null;
+  officeHours?: string | null;
+  sameAs?: (string | null | undefined)[];
+  /** Gedung yang dikelola; alamat dan koordinat gedung pertama dipakai sebagai alamat bisnis. */
+  locations?: JsonLdLocation[];
 };
+
+function postalAddress(street: string | null | undefined) {
+  return {
+    "@type": "PostalAddress",
+    ...(street ? { streetAddress: street } : {}),
+    addressLocality: "Makassar",
+    addressRegion: "Sulawesi Selatan",
+    addressCountry: "ID",
+  };
+}
+
+function geo(latitude: number | null, longitude: number | null) {
+  return latitude != null && longitude != null ? { "@type": "GeoCoordinates", latitude, longitude } : null;
+}
 
 export function buildLodgingBusinessJsonLd(input: LodgingBusinessInput): JsonLdObject {
   const siteUrl = input.siteUrl.replace(/\/+$/, "");
@@ -53,12 +88,19 @@ export function buildLodgingBusinessJsonLd(input: LodgingBusinessInput): JsonLdO
   const priceRange = priceRangeOf(input.prices);
   const description = input.description?.trim();
   const email = input.email?.trim();
+  const legalName = input.legalName?.trim() ? toDisplayLegalName(input.legalName) : "";
+  const hours = openingHoursSpecification(input.officeHours);
+  const sameAs = cleanSameAs(input.sameAs);
+  const locations = input.locations ?? [];
+  const main = locations[0];
+  const mainGeo = main ? geo(main.latitude, main.longitude) : null;
 
   return {
     "@context": SCHEMA_CONTEXT,
     "@type": "LodgingBusiness",
     "@id": `${siteUrl}/#lodging`,
     name: BRAND_NAME,
+    ...(legalName ? { legalName } : {}),
     url: siteUrl,
     logo,
     image: images.length ? images : [logo],
@@ -66,13 +108,84 @@ export function buildLodgingBusinessJsonLd(input: LodgingBusinessInput): JsonLdO
     ...(phone ? { telephone: `+${phone}` } : {}),
     ...(email ? { email } : {}),
     ...(priceRange ? { priceRange, currenciesAccepted: "IDR" } : {}),
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Makassar",
-      addressRegion: "Sulawesi Selatan",
-      addressCountry: "ID",
-    },
+    address: postalAddress(main?.address),
+    ...(mainGeo ? { geo: mainGeo } : {}),
     areaServed: { "@type": "City", name: "Makassar" },
+    ...(hours.length ? { openingHoursSpecification: hours } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    parentOrganization: { "@id": `${siteUrl}/#organization` },
+    ...(locations.length
+      ? {
+          location: locations.map((location) => {
+            const point = geo(location.latitude, location.longitude);
+            return {
+              "@type": "ApartmentComplex",
+              "@id": `${location.url}#apartemen`,
+              name: location.name,
+              url: location.url,
+              address: postalAddress(location.address),
+              ...(point ? { geo: point } : {}),
+            };
+          }),
+        }
+      : {}),
+  };
+}
+
+export type OrganizationInput = {
+  siteUrl: string;
+  legalName?: string | null;
+  email?: string | null;
+  whatsappNumber: string;
+  officeHours?: string | null;
+  sameAs?: (string | null | undefined)[];
+};
+
+/** Entitas badan usaha (#organization) yang dirujuk LodgingBusiness dan WebSite. */
+export function buildOrganizationJsonLd(input: OrganizationInput): JsonLdObject {
+  const siteUrl = input.siteUrl.replace(/\/+$/, "");
+  const phone = normalizeWhatsapp(input.whatsappNumber);
+  const email = input.email?.trim();
+  const legalName = input.legalName?.trim() ? toDisplayLegalName(input.legalName) : "";
+  const hours = openingHoursSpecification(input.officeHours);
+  const sameAs = cleanSameAs(input.sameAs);
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: BRAND_NAME,
+    ...(legalName ? { legalName } : {}),
+    url: siteUrl,
+    logo: { "@type": "ImageObject", url: absoluteUrl(siteUrl, LOGO_PATH) },
+    ...(email ? { email } : {}),
+    ...(phone
+      ? {
+          contactPoint: [
+            {
+              "@type": "ContactPoint",
+              contactType: "customer service",
+              telephone: `+${phone}`,
+              availableLanguage: ["id"],
+              ...(hours.length ? { hoursAvailable: hours } : {}),
+            },
+          ],
+        }
+      : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    areaServed: { "@type": "City", name: "Makassar" },
+  };
+}
+
+export function buildWebSiteJsonLd({ siteUrl: raw }: { siteUrl: string }): JsonLdObject {
+  const siteUrl = raw.replace(/\/+$/, "");
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    name: BRAND_NAME,
+    url: siteUrl,
+    inLanguage: "id",
+    publisher: { "@id": `${siteUrl}/#organization` },
   };
 }
 
@@ -98,8 +211,20 @@ export type HomeJsonLdInput = LodgingBusinessInput & {
   faqs: Pick<Faq, "question" | "answer">[];
 };
 
-/** Semua JSON-LD beranda, urut: LodgingBusiness, lalu FAQPage (kalau ada FAQ). */
+/** Semua JSON-LD beranda, urut: Organization, WebSite, LodgingBusiness, FAQPage (kalau ada FAQ). */
 export function buildHomeJsonLd({ faqs, ...lodging }: HomeJsonLdInput): JsonLdObject[] {
   const faqPage = buildFaqPageJsonLd(faqs);
-  return faqPage ? [buildLodgingBusinessJsonLd(lodging), faqPage] : [buildLodgingBusinessJsonLd(lodging)];
+  return [
+    buildOrganizationJsonLd({
+      siteUrl: lodging.siteUrl,
+      legalName: lodging.legalName,
+      email: lodging.email,
+      whatsappNumber: lodging.whatsappNumber,
+      officeHours: lodging.officeHours,
+      sameAs: lodging.sameAs,
+    }),
+    buildWebSiteJsonLd({ siteUrl: lodging.siteUrl }),
+    buildLodgingBusinessJsonLd(lodging),
+    ...(faqPage ? [faqPage] : []),
+  ];
 }

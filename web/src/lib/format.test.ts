@@ -4,7 +4,9 @@ import {
   diffDays,
   formatDate,
   formatDateShort,
+  formatDateLong,
   formatDateTime,
+  formatFileSize,
   formatOfficeHours,
   formatRupiah,
   formatRupiahShort,
@@ -101,6 +103,20 @@ describe("text helpers", () => {
   it("displays legal names in mixed case", () => {
     expect(toDisplayLegalName("PT PERDANA MEGA TRANS")).toBe("PT Perdana Mega Trans");
     expect(toDisplayLegalName("PT Perdana Mega Trans")).toBe("PT Perdana Mega Trans");
+  });
+
+  it("formats long dates in Indonesian", () => {
+    expect(formatDateLong("2026-10-18")).toBe("18 Oktober 2026");
+    expect(formatDateLong("2026-01-05T00:00:00+08:00")).toBe("5 Januari 2026");
+  });
+
+  it("formats file sizes in Indonesian", () => {
+    expect(formatFileSize(0)).toBe("0 B");
+    expect(formatFileSize(512)).toBe("512 B");
+    expect(formatFileSize(1536)).toBe("1,5 KB");
+    expect(formatFileSize(2_300_000)).toBe("2,2 MB");
+    expect(formatFileSize(3 * 1024 ** 3)).toBe("3 GB");
+    expect(formatFileSize(Number.NaN)).toBe("0 B");
   });
 
   it("strips markdown asterisks", () => {

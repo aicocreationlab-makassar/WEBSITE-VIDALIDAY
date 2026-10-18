@@ -327,6 +327,7 @@ Tanggal memakai input `type="date"` bawaan (kalender native di HP), ditampilkan 
 - **Empty state:** ikon 40px `subtle` dalam lingkaran `surface-2`, judul 18px 700, satu kalimat arahan, satu tombol.
 - **Skeleton:** blok `surface-2` dengan shimmer halus (mati jika reduced motion).
 - **Toast:** kanan bawah (desktop), atas (mobile), pakai `sonner`.
+- **Chat bantuan (PRD 6.11):** gelembung 56px `brand-600` kanan bawah (safe area; di HP dengan bar CTA naik 72px lewat varian `above-cta`), desktop berlabel "Tanya kami". Panel: mobile bottom sheet 92dvh; desktop kartu 380×600 radius `sheet`, `shadow-raised`, ring `line`, non-modal. Header: avatar inisial "V" di `brand-50`, nama "Asisten VIDALIDAY", caption "Jawaban dari data situs ini", tombol Mulai ulang dan Tutup 44px. Gelembung tamu `brand-600` putih (radius `card`, sudut kanan bawah 6px), bot `surface-2` (sudut kiri bawah 6px), teks 15/24, lebar maks 85–88%. Kartu unit di chat = pola "Terakhir kamu lihat" (foto 64px, nama, tempat, harga + coret, badge Tersedia/Penuh). Indikator mengetik: tiga titik `muted` memantul (statis bila reduced motion). Chip balasan cepat 44px pill `line`, hover `brand-50`. Kotak tulis 44px + tombol kirim ikon 44px.
 
 ---
 

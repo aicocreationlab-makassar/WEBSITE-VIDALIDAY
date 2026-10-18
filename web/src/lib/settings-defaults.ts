@@ -1,3 +1,4 @@
+import { DEFAULT_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import type { SiteSettings } from "@/types/settings";
 
 /**
@@ -5,7 +6,7 @@ import type { SiteSettings } from "@/types/settings";
  * Sumber: migrasi 0002 dan default AboutController situs lama (disesuaikan ke sapaan "kamu").
  */
 export const DEFAULT_SETTINGS: SiteSettings = {
-  whatsappNumber: "6285711696970",
+  whatsappNumber: DEFAULT_WHATSAPP_NUMBER,
   contactPhone: "+62 857-1169-6970",
   contactEmail: "info@vidaliday.com",
   officeHours: "08.00–23.00 WITA",
@@ -21,6 +22,7 @@ Lokasi unit: {lokasi_unit}
 Harga: {harga}/malam
 
 Nama: {nama}
+Kota asal: {kota}
 No. WhatsApp: {whatsapp}
 Check-in: {checkin}
 Check-out: {checkout} ({malam} malam)
@@ -45,9 +47,13 @@ Kode permintaan: {kode}
   ].join("\n"),
   siteLogo: null,
   companyLegalName: "PT Perdana Mega Trans",
-  seoTitle: "VIDALIDAY | Sewa Apartemen Harian di Makassar, Vida View & Delft CPI",
+  seoTitle: "Sewa Apartemen Harian di Makassar | VIDALIDAY",
   seoDescription:
     "Sewa apartemen resmi di Makassar: Vida View Panakkukang dan Delft CPI. Harian, mingguan, bulanan. Pesan cepat via WhatsApp.",
+  instagramUrl: "",
+  facebookUrl: "",
+  tiktokUrl: "",
+  googleBusinessUrl: "",
   about: {
     tagline: "Your Comfort, Our Priority",
     heroTitle: "VIDALIDAY, partner terpercaya untuk menginap nyaman di Makassar",

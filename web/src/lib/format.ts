@@ -9,6 +9,25 @@ export function formatRupiah(value: number): string {
   return `Rp${rupiahNumber.format(Math.round(value))}`;
 }
 
+const longDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: TIME_ZONE });
+
+/** "2026-10-18" → "18 Oktober 2026" (zona WITA). */
+export function formatDateLong(value: string | Date): string {
+  const date = typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00+08:00`) : new Date(value);
+  return longDate.format(date);
+}
+
+const fileSizeNumber = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
+
+/** Ukuran file: 0 → "0 B", 1536 → "1,5 KB", 2.300.000 → "2,3 MB". */
+export function formatFileSize(bytes: number): string {
+  const value = Math.max(0, Number.isFinite(bytes) ? bytes : 0);
+  if (value < 1024) return `${Math.round(value)} B`;
+  if (value < 1024 * 1024) return `${fileSizeNumber.format(value / 1024)} KB`;
+  if (value < 1024 * 1024 * 1024) return `${fileSizeNumber.format(value / (1024 * 1024))} MB`;
+  return `${fileSizeNumber.format(value / (1024 * 1024 * 1024))} GB`;
+}
+
 /** Bentuk singkat hanya kalau persis (tanpa pembulatan); selain itu null. 1050000, 1e6, 2 → "1,05". */
 function exactShort(n: number, unit: number, decimals: number): string | null {
   if (n % (unit / 10 ** decimals) !== 0) return null;

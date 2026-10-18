@@ -3,8 +3,6 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/env";
 import { DEFAULT_SETTINGS } from "@/lib/settings-defaults";
 import "./globals.css";
@@ -30,6 +28,17 @@ export const metadata: Metadata = {
     locale: "id_ID",
     siteName: "VIDALIDAY",
   },
+  twitter: { card: "summary_large_image" },
+  // Izin cuplikan dan pratinjau gambar penuh untuk hasil kaya dan AI Overview (PRD 6.9).
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  // Verifikasi Search Console lewat tag HTML (opsional; properti Domain via DNS tidak memerlukannya).
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {
@@ -44,8 +53,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="id" className={jakarta.variable} data-scroll-behavior="smooth">
       <body className="min-h-dvh">
-        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-        <Toaster />
+        {/* Toast dan tooltip dipasang di layout /admin saja (tidak dipakai situs publik). */}
+        {children}
         {/* Analitik tanpa cookie (PRD 6.10). Suspense: keduanya membaca URL di klien. */}
         <Suspense fallback={null}>
           <Analytics />

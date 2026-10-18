@@ -12,6 +12,8 @@ export type NavLocation = {
   slug: string;
   name: string;
   shortName: string;
+  /** Tipe kamar yang punya unit (tautan landing di footer), urut sort_order. */
+  types: { slug: string; name: string }[];
 };
 
 /** Data bingkai situs publik (header, pengumuman, footer, tombol WA). */
@@ -42,6 +44,11 @@ export async function getSiteChrome(): Promise<SiteChrome> {
   const [settings, locations] = await Promise.all([getSettings(), getListedLocations()]);
   return {
     settings,
-    locations: locations.map((l) => ({ slug: l.slug, name: l.name, shortName: l.shortName })),
+    locations: locations.map((l) => ({
+      slug: l.slug,
+      name: l.name,
+      shortName: l.shortName,
+      types: l.roomTypes.filter((type) => type.unitCount > 0).map((type) => ({ slug: type.slug, name: type.name })),
+    })),
   };
 }

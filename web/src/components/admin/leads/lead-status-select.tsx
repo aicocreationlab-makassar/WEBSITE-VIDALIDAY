@@ -39,7 +39,7 @@ export function LeadStatusSelect({ code, status, onChange, size = "table", busy 
       }}
       className={cn(
         "font-semibold transition-opacity",
-        size === "table" ? "h-10 w-32 pr-9 pl-3 text-sm" : "h-12 w-full",
+        size === "table" ? "h-10 w-32 bg-position-[right_10px_center] pr-9 pl-3 text-sm" : "h-12 w-full",
         TONE[current],
         busy && "opacity-60",
         className,

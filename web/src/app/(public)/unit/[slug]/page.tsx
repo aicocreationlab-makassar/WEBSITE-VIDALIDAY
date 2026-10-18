@@ -38,10 +38,11 @@ import {
   unitFacts,
   unitMetaDescription,
   unitMetaTitle,
+  unitSummarySentence,
 } from "@/lib/unit-detail";
 import { unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
-import { MAX_GUESTS } from "@/lib/validation/booking";
+import { MAX_GUESTS } from "@/lib/validation/booking-constants";
 import { sewaHref } from "@/lib/validation/filters";
 import { youtubeId } from "@/lib/youtube";
 
@@ -121,8 +122,8 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
       <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl() })} />
       <RecordView unit={current} />
 
-      {/* Ruang di bawah untuk bar CTA mobile (72px + safe area). */}
-      <div className="pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-0">
+      {/* Ruang untuk bar CTA mobile (72px + safe area) sudah ada di padding bawah footer (6rem + safe area). */}
+      <div>
         <div className={cn(CONTAINER, "hidden pt-3 pb-1 md:block")}>
           <UnitBreadcrumb items={unitBreadcrumbs(current)} />
         </div>
@@ -139,6 +140,10 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
             <div className="flex flex-col gap-5 pt-5 pb-8 md:pt-8 md:pb-10">
               <UnitTitle unit={current} />
               <UnitPriceBlock unit={current} />
+              {/* Kalimat ringkasan teks polos (SEO/AI Overview): semua angka utama tanpa ikon. */}
+              <p className="text-base leading-[26px] text-ink-2" data-testid="unit-summary">
+                {unitSummarySentence(current)}
+              </p>
             </div>
 
             {/* Unit penuh: alternatif yang tersedia langsung di bawah harga (PRD 6.4). */}
@@ -181,9 +186,9 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
               <SectionHeading
                 id="fasilitas-gedung-judul"
                 title="Fasilitas gedung"
-                description={`Bisa kamu pakai selama menginap di ${unit.location.name}.`}
+                description={`Bisa kamu pakai selama menginap di ${unit.location.shortName}.`}
               />
-              <BuildingFacilities facilities={buildingFacilities} apartmentName={unit.location.name} />
+              <BuildingFacilities facilities={buildingFacilities} apartmentName={unit.location.shortName} />
             </div>
           </section>
         ) : null}

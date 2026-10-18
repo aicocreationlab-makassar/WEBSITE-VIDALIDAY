@@ -1,7 +1,19 @@
 import "server-only";
 import { refresh, updateTag } from "next/cache";
+import { after } from "next/server";
 import { getAdminStatus, type AdminSession } from "@/lib/auth/require-admin";
 import { tagsFor, type InvalidateTarget } from "@/lib/cache-tags";
+import { getListedLocations } from "@/lib/data/locations";
+import { getSiteUrl } from "@/lib/env";
+import {
+  apartmentPaths,
+  indexNowKey,
+  indexNowUrls,
+  publicUnitSlugs,
+  shouldNotifyIndexNow,
+  submitIndexNow,
+} from "@/lib/seo/indexnow";
+import { createPublicClient } from "@/lib/supabase/public";
 
 /** Hasil standar Server Action admin (tidak melempar error ke UI). */
 export type ActionResult<T = undefined> =
@@ -28,6 +40,22 @@ export function invalidate(...targets: InvalidateTarget[]): void {
   const tags = new Set(targets.flatMap(tagsFor));
   for (const tag of tags) updateTag(tag);
   refresh();
+  // IndexNow (opsional, hanya bila INDEXNOW_KEY diisi): dikirim setelah respons, tidak memperlambat admin.
+  // Hapus permintaan sewa tidak mengubah isi halaman publik → tidak dilaporkan.
+  if (indexNowKey() && shouldNotifyIndexNow(targets)) {
+    const base = getSiteUrl();
+    after(async () => {
+      // Hanya unit yang terbaca publik (klien anon, RLS) yang dilaporkan; draf tidak.
+      const publicSlugs = await publicUnitSlugs(targets, async (slugs) => {
+        const { data, error } = await createPublicClient().from("units").select("slug").in("slug", slugs);
+        if (error) throw error;
+        return (data ?? []).map((row) => row.slug);
+      });
+      // Profil apartemen dan landing tipe ikut berubah (harga, unit, fasilitas, FAQ); gagal baca → dilewati.
+      const sitePaths = await getListedLocations().then(apartmentPaths, () => []);
+      await submitIndexNow(indexNowUrls(targets, base, { publicSlugs, sitePaths }), base);
+    });
+  }
 }
 
 /** Ubah ZodError issues → { field: pesan pertama }. */

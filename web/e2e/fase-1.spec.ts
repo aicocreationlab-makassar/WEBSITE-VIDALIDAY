@@ -16,19 +16,23 @@ import {
   expectNoHorizontalOverflow,
   gotoOk,
   isMobile,
+  scrollPastHeroSearch,
   snap,
 } from "./helpers";
 
-const HOME_H1 = "Sewa apartemen harian di Makassar";
-const WA_LABEL = "Chat admin via WhatsApp";
 const WA_HREF = /^https:\/\/wa\.me\/\d+/;
 const ACCESS_DENIED = "Akun ini tidak punya akses admin.";
 const FOOTER = "footer[data-testid='site-footer']";
 const APARTMENT_LINKS = "a[href^='/apartemen/']";
 
+/** Tautan profil apartemen di footer (`/apartemen/{slug}`), tanpa tautan tipe kamar di bawahnya. */
 async function countFooterApartmentLinks(page: Page): Promise<number> {
   await expect(page.locator(FOOTER)).toBeAttached();
-  return page.locator(FOOTER).locator(APARTMENT_LINKS).count();
+  const hrefs = await page
+    .locator(FOOTER)
+    .locator(APARTMENT_LINKS)
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+  return hrefs.filter((href) => /^\/apartemen\/[^/]+$/.test(href)).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,25 +79,37 @@ test.describe("Beranda", () => {
   test("judul, logo, tombol WhatsApp, dan footer tampil tanpa geser samping", async ({ page }, testInfo) => {
     await gotoOk(page, "/");
 
-    await expect(page.getByRole("heading", { level: 1, name: HOME_H1 })).toBeVisible();
+    // Judul hero diatur pemilik di Pengaturan; cukup satu H1 yang berisi teks.
+    const h1 = page.getByRole("heading", { level: 1 });
+    await expect(h1).toHaveCount(1);
+    await expect(h1).toBeVisible();
+    await expect(h1).toHaveText(/\S{3,}/);
     await expect(page.getByRole("link", { name: "VIDALIDAY, ke beranda" })).toBeVisible();
     await expect(page.locator("main#konten")).toBeVisible();
 
+    // Satu tombol WhatsApp di header: ikon saja di HP, ikon + "Tanya admin" di desktop.
     const headerWa = page.getByTestId("header-whatsapp");
     await expect(headerWa).toBeVisible();
-    await expect(headerWa).toHaveAttribute("aria-label", WA_LABEL);
+    await expect(headerWa).toHaveAccessibleName("Tanya admin");
     await expect(headerWa).toHaveAttribute("href", WA_HREF);
+    await expect(page.locator("header").getByRole("link", { name: /tanya admin|whatsapp/i })).toHaveCount(1);
 
     const footer = page.locator(FOOTER);
     await expect(footer).toBeVisible();
     await expect(footer.getByRole("link", { name: "Kebijakan privasi", exact: true })).toBeVisible();
     await expect(footer.getByRole("link", { name: "Tentang kami", exact: true })).toBeVisible();
 
-    const fab = page.getByTestId("fab-whatsapp");
-    await expect(fab).toBeVisible();
-    await expect(fab).toBeInViewport();
-    await expect(fab).toHaveAttribute("aria-label", WA_LABEL);
-    await expect(fab).toHaveAttribute("href", WA_HREF);
+    // Gelembung chat menggantikan tombol WA mengambang (PRD 6.11).
+    const launcher = page.getByTestId("chat-launcher");
+    if (isMobile(testInfo)) {
+      // Di HP gelembung menyingkir selama kotak pencarian hero terlihat (tidak menutupi tombol Cari unit).
+      await expect(launcher).toBeHidden();
+      await scrollPastHeroSearch(page);
+    }
+    await expect(launcher).toBeVisible();
+    await expect(launcher).toBeInViewport();
+    await expect(launcher).toHaveAttribute("aria-label", "Tanya kami, buka chat bantuan");
+    await expect(page.getByTestId("fab-whatsapp")).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);
     await snap(page, testInfo, "home");
@@ -104,8 +120,11 @@ test.describe("Beranda", () => {
     await gotoOk(page, "/");
     const apartmentCount = await countFooterApartmentLinks(page);
 
-    await expect(page.getByRole("link", { name: "Tanya admin" })).toBeHidden();
-    await expect(page.getByTestId("header-whatsapp")).toBeVisible();
+    // Di HP tombol WhatsApp header hanya ikon (teksnya untuk pembaca layar), lebar 44px.
+    const headerWa = page.getByTestId("header-whatsapp");
+    await expect(headerWa).toBeVisible();
+    const waBox = await headerWa.boundingBox();
+    expect(waBox?.width ?? 0).toBeLessThanOrEqual(48);
 
     const trigger = page.getByRole("button", { name: "Buka menu", exact: true });
     await expect(trigger).toBeVisible();
@@ -148,20 +167,40 @@ test.describe("Beranda", () => {
     await expect(header.getByRole("link", { name: "Cari unit", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Tentang kami", exact: true })).toBeVisible();
 
+    // Satu tombol WhatsApp: ikon + teks "Tanya admin" (lebih lebar dari tombol ikon 44px).
     const askAdmin = header.getByRole("link", { name: "Tanya admin", exact: true });
     await expect(askAdmin).toBeVisible();
     await expect(askAdmin).toHaveAttribute("href", WA_HREF);
-    await expect(page.getByTestId("header-whatsapp")).toBeVisible();
+    await expect(askAdmin).toHaveAttribute("data-testid", "header-whatsapp");
+    const askBox = await askAdmin.boundingBox();
+    expect(askBox?.width ?? 0).toBeGreaterThan(48);
     await expect(page.getByRole("button", { name: "Buka menu" })).toBeHidden();
 
     // Dropdown Apartemen hanya dirender bila ada apartemen aktif (tanpa env Supabase: kosong).
     const apartmentsTrigger = header.getByRole("button", { name: "Apartemen", exact: true });
     if (apartmentCount > 0) {
       const dropdown = page.getByRole("menu");
+
+      // Sorot mouse langsung membuka menu; mouse pergi menutupnya tanpa klik.
+      await apartmentsTrigger.hover();
+      await expect(dropdown).toBeVisible();
+      await expect(dropdown.getByRole("menuitem")).toHaveCount(apartmentCount);
+      await page.mouse.move(640, 640);
+      await expect(dropdown).toBeHidden();
+
+      // Dibuka dengan hover, Esc menutupnya walau fokus tidak di menu (WCAG 1.4.13).
+      await apartmentsTrigger.hover();
+      await expect(dropdown).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(dropdown).toBeHidden();
+      await page.mouse.move(640, 640);
+
+      // Klik dan Esc tetap bekerja (keyboard dan sentuh).
       await clickUntilVisible(apartmentsTrigger, dropdown);
       await expect(dropdown.getByRole("menuitem")).toHaveCount(apartmentCount);
       await page.keyboard.press("Escape");
       await expect(dropdown).toBeHidden();
+      await expect(apartmentsTrigger).toBeFocused();
     } else {
       await expect(apartmentsTrigger).toHaveCount(0);
     }
@@ -187,16 +226,14 @@ test.describe("Beranda", () => {
 
 // Rute publik (isi tiap halaman diuji di spec fase 3/4). h1 null = cukup ada satu judul H1.
 const PLACEHOLDER_ROUTES = [
-  { path: "/sewa", h1: null, fab: true, name: "sewa" },
-  { path: "/about", h1: null, fab: true, name: "about" },
-  { path: "/kebijakan-privasi", h1: "Kebijakan privasi", fab: false, name: "kebijakan-privasi" },
+  { path: "/sewa", h1: null, name: "sewa" },
+  { path: "/about", h1: null, name: "about" },
+  { path: "/kebijakan-privasi", h1: "Kebijakan privasi", name: "kebijakan-privasi" },
 ] as const;
 
 test.describe("Halaman placeholder", () => {
   for (const route of PLACEHOLDER_ROUTES) {
-    test(`${route.path}: judul ${route.h1 ?? "H1"}, tombol WA mengambang ${route.fab ? "ada" : "tidak ada"}`, async ({
-      page,
-    }, testInfo) => {
+    test(`${route.path}: judul ${route.h1 ?? "H1"}, gelembung chat ada`, async ({ page }, testInfo) => {
       await gotoOk(page, route.path);
 
       await expect(
@@ -207,13 +244,9 @@ test.describe("Halaman placeholder", () => {
       await expect(page.getByTestId("header-whatsapp")).toBeVisible();
       await expect(page.locator(FOOTER)).toBeVisible();
 
-      const fab = page.getByTestId("fab-whatsapp");
-      if (route.fab) {
-        await expect(fab).toBeVisible();
-        await expect(fab).toHaveAttribute("aria-label", WA_LABEL);
-      } else {
-        await expect(fab).toHaveCount(0);
-      }
+      // Gelembung chat ada di semua halaman publik, termasuk kebijakan privasi.
+      await expect(page.getByTestId("chat-launcher")).toBeVisible();
+      await expect(page.getByTestId("fab-whatsapp")).toHaveCount(0);
 
       await expectNoHorizontalOverflow(page);
       await snap(page, testInfo, route.name);

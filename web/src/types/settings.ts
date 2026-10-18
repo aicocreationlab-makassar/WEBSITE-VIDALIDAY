@@ -33,6 +33,11 @@ export type SiteSettings = {
   // SEO
   seoTitle: string;
   seoDescription: string;
+  // Profil resmi (sameAs di data terstruktur); kosong = tidak dipakai
+  instagramUrl: string;
+  facebookUrl: string;
+  tiktokUrl: string;
+  googleBusinessUrl: string;
   // Halaman About
   about: {
     tagline: string;
@@ -67,6 +72,10 @@ export const SETTING_KEYS = {
   company_legal_name: "companyLegalName",
   seo_title: "seoTitle",
   seo_description: "seoDescription",
+  instagram_url: "instagramUrl",
+  facebook_url: "facebookUrl",
+  tiktok_url: "tiktokUrl",
+  google_business_url: "googleBusinessUrl",
 } as const satisfies Record<string, keyof Omit<SiteSettings, "about">>;
 
 export const ABOUT_KEYS = {

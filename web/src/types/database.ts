@@ -33,6 +33,7 @@ export type Database = {
           longitude: number | null;
           sort_order: number;
           is_active: boolean;
+          has_towers: boolean;
         } & Timestamps;
         Insert: {
           id?: number;
@@ -49,6 +50,7 @@ export type Database = {
           longitude?: number | null;
           sort_order?: number;
           is_active?: boolean;
+          has_towers?: boolean;
         } & TimestampsWrite;
         Update: Partial<Database["public"]["Tables"]["locations"]["Insert"]>;
         Relationships: [];
@@ -313,6 +315,7 @@ export type Database = {
           notes: string | null;
           estimated_total: number | null;
           source_path: string | null;
+          origin_city: string | null;
           status: string;
           admin_notes: string | null;
         } & Timestamps;
@@ -333,6 +336,7 @@ export type Database = {
           notes?: string | null;
           estimated_total?: number | null;
           source_path?: string | null;
+          origin_city?: string | null;
           status?: string;
           admin_notes?: string | null;
         } & TimestampsWrite;
@@ -362,6 +366,7 @@ export type Database = {
           p_purpose?: string | null;
           p_notes?: string | null;
           p_source_path?: string | null;
+          p_origin_city?: string | null;
         };
         Returns: Json;
       };

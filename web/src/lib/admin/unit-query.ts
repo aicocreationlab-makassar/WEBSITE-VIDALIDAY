@@ -14,10 +14,12 @@ export type AdminUnitRow = {
   id: number;
   name: string;
   slug: string;
+  /** Selalu null kalau apartemennya satu gedung (hasTowers false). */
   tower: string | null;
   floorNumber: number | null;
   locationId: number;
   locationShortName: string;
+  hasTowers: boolean;
   roomTypeId: number | null;
   roomTypeName: string | null;
   maxGuests: number;

@@ -6,6 +6,7 @@ export const BOOKING_PLACEHOLDERS = [
   { key: "lokasi_unit", label: "Tower dan lantai unit" },
   { key: "harga", label: "Harga per malam" },
   { key: "nama", label: "Nama tamu" },
+  { key: "kota", label: "Kota asal tamu" },
   { key: "whatsapp", label: "Nomor WhatsApp tamu" },
   { key: "checkin", label: "Tanggal check-in" },
   { key: "checkout", label: "Tanggal check-out" },
@@ -64,6 +65,12 @@ export function waLink(number: string, text?: string): string {
   const base = `https://wa.me/${digits}`;
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
+
+/**
+ * Nomor WhatsApp admin bawaan (setting `whatsapp_number` kosong). Konstanta terpisah dari
+ * DEFAULT_SETTINGS supaya halaman galat tidak ikut membundel semua teks bawaan.
+ */
+export const DEFAULT_WHATSAPP_NUMBER = "6285711696970";
 
 /** Pesan umum ke admin (tombol WA di header, FAB, penutup beranda). */
 export const GENERAL_INQUIRY_MESSAGE =

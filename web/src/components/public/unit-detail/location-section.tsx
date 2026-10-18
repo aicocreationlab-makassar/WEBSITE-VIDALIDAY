@@ -68,9 +68,12 @@ export function LocationSection({ location, landmarks }: { location: UnitLocatio
                   <Icon name={landmark.icon} fallback="map-pin" className="size-5 text-ink-2" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                    <p className="text-[15px] leading-6 font-semibold text-ink">{landmark.name}</p>
-                    <p className="text-sm font-medium whitespace-nowrap text-ink-2 tabular-nums">{landmark.distanceTime}</p>
+                  {/* Waktu tempuh tetap di kanan baris pertama; nama panjang membungkus di kolomnya sendiri. */}
+                  <div className="flex items-baseline gap-3">
+                    <p className="min-w-0 flex-1 text-[15px] leading-6 font-semibold text-ink">{landmark.name}</p>
+                    <p className="shrink-0 text-right text-sm font-medium whitespace-nowrap text-ink-2 tabular-nums">
+                      {landmark.distanceTime}
+                    </p>
                   </div>
                   {landmark.notes ? <p className="mt-0.5 text-sm text-muted">{landmark.notes}</p> : null}
                 </div>

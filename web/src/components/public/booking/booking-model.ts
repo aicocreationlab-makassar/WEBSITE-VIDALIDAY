@@ -3,7 +3,8 @@
 
 import { addDays, diffDays, formatDateShort, formatOfficeHours, formatRupiah, isDateString } from "@/lib/format";
 import { estimateTotal, type RateKind } from "@/lib/pricing";
-import { MAX_GUESTS, type BookingField, type BookingInput } from "@/lib/validation/booking";
+import type { BookingInput } from "@/lib/validation/booking";
+import { MAX_GUESTS, type BookingField } from "@/lib/validation/booking-constants";
 import type { LastLead, SavedGuest } from "@/lib/wa-redirect";
 import type { BookingPrefill, BookingUnit } from "./types";
 
@@ -172,12 +173,14 @@ export function initialBookingState(options: {
 }): InitialBookingState {
   const { today, unit, prefill = {}, sourcePath } = options;
   const saved = options.saved?.fullName.trim() && options.saved.whatsapp.trim() ? options.saved : null;
+  const savedCity = saved?.originCity?.trim() ?? "";
   const dates = defaultDates(today, prefill);
   return {
     today,
     values: {
       unitId: unit.id,
       fullName: saved?.fullName ?? "",
+      originCity: savedCity,
       whatsapp: saved?.whatsapp ?? "",
       checkIn: dates.checkIn,
       checkOut: dates.checkOut,
@@ -187,7 +190,8 @@ export function initialBookingState(options: {
       website: "",
       sourcePath,
     },
-    identityCollapsed: saved !== null,
+    // Data tersimpan sebelum ada kota asal: identitas tetap terbuka supaya kotanya diisi.
+    identityCollapsed: saved !== null && savedCity !== "",
     remember: saved !== null,
   };
 }
@@ -198,6 +202,7 @@ export function initialBookingState(options: {
 
 export const FIELD_ORDER: readonly BookingField[] = [
   "fullName",
+  "originCity",
   "whatsapp",
   "checkIn",
   "checkOut",
@@ -209,6 +214,7 @@ export const FIELD_ORDER: readonly BookingField[] = [
 /** Field dari server yang dipetakan ke error per isian. */
 export const SERVER_ERROR_FIELDS: readonly BookingField[] = [
   "fullName",
+  "originCity",
   "whatsapp",
   "checkIn",
   "checkOut",
@@ -232,7 +238,7 @@ export function serverFieldErrors(
   });
 }
 
-export type FocusableField = "fullName" | "whatsapp" | "checkIn" | "checkOut";
+export type FocusableField = "fullName" | "originCity" | "whatsapp" | "checkIn" | "checkOut";
 
 /** Fokus awal: isian kosong pertama; kalau semua terisi, check-in. */
 export function firstEmptyField(
@@ -241,7 +247,7 @@ export function firstEmptyField(
 ): FocusableField {
   const order: FocusableField[] = identityCollapsed
     ? ["checkIn", "checkOut"]
-    : ["fullName", "whatsapp", "checkIn", "checkOut"];
+    : ["fullName", "originCity", "whatsapp", "checkIn", "checkOut"];
   return order.find((field) => !String(values[field] ?? "").trim()) ?? "checkIn";
 }
 

@@ -19,10 +19,10 @@ export const PRICE_STEP = 50_000;
 /** Pilihan cepat budget (src/lib/budget.ts BUDGET_PRESETS), urut sesuai tampilan. */
 export const BUDGET_PRESETS = [
   { label: "Semua harga", min: null, max: null },
-  { label: "Di bawah Rp300rb", min: null, max: 300_000 },
+  { label: "Sampai Rp300rb", min: null, max: 300_000 },
   { label: "Rp300rb – Rp500rb", min: 300_000, max: 500_000 },
   { label: "Rp500rb – Rp1jt", min: 500_000, max: 1_000_000 },
-  { label: "Di atas Rp1jt", min: 1_000_000, max: null },
+  { label: "Mulai Rp1jt", min: 1_000_000, max: null },
 ] as const;
 
 /** Label urutan (src/lib/validation/filters.ts SORT_OPTIONS), urut sesuai tampilan. */

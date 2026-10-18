@@ -12,14 +12,25 @@ import { getListedLocations } from "@/lib/data/locations";
 import { getPopularity } from "@/lib/data/popularity";
 import { Icon } from "@/lib/icons";
 import { searchUnits } from "@/lib/search";
+import { SEWA_DESCRIPTION, sewaSeo } from "@/lib/seo/sewa-seo";
 import { parseSewaFilter } from "@/lib/validation/filters";
 
-export const metadata: Metadata = {
-  title: "Cari unit apartemen di Makassar",
-  description:
-    "Bandingkan unit apartemen harian di Makassar: pilih apartemen, tipe kamar, budget per malam, dan fasilitas, lalu sewa langsung via WhatsApp.",
-  alternates: { canonical: "/sewa" },
-};
+/**
+ * Canonical dan robots mengikuti filter (PRD 6.9): tanpa filter dan per apartemen diindeks;
+ * apartemen + tipe mengarah ke landing tipe; kombinasi lain noindex,follow tanpa canonical. Membaca searchParams
+ * membuat metadata di-stream setelah kerangka statis (Cache Components); Googlebot, Bingbot, dan perayap
+ * lain di `htmlLimitedBots` (next.config.ts) menerima metadata di <head> lewat render blocking.
+ */
+export async function generateMetadata({ searchParams }: PageProps<"/sewa">): Promise<Metadata> {
+  const [filter, listed] = await Promise.all([parseSewaFilter(await searchParams), getListedLocations()]);
+  const seo = sewaSeo(filter, listed);
+  return {
+    title: seo.title,
+    description: SEWA_DESCRIPTION,
+    ...(seo.canonical ? { alternates: { canonical: seo.canonical } } : {}),
+    ...(seo.index ? {} : { robots: { index: false, follow: true } }),
+  };
+}
 
 /**
  * Hasil pencarian /sewa (PRD 6.3). Kerangka halaman statis; hasil bergantung searchParams sehingga

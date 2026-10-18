@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SectionError } from "@/components/admin/dashboard/dashboard-section";
+import { MediaCleanupCard } from "@/components/admin/settings/media-cleanup-card";
 import { RefreshSiteCard } from "@/components/admin/settings/refresh-site-card";
 import { SettingsForm } from "@/components/admin/settings/settings-form";
 import { fieldsUsingDefault, toSettingsFormValues } from "@/components/admin/settings/settings-model";
@@ -34,6 +35,7 @@ export default async function AdminSettingsPage() {
         savedAt={data.settingsUpdatedAt}
       />
       <RefreshSiteCard />
+      <MediaCleanupCard />
     </>
   );
 }

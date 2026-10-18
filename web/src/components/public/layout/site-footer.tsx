@@ -37,7 +37,7 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
     <footer data-testid="site-footer" className="bg-linear-to-br from-night to-night-rose text-white/80">
       {/* Padding bawah mobile ekstra: tombol WA mengambang / bar CTA menempel tidak menutupi hak cipta. */}
       <div className="mx-auto max-w-[1200px] px-4 pt-12 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 md:pt-16 md:pb-10 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-3 md:gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.25fr)]">
+        <div className="grid gap-10 md:grid-cols-3 md:gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,1.5fr)]">
           <div className="min-w-0 md:col-span-3 lg:col-span-1">
             <Logo logo={settings.siteLogo} href={null} variant="inverse" eager={false} />
             <p className="mt-4 max-w-sm text-[15px] leading-6">
@@ -60,6 +60,20 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
                 <Link href={`/apartemen/${location.slug}`} className={FOOTER_LINK}>
                   <span className="truncate">{location.name}</span>
                 </Link>
+                {location.types.length ? (
+                  <ul className="mb-1 pl-3">
+                    {location.types.map((type) => (
+                      <li key={type.slug} className="min-w-0">
+                        <Link href={`/apartemen/${location.slug}/${type.slug}`} className={`${FOOTER_LINK} text-sm`}>
+                          <span className="truncate">
+                            {type.name}
+                            <span className="sr-only"> di {location.shortName}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
             ))}
             <li>
@@ -137,8 +151,17 @@ export function SiteFooter({ chrome, year }: { chrome: SiteChrome; year: number 
                     <Mail className="size-5 shrink-0 text-white/70" aria-hidden="true" />
                     <span className="flex min-w-0 flex-col">
                       <span className="text-caption text-white/70">Email</span>
-                      <span className="text-[15px] font-semibold [overflow-wrap:anywhere] text-white underline-offset-4 group-hover:underline">
-                        {email}
+                      {/* Kalau tidak muat satu baris, putus sebelum "@" (bukan di tengah domain). */}
+                      <span className="text-[15px] font-semibold break-words text-white underline-offset-4 group-hover:underline">
+                        {email.includes("@") ? (
+                          <>
+                            {email.slice(0, email.indexOf("@"))}
+                            <wbr />
+                            {email.slice(email.indexOf("@"))}
+                          </>
+                        ) : (
+                          email
+                        )}
                       </span>
                     </span>
                   </a>

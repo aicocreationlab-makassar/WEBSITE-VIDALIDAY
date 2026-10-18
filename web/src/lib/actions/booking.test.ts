@@ -13,10 +13,12 @@ vi.mock("@/lib/supabase/public", () => ({
 }));
 
 const { submitLead } = await import("./booking");
+const { BOOKING_MESSAGES } = await import("@/lib/validation/booking-constants");
 
 const valid = {
   unitId: 12,
   fullName: "  Budi Santoso ",
+  originCity: " Jakarta ",
   whatsapp: "0812-3456-7890",
   checkIn: "2026-10-17",
   checkOut: "2026-10-19",
@@ -50,7 +52,26 @@ describe("submitLead", () => {
       p_purpose: "Liburan",
       p_notes: "Minta early check-in",
       p_source_path: "/unit/studio-at-26x",
+      p_origin_city: "Jakarta",
     });
+  });
+
+  it("blocks when the origin city is missing", async () => {
+    const result = await submitLead({ ...valid, originCity: " " });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.blocking).toBe(true);
+    expect(result.fieldErrors?.originCity).toBeTruthy();
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it("empty WhatsApp asks to fill it in, not 'belum benar'", async () => {
+    const result = await submitLead({ ...valid, whatsapp: "  " });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.fieldErrors?.whatsapp).toBe(BOOKING_MESSAGES.phoneEmpty);
+    // Contoh nomor memakai spasi tak terputus supaya tidak terpotong di HP.
+    expect(BOOKING_MESSAGES.phone).toContain("0812 3456 7890");
   });
 
   it("blocks on invalid fields without calling the database", async () => {
@@ -59,7 +80,7 @@ describe("submitLead", () => {
     if (result.ok) return;
     expect(result.blocking).toBe(true);
     expect(result.fieldErrors).toMatchObject({
-      whatsapp: "Nomor WhatsApp belum benar. Contoh: 0812 3456 7890.",
+      whatsapp: BOOKING_MESSAGES.phone,
       checkOut: "Tanggal check-out harus setelah check-in.",
       guests: "Jumlah tamu 1 sampai 30 orang.",
     });

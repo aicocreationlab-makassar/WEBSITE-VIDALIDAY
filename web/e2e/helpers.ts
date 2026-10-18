@@ -69,13 +69,29 @@ export async function snap(page: Page, testInfo: TestInfo, name: string): Promis
   return file;
 }
 
+/**
+ * Gulir sampai kotak pencarian hero (beranda) keluar dari layar. Di HP gelembung chat disembunyikan
+ * selama kotak itu terlihat; halaman tanpa hero tidak digulir.
+ */
+export async function scrollPastHeroSearch(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const hero = document.querySelector("[data-hero-search]");
+    if (hero) window.scrollTo(0, hero.getBoundingClientRect().bottom + window.scrollY + 1);
+  });
+}
+
 async function clickUntil(trigger: Locator, target: Locator, want: "visible" | "hidden"): Promise<void> {
   await expect(async () => {
     const visible = await target.isVisible();
-    if (visible !== (want === "visible")) await trigger.click({ timeout: 2_000 });
-    if (want === "visible") await expect(target).toBeVisible({ timeout: 1_000 });
-    else await expect(target).toBeHidden({ timeout: 1_000 });
-  }).toPass({ timeout: 15_000 });
+    // Tombol yang tidak terjangkau (aria-hidden karena dialog sedang dibuka) atau sudah aria-expanded saat
+    // isinya masih dimuat (modul lazy di mesin lambat) tidak diklik lagi: klik kedua justru menutupnya.
+    if (visible !== (want === "visible") && (await trigger.count()) > 0) {
+      const expanded = await trigger.getAttribute("aria-expanded", { timeout: 1_000 }).catch(() => "true");
+      if (!(want === "visible" && expanded === "true")) await trigger.click({ timeout: 2_000 });
+    }
+    if (want === "visible") await expect(target).toBeVisible({ timeout: 2_000 });
+    else await expect(target).toBeHidden({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
 }
 
 /**

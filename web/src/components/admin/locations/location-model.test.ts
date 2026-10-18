@@ -396,7 +396,9 @@ describe("mappers", () => {
       latitude: -5.1,
       sortOrder: 1,
       isActive: true,
+      hasTowers: true,
     });
+    expect(toLocationDetail({ ...row, has_towers: false }, [], []).values.hasTowers).toBe(false);
   });
 
   it("prepares room type form values", () => {

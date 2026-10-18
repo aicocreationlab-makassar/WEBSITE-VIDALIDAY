@@ -29,6 +29,7 @@ function location(overrides: Partial<LocationWithTypes> = {}): LocationWithTypes
     slug: "vida-view",
     name: "Apartemen Vida View",
     shortName: "Vida View",
+    hasTowers: true,
     area: "Panakkukang",
     tagline: "Apartemen dengan kolam renang di jantung Panakkukang",
     description: null,
@@ -105,11 +106,12 @@ describe("roomTypeCards", () => {
     makeUnit({ id: 5, roomTypeId: 14, locationId: 2, maxGuests: 9, photos: ["https://x/other.jpg"] }),
   ];
 
-  it("keeps types with units and links to /sewa", () => {
+  it("keeps types with units and links to the type landing (and /sewa for units)", () => {
     const cards = roomTypeCards(location({ roomTypes: [studio, corner, empty] }), catalog);
     expect(cards.map((card) => card.name)).toEqual(["Studio", "2 Bedroom Corner"]);
     expect(cards[0]).toMatchObject({
-      href: "/sewa?lokasi=vida-view&tipe=studio",
+      href: "/apartemen/vida-view/studio",
+      unitsHref: "/sewa?lokasi=vida-view&tipe=studio",
       capacity: 3,
       minPrice: 250000,
       availableCount: 2,
@@ -121,7 +123,8 @@ describe("roomTypeCards", () => {
   it("shows full units and falls back to unit capacity", () => {
     const [, card] = roomTypeCards(location({ roomTypes: [studio, corner] }), catalog);
     expect(card).toMatchObject({
-      href: "/sewa?lokasi=vida-view&tipe=2-bedroom-corner&penuh=1",
+      href: "/apartemen/vida-view/2-bedroom-corner",
+      unitsHref: "/sewa?lokasi=vida-view&tipe=2-bedroom-corner&penuh=1",
       capacity: 6,
       minPrice: null,
       availableCount: 0,

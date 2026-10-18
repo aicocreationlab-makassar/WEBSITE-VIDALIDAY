@@ -25,12 +25,19 @@ type Props = {
  */
 export function CardRail({ children, label, itemClassName, className, focusableTrack = false }: Props) {
   const track = useRef<HTMLUListElement>(null);
-  const [edges, setEdges] = useState({ start: true, end: false });
+  const items = Children.toArray(children);
+  // `overflow` = isi lebih lebar dari rel. Tebakan awal (server): lebih dari 4 kartu, sesuai 4 kolom di lg;
+  // diukur ulang setelah hidrasi. Tanpa overflow tombol panah tidak ditampilkan (keduanya pasti nonaktif).
+  const [edges, setEdges] = useState(() => ({ start: true, end: false, overflow: items.length > 4 }));
 
   const update = useCallback(() => {
     const el = track.current;
     if (!el) return;
-    setEdges({ start: el.scrollLeft <= 4, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4 });
+    setEdges({
+      start: el.scrollLeft <= 4,
+      end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
+      overflow: el.scrollWidth > el.clientWidth + 4,
+    });
   }, []);
 
   useEffect(() => {
@@ -47,8 +54,6 @@ export function CardRail({ children, label, itemClassName, className, focusableT
     if (!el) return;
     el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: scrollBehavior() });
   };
-
-  const items = Children.toArray(children);
 
   return (
     <div className={cn("relative", className)}>
@@ -68,7 +73,7 @@ export function CardRail({ children, label, itemClassName, className, focusableT
           </li>
         ))}
       </ul>
-      {items.length > 1 ? (
+      {items.length > 1 && edges.overflow ? (
         <div
           className={cn(
             "pointer-events-none absolute -top-14 right-0 hidden gap-2 lg:flex",

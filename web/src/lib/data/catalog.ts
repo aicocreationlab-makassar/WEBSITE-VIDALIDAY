@@ -20,23 +20,43 @@ const CATALOG_SELECT = `${UNIT_FIELDS},
 const DETAIL_SELECT = `${UNIT_FIELDS}, description, youtube_video_url,
   location:locations!inner(id, slug, name, short_name, area, address, gmaps_url, latitude, longitude, tagline, is_active)`;
 
+/**
+ * Apartemen → punya beberapa tower? Dibaca dengan `select("*")` supaya tetap jalan sebelum migrasi 0004
+ * (kolom `has_towers` belum ada → dianggap true), dan dipakai untuk mengosongkan tower unit di gedung tunggal.
+ */
+async function getTowerFlags(): Promise<Map<number, boolean>> {
+  const { data, error } = await createPublicClient().from("locations").select("*");
+  if (error) throw new Error(`getTowerFlags: ${error.message}`);
+  return new Map((data ?? []).map((row) => [row.id, (row as { has_towers?: boolean | null }).has_towers !== false]));
+}
+
+function withTowerFlag<T extends { location: { id: number; has_towers?: boolean | null } | null }>(row: T, flags: Map<number, boolean>): T {
+  if (!row.location) return row;
+  return { ...row, location: { ...row.location, has_towers: flags.get(row.location.id) ?? true } };
+}
+
 /** Semua unit published (±50 baris). Melempar error kalau Supabase gagal, supaya data kosong tidak ikut di-cache. */
 export async function getCatalog(): Promise<CatalogUnit[]> {
   "use cache";
   cacheLife("max");
   cacheTag(TAGS.units, TAGS.locations, TAGS.amenities);
 
-  const { data, error } = await createPublicClient()
-    .from("units")
-    .select(CATALOG_SELECT)
-    .eq("is_published", true)
-    .eq("location.is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("id", { ascending: true })
-    .overrideTypes<UnitRow[], { merge: false }>();
+  const [{ data, error }, flags] = await Promise.all([
+    createPublicClient()
+      .from("units")
+      .select(CATALOG_SELECT)
+      .eq("is_published", true)
+      .eq("location.is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("id", { ascending: true })
+      .overrideTypes<UnitRow[], { merge: false }>(),
+    getTowerFlags(),
+  ]);
   if (error) throw new Error(`getCatalog: ${error.message}`);
 
-  return (data ?? []).map(mapCatalogUnit).filter((unit): unit is CatalogUnit => unit !== null);
+  return (data ?? [])
+    .map((row) => mapCatalogUnit(withTowerFlag(row, flags)))
+    .filter((unit): unit is CatalogUnit => unit !== null);
 }
 
 /** Indeks ringkas untuk menghitung jumlah unit di klien (hero, budget, sheet filter). */
@@ -53,14 +73,17 @@ export async function getUnitBySlug(slug: string): Promise<UnitDetail | null> {
   cacheLife("max");
   cacheTag(TAGS.units, TAGS.unit(slug), TAGS.locations, TAGS.amenities);
 
-  const { data, error } = await createPublicClient()
-    .from("units")
-    .select(DETAIL_SELECT)
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .eq("location.is_active", true)
-    .maybeSingle()
-    .overrideTypes<UnitDetailRow | null, { merge: false }>();
+  const [{ data, error }, flags] = await Promise.all([
+    createPublicClient()
+      .from("units")
+      .select(DETAIL_SELECT)
+      .eq("slug", slug)
+      .eq("is_published", true)
+      .eq("location.is_active", true)
+      .maybeSingle()
+      .overrideTypes<UnitDetailRow | null, { merge: false }>(),
+    getTowerFlags(),
+  ]);
   if (error) throw new Error(`getUnitBySlug(${slug}): ${error.message}`);
-  return data ? mapUnitDetail(data) : null;
+  return data ? mapUnitDetail(withTowerFlag(data, flags)) : null;
 }

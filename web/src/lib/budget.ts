@@ -1,4 +1,5 @@
-// Pilihan cepat budget per malam (PRD 6.2) dan labelnya. Batas inklusif.
+// Pilihan cepat budget per malam (PRD 6.2) dan labelnya. Batas inklusif, jadi labelnya "Sampai"/"Mulai"
+// (unit Rp300.000 termasuk di "Sampai Rp300rb" dan "Rp300rb – Rp500rb").
 
 import { formatRupiahShort } from "@/lib/format";
 
@@ -8,10 +9,10 @@ export type BudgetPreset = BudgetRange & { id: string; label: string };
 
 export const BUDGET_PRESETS: BudgetPreset[] = [
   { id: "semua", label: "Semua harga", min: null, max: null },
-  { id: "lt300", label: "Di bawah Rp300rb", min: null, max: 300_000 },
+  { id: "lt300", label: "Sampai Rp300rb", min: null, max: 300_000 },
   { id: "300-500", label: "Rp300rb – Rp500rb", min: 300_000, max: 500_000 },
   { id: "500-1jt", label: "Rp500rb – Rp1jt", min: 500_000, max: 1_000_000 },
-  { id: "gt1jt", label: "Di atas Rp1jt", min: 1_000_000, max: null },
+  { id: "gt1jt", label: "Mulai Rp1jt", min: 1_000_000, max: null },
 ];
 
 export function presetFor(range: BudgetRange): BudgetPreset | null {

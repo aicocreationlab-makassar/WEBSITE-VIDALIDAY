@@ -43,6 +43,7 @@ const vidaView: AdminLocationOption = {
   name: "Vida View",
   shortName: "Vida View",
   isActive: true,
+  hasTowers: true,
   sortOrder: 1,
   roomTypes: [
     { id: 11, name: "Studio", slug: "studio", category: "studio", defaultMaxGuests: 2, isActive: true, sortOrder: 1 },
@@ -57,6 +58,7 @@ const delft: AdminLocationOption = {
   name: "Delft CPI",
   shortName: "Delft",
   isActive: false,
+  hasTowers: false,
   sortOrder: 2,
   roomTypes: [
     { id: 21, name: "Studio", slug: "studio", category: "studio", defaultMaxGuests: 3, isActive: true, sortOrder: 1 },

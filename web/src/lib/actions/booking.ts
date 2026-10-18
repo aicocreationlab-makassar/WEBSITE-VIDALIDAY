@@ -88,6 +88,7 @@ export async function submitLead(input: BookingInput): Promise<SubmitLeadResult>
         p_purpose: data.purpose ?? null,
         p_notes: data.notes || null,
         p_source_path: data.sourcePath ?? null,
+        p_origin_city: data.originCity,
       })
       .abortSignal(AbortSignal.timeout(RPC_TIMEOUT_MS));
 

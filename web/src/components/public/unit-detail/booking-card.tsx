@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays, formatNights, formatRupiah, isDateString, todayInMakassar } from "@/lib/format";
 import { clampGuests, MAX_NIGHTS, rateNote, shiftCheckOut, stayEstimate } from "@/lib/unit-detail";
-import { BOOKING_MESSAGES, MAX_GUESTS } from "@/lib/validation/booking";
+import { BOOKING_MESSAGES, MAX_GUESTS } from "@/lib/validation/booking-constants";
 import type { CatalogUnit } from "@/types/domain";
 
 type CardUnit = Pick<
@@ -54,7 +54,7 @@ function plusDays(date: string, days: number): string | undefined {
  * "Sewa sekarang" membuka form sewa dengan data terisi. Menempel di bawah header (top 88px).
  */
 export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
-  const { open } = useBooking();
+  const { open, preload } = useBooking();
   const ids = { checkIn: useId(), checkOut: useId(), guests: useId(), estimate: useId() };
   const today = useToday();
   const [dates, setDates] = useState<{ checkIn: string; checkOut: string } | null>(null);
@@ -106,6 +106,9 @@ export function BookingCard({ unit, largerUnitsHref, officeHours }: Props) {
     <aside
       data-testid="booking-card"
       aria-label="Sewa unit ini"
+      // Tamu mulai memakai kartu: unduh form sewa sebelum "Sewa sekarang" ditekan.
+      onPointerEnter={preload}
+      onFocus={preload}
       className="sticky top-[88px] rounded-card bg-white p-5 shadow-card ring-1 ring-line/80 lg:p-6"
     >
       <PriceTag unit={unit} size="detail" />

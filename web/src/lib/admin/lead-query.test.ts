@@ -37,8 +37,12 @@ describe("lead filters", () => {
   });
 
   it("builds a safe search filter for name, code and number", () => {
-    expect(leadSearchOr("Budi, (drop)")).toBe("full_name.ilike.*Budi drop*,code.ilike.*Budi drop*");
-    expect(leadSearchOr("0812-3456")).toBe("full_name.ilike.*0812-3456*,code.ilike.*0812-3456*,whatsapp.ilike.*8123456*");
+    expect(leadSearchOr("Budi, (drop)")).toBe(
+      "full_name.ilike.*Budi drop*,code.ilike.*Budi drop*,origin_city.ilike.*Budi drop*",
+    );
+    expect(leadSearchOr("0812-3456")).toBe(
+      "full_name.ilike.*0812-3456*,code.ilike.*0812-3456*,origin_city.ilike.*0812-3456*,whatsapp.ilike.*8123456*",
+    );
     expect(leadSearchOr("  ")).toBeNull();
   });
 });
@@ -49,6 +53,7 @@ describe("lead export and chat", () => {
     code: "VDL-5A1EAE",
     created_at: "2026-10-16T02:00:00Z",
     full_name: "Budi Santoso",
+    origin_city: "Jakarta",
     whatsapp: "6281234567890",
     unit_id: 1,
     unit_name: "Studio AT 26X",
@@ -67,8 +72,8 @@ describe("lead export and chat", () => {
 
   it("exports a CSV row that Excel opens safely", () => {
     const csv = toCsv(LEAD_CSV_HEADER, [leadCsvRow(lead)]);
-    expect(csv.startsWith("﻿Waktu masuk,Kode,Nama")).toBe(true);
-    expect(csv).toContain('"16 Okt 2026, 10.00 WITA",VDL-5A1EAE,Budi Santoso,0812-3456-7890,Studio AT 26X,Vida View,"Sab, 17 Okt 2026"');
+    expect(csv.startsWith("﻿Waktu masuk,Kode,Nama,Kota asal,WhatsApp")).toBe(true);
+    expect(csv).toContain('"16 Okt 2026, 10.00 WITA",VDL-5A1EAE,Budi Santoso,Jakarta,0812-3456-7890,Studio AT 26X,Vida View,"Sab, 17 Okt 2026"');
     expect(csv).toContain("'=1+1");
     expect(csv).toContain("Rp560.000,Baru");
   });

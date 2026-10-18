@@ -133,7 +133,11 @@ export function buildUnitBreadcrumbJsonLd({ unit, siteUrl }: UnitJsonLdInput): J
   };
 }
 
-/** Semua JSON-LD detail unit, urut: Apartment, Offer (kalau harga valid), BreadcrumbList. */
+/**
+ * Semua JSON-LD detail unit, urut: Apartment, Offer (kalau harga valid), BreadcrumbList. FAQ umum yang tampil
+ * di halaman unit sengaja tidak diberi FAQPage: markup FAQ yang sama cukup di beranda dan profil apartemen
+ * (PRD 6.9; panduan Google: FAQ berulang di banyak URL ditandai di satu tempat saja).
+ */
 export function buildUnitJsonLd(input: UnitJsonLdInput): JsonLdObject[] {
   const offer = buildUnitOfferJsonLd(input);
   return [buildApartmentJsonLd(input), ...(offer ? [offer] : []), buildUnitBreadcrumbJsonLd(input)];

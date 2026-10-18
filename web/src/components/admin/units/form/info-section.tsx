@@ -117,6 +117,8 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
             locationField.field.onChange(nextId);
             // Tipe kamar milik apartemen: kosongkan, atau pilih otomatis kalau hanya ada satu tipe aktif.
             applyRoomType(soleActiveRoomType(nextLocation)?.id ?? 0, nextLocation);
+            // Apartemen satu gedung tidak punya tower: nilai lama dibuang.
+            if (nextLocation && !nextLocation.hasTowers) setValue("tower", "", set);
             syncSlug(getValues("name") ?? "", nextLocation);
           }}
         >
@@ -227,11 +229,17 @@ export function InfoSection({ mode, locations, savedSlug, savedPublished }: Prop
         />
       </Field>
 
-      <Field label="Tower" error={errors.tower?.message}>
-        <Input {...register("tower")} maxLength={40} autoComplete="off" placeholder="mis. Tower A" />
-      </Field>
+      {location && !location.hasTowers ? null : (
+        <Field label="Tower" error={errors.tower?.message}>
+          <Input {...register("tower")} maxLength={40} autoComplete="off" placeholder="mis. Tower A" />
+        </Field>
+      )}
 
-      <Field label="Lantai" error={errors.floorNumber?.message}>
+      <Field
+        label="Lantai"
+        error={errors.floorNumber?.message}
+        hint={location && !location.hasTowers ? `${location.name} satu gedung, jadi cukup lantainya.` : undefined}
+      >
         <NumberInput
           name={floorField.field.name}
           value={floorField.field.value}

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Images, Play } from "lucide-react";
@@ -7,8 +8,19 @@ import { PhotoPlaceholder } from "@/components/public/unit/photo-placeholder";
 import { track } from "@/lib/analytics";
 import { clampIndex, galleryLayout, isLetterboxed, type GalleryLayout } from "@/lib/unit-detail";
 import { cn } from "@/lib/utils";
-import { PhotoLightbox } from "./photo-lightbox";
-import { VideoDialog } from "./video-dialog";
+
+// Lightbox dan video (Radix Dialog) diunduh saat pertama dibuka, atau lebih awal saat tamu
+// menyentuh/menyorot galeri; tidak ikut muatan awal halaman.
+const PhotoLightbox = dynamic(() => import("./photo-lightbox").then((mod) => mod.PhotoLightbox), { ssr: false });
+const VideoDialog = dynamic(() => import("./video-dialog").then((mod) => mod.VideoDialog), { ssr: false });
+
+function preloadLightbox() {
+  void import("./photo-lightbox");
+}
+
+function preloadVideo() {
+  void import("./video-dialog");
+}
 
 type Props = {
   unitSlug: string;
@@ -63,9 +75,13 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
   const [current, setCurrent] = useState(0);
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
   const [videoOpen, setVideoOpen] = useState(false);
+  // Sekali dibuka, tetap terpasang supaya animasi tutup dan pengembalian fokus berjalan.
+  const [lightboxMounted, setLightboxMounted] = useState(false);
+  const [videoMounted, setVideoMounted] = useState(false);
   const [coverLetterboxed, setCoverLetterboxed] = useState(false);
 
   const openLightbox = (index: number) => {
+    setLightboxMounted(true);
     setLightbox({ open: true, index });
     track("gallery_open", { unit: unitSlug, index });
   };
@@ -80,7 +96,12 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
   const videoButton = youtubeId ? (
     <button
       type="button"
-      onClick={() => setVideoOpen(true)}
+      onPointerEnter={preloadVideo}
+      onFocus={preloadVideo}
+      onClick={() => {
+        setVideoMounted(true);
+        setVideoOpen(true);
+      }}
       className={cn(
         PILL,
         "absolute bottom-3 left-3 z-10 min-h-9 px-3.5 text-sm after:absolute after:-inset-1.5 after:content-[''] md:bottom-4 md:left-4 md:min-h-11 md:px-4",
@@ -93,7 +114,11 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
 
   return (
     <div className="md:mx-auto md:w-full md:max-w-[1200px] md:px-6 lg:px-8">
-      <div className="relative">
+      <div
+        className="relative"
+        onPointerEnter={count > 0 ? preloadLightbox : undefined}
+        onFocus={count > 0 ? preloadLightbox : undefined}
+      >
         {layout === "none" ? (
           <div className="aspect-[4/5] max-h-[60svh] w-full overflow-hidden md:aspect-auto md:h-[280px] md:max-h-none md:rounded-card">
             <PhotoPlaceholder />
@@ -200,7 +225,7 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
         {videoButton}
       </div>
 
-      {count > 0 ? (
+      {count > 0 && lightboxMounted ? (
         <PhotoLightbox
           open={lightbox.open}
           onOpenChange={(open) => setLightbox((state) => ({ ...state, open }))}
@@ -210,7 +235,7 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
           onIndexChange={(index) => setLightbox((state) => ({ ...state, index }))}
         />
       ) : null}
-      {youtubeId ? (
+      {youtubeId && videoMounted ? (
         <VideoDialog open={videoOpen} onOpenChange={setVideoOpen} videoId={youtubeId} unitName={unitName} />
       ) : null}
     </div>

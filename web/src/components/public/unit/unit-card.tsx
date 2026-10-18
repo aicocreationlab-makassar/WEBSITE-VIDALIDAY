@@ -79,9 +79,10 @@ export function UnitCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="flex min-w-0 items-center gap-1.5 text-sm text-muted">
-          <MapPin className="size-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">{formatUnitPlace(unit)}</span>
+        {/* Dua baris maks.: "VIDA VIEW · Tower Brentsville lt. 17" tidak terpotong di grid 3 kolom. */}
+        <p className="flex min-w-0 items-start gap-1.5 text-sm text-muted">
+          <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span className="line-clamp-2">{formatUnitPlace(unit)}</span>
         </p>
         <Heading className="line-clamp-2 text-card font-bold text-ink">
           <Link

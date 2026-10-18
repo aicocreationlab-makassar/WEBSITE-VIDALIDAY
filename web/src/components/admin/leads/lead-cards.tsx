@@ -1,17 +1,27 @@
 "use client";
 
-import { ArrowRight, BedDouble, CalendarDays, LoaderCircle, MessageSquareText, NotebookPen, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  BedDouble,
+  CalendarDays,
+  LoaderCircle,
+  MessageSquareText,
+  NotebookPen,
+  Trash2,
+  Wallet,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LeadStatusBadge } from "@/components/admin/kit/status-badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { LeadRow } from "@/lib/admin/lead-query";
 import { formatDateShort, formatDateTime, formatWhatsappDisplay } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ChatButton, estimateText, type LeadRowActions } from "./lead-bits";
-import { notePreview, stayNights } from "./lead-list-model";
+import { ChatButton, estimateText, type LeadRowActions, type LeadSelectionProps } from "./lead-bits";
+import { leadPageSelectionState, notePreview, stayNights } from "./lead-list-model";
 import { LeadStatusSelect } from "./lead-status-select";
 
-type Props = { rows: LeadRow[]; actions: LeadRowActions };
+type Props = { rows: LeadRow[]; actions: LeadRowActions } & LeadSelectionProps;
 
 function Detail({ icon: IconComponent, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
@@ -27,24 +37,42 @@ function Detail({ icon: IconComponent, label, children }: { icon: LucideIcon; la
  * Kartu permintaan sewa untuk HP dan tablet: nama + badge status, ringkasan menginap, catatan,
  * lalu tombol besar (status, catatan, Chat di WhatsApp). Dua kolom kalau ruangnya cukup.
  */
-export function LeadCards({ rows, actions }: Props) {
+export function LeadCards({ rows, actions, selecting, selection, onToggle, onTogglePage }: Props) {
+  const pageState = leadPageSelectionState(selection, rows);
   return (
     <div className="@container">
+      {selecting ? (
+        <label className="mb-2 flex min-h-11 w-fit cursor-pointer items-center gap-3 rounded-control pr-3 pl-3.5 text-sm font-semibold text-ink-2 hover:bg-surface-2">
+          <Checkbox
+            aria-label="Pilih semua permintaan di halaman ini"
+            checked={pageState}
+            onCheckedChange={(checked) => onTogglePage(checked === true)}
+          />
+          <span aria-hidden="true">Pilih semua di halaman ini</span>
+        </label>
+      ) : null}
       <ul className="grid grid-cols-1 gap-3 @2xl:grid-cols-2">
         {rows.map((lead) => {
           const saving = actions.savingIds.has(lead.id);
           const nights = stayNights(lead);
           const guestNote = notePreview(lead.notes, 140);
           const adminNote = notePreview(lead.admin_notes, 140);
+          const selected = selection.has(lead.id);
           return (
             <li
               key={lead.id}
               data-testid="admin-lead-row"
               aria-busy={saving || undefined}
-              className="glass-card flex min-w-0 flex-col rounded-card p-4"
+              data-selected={selected || undefined}
+              className={cn("glass-card flex min-w-0 flex-col rounded-card p-4", selected && "ring-2 ring-brand-500")}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+                {selecting ? (
+                  <label className="-my-1 -ml-1 flex size-11 shrink-0 cursor-pointer items-center justify-center self-center">
+                    <Checkbox aria-label={`Pilih ${lead.code}`} checked={selected} onCheckedChange={() => onToggle(lead)} />
+                  </label>
+                ) : null}
+                <div className="min-w-0 flex-1">
                   <button
                     type="button"
                     onClick={() => actions.onOpen(lead)}
@@ -53,6 +81,7 @@ export function LeadCards({ rows, actions }: Props) {
                     {lead.full_name}
                   </button>
                   <p className="truncate text-caption text-muted">
+                    {lead.origin_city ? <span className="font-medium text-ink-2">{lead.origin_city} · </span> : null}
                     <span className="font-mono">{lead.code}</span> · <span className="tabular-nums">{formatWhatsappDisplay(lead.whatsapp)}</span>
                   </p>
                 </div>
@@ -117,6 +146,15 @@ export function LeadCards({ rows, actions }: Props) {
                   >
                     <NotebookPen aria-hidden="true" />
                     Catatan
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-12 w-12 shrink-0 px-0 text-danger hover:text-danger"
+                    aria-label={`Hapus permintaan ${lead.code}`}
+                    onClick={() => actions.onDelete([lead])}
+                  >
+                    <Trash2 aria-hidden="true" />
                   </Button>
                 </div>
                 <ChatButton lead={lead} onChat={actions.onChat} variant="full" className="w-full" />

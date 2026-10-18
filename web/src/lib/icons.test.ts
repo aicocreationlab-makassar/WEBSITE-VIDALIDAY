@@ -31,6 +31,9 @@ describe("icon registry", () => {
     expect(resolveIconName("chat")).toBe("message-circle");
     expect(resolveIconName("shield")).toBe("shield-check");
     expect(resolveIconName("Sun")).toBe("sun");
+    expect(resolveIconName("chair")).toBe("armchair");
+    expect(resolveIconName("closet")).toBe("wardrobe");
+    expect(resolveIconName("hanger")).toBe("hanger");
     expect(resolveIconName("tidak-ada")).toBe("check");
     expect(resolveIconName(null, "map-pin")).toBe("map-pin");
   });
@@ -54,6 +57,12 @@ describe("guessing icons from names", () => {
     ["Handuk & Amenities Bersih", "bath"],
     ["Queen Bed Premium", "bed-double"],
     ["Kapasitas 4-5 Orang", "users"],
+    ["Kursi Santai", "armchair"],
+    ["Lemari Pakaian", "wardrobe"],
+    ["Lemari Es 2 Pintu", "refrigerator"],
+    ["Gantungan Baju", "hanger"],
+    ["Setrika + Meja Setrika", "shirt"],
+    ["Iron Board", "shirt"],
   ])("amenity %s → %s", (name, icon) => {
     expect(resolveAmenityIcon(name, "check")).toBe(icon);
   });

@@ -1,11 +1,12 @@
 "use client";
 
 import { ArrowRight, MessageSquareText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { LeadRow } from "@/lib/admin/lead-query";
 import { formatDate, formatDateCompact, formatTime, formatWhatsappDisplay } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ChatButton, estimateText, NotesButton, type LeadRowActions } from "./lead-bits";
-import { notePreview, stayNights, stayRangeLabel } from "./lead-list-model";
+import { ChatButton, estimateText, LeadRowMenu, NotesButton, type LeadRowActions, type LeadSelectionProps } from "./lead-bits";
+import { leadPageSelectionState, notePreview, stayNights, stayRangeLabel } from "./lead-list-model";
 import { LeadStatusSelect } from "./lead-status-select";
 
 // Header menempel di bawah topbar 64px; kartu memakai overflow-clip supaya sticky tetap jalan (pola tabel unit).
@@ -15,19 +16,31 @@ const TD = "border-b border-line px-2.5 py-2 align-middle";
 // Kolom tambahan saat ruang daftar >= 1440px (container query terhadap pembungkus daftar).
 const WIDE_CELL = "hidden @min-[90rem]:table-cell";
 
-type Props = { rows: LeadRow[]; actions: LeadRowActions };
+type Props = { rows: LeadRow[]; actions: LeadRowActions } & LeadSelectionProps;
 
 /**
  * Tabel permintaan sewa desktop (DESIGN 5): baris 64px, hover surface, aksi di kanan. Dipakai kalau
  * lebar daftar >= 1024px. Di ruang sedang kode, WhatsApp, dan jumlah tamu menumpang di baris kecil;
- * di ruang lebar (>= 1440px) mendapat kolom sendiri.
+ * di ruang lebar (>= 1440px) mendapat kolom sendiri. Mode "Pilih" menambah kolom checkbox.
  */
-export function LeadTable({ rows, actions }: Props) {
+export function LeadTable({ rows, actions, selecting, selection, onToggle, onTogglePage }: Props) {
+  const pageState = leadPageSelectionState(selection, rows);
   return (
     <div className="glass-card overflow-clip rounded-card">
       <table className="w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
+            {selecting ? (
+              <th scope="col" className={cn(TH, "w-14 pr-0 pl-2")}>
+                <label className="flex size-11 cursor-pointer items-center justify-center">
+                  <Checkbox
+                    aria-label="Pilih semua permintaan di halaman ini"
+                    checked={pageState}
+                    onCheckedChange={(checked) => onTogglePage(checked === true)}
+                  />
+                </label>
+              </th>
+            ) : null}
             <th scope="col" className={cn(TH, "pl-4")}>
               Waktu masuk
             </th>
@@ -74,13 +87,22 @@ export function LeadTable({ rows, actions }: Props) {
             const nights = stayNights(lead);
             const whatsapp = formatWhatsappDisplay(lead.whatsapp);
             const guestNote = notePreview(lead.notes, 160);
+            const selected = selection.has(lead.id);
             return (
               <tr
                 key={lead.id}
                 data-testid="admin-lead-row"
                 aria-busy={saving || undefined}
-                className="h-16 transition-colors hover:bg-surface"
+                aria-selected={selecting ? selected : undefined}
+                className={cn("h-16 transition-colors hover:bg-surface", selected && "bg-brand-50/60 hover:bg-brand-50/60")}
               >
+                {selecting ? (
+                  <td className={cn(TD, "pr-0 pl-2")}>
+                    <label className="flex size-11 cursor-pointer items-center justify-center">
+                      <Checkbox aria-label={`Pilih ${lead.code}`} checked={selected} onCheckedChange={() => onToggle(lead)} />
+                    </label>
+                  </td>
+                ) : null}
                 <td className={cn(TD, "pl-4 whitespace-nowrap")}>
                   <p className="text-ink-2">{formatDateCompact(lead.created_at)}</p>
                   <p className="text-caption text-muted">{formatTime(lead.created_at)}</p>
@@ -105,6 +127,7 @@ export function LeadTable({ rows, actions }: Props) {
                     ) : null}
                   </div>
                   <p className="truncate text-caption text-muted">
+                    {lead.origin_city ? <span className="font-medium text-ink-2">{lead.origin_city} · </span> : null}
                     <span className="@min-[90rem]:hidden">
                       <span className="font-mono">{lead.code}</span> · <span className="tabular-nums">{whatsapp}</span>
                     </span>
@@ -146,8 +169,9 @@ export function LeadTable({ rows, actions }: Props) {
                 <td className={TD}>
                   <NotesButton lead={lead} onOpen={actions.onOpen} className="max-w-28 @min-[90rem]:max-w-48" />
                 </td>
-                <td className={cn(TD, "pr-2 pl-0 text-right")}>
+                <td className={cn(TD, "pr-2 pl-0 text-right whitespace-nowrap")}>
                   <ChatButton lead={lead} onChat={actions.onChat} variant="icon" />
+                  <LeadRowMenu lead={lead} actions={actions} />
                 </td>
               </tr>
             );
