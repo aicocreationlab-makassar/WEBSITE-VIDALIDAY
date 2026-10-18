@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Broom, ScanSearch } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/kit/confirm-dialog";
@@ -30,7 +30,17 @@ export function MediaCleanupCard() {
   const [sweeping, startSweep] = useTransition();
   const scanButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Tombol dinonaktifkan selama memeriksa sehingga fokus keyboard lepas ke <body>; dikembalikan setelah
+  // tombol aktif lagi (bukan di akhir action: saat itu React belum merender ulang, tombol masih disabled).
+  const refocusScanRef = useRef(false);
+  useEffect(() => {
+    if (scanning || !refocusScanRef.current) return;
+    refocusScanRef.current = false;
+    scanButtonRef.current?.focus({ preventScroll: true });
+  }, [scanning]);
+
   function runScan() {
+    refocusScanRef.current = document.activeElement === scanButtonRef.current;
     startScan(async () => {
       try {
         const result = await scanUnusedMedia();
