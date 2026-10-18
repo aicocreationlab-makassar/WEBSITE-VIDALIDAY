@@ -58,7 +58,12 @@ export function analyze(input: string, state: ChatState, k: ChatKnowledge, idx: 
     intent = state.lastIntent && !NON_SEARCH_INTENTS.has(state.lastIntent) ? state.lastIntent : "availability";
     score = 0;
   }
-  return { intent, score, entities, matched: intent !== "fallback", normalized };
+  // Layanan yang tidak ada di data (antar-jemput, sarapan, refund, ...): jangan menebak dari kata lain
+  // seperti "bandara"; serahkan ke admin, kecuali FAQ menjawabnya atau tamu menanyakan unit tertentu.
+  if (entities.service && intent !== "reset" && intent !== "unit_detail" && !(entities.faq && entities.faq.score >= 0.6)) {
+    intent = "service";
+  }
+  return { intent, score, entities, matched: intent !== "fallback" && intent !== "service", normalized };
 }
 
 /** Gabungkan entitas baru ke slot: yang disebut menimpa; ganti apartemen mengosongkan unit dan tipe. */
@@ -136,6 +141,8 @@ export function greet(k: ChatKnowledge, idx: KnowledgeIndex): BotReply {
       facilities: [],
       landmarks: [],
       faq: null,
+      landmarkAsked: false,
+      service: null,
       dateMentioned: false,
       allApartments: false,
       anyBudget: false,

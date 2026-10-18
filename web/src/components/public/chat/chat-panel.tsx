@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useRef, type RefObject } from "react";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { BOT_NAME } from "@/lib/chat/respond";
 import { ChatBody } from "./chat-body";
+import { ChatLoading } from "./chat-loading";
 
 // Sheet (Radix Dialog) hanya untuk mobile; desktop memakai kartu tetap tanpa Radix.
 const ChatSheet = lazy(() => import("./chat-sheet").then((mod) => ({ default: mod.ChatSheet })));
@@ -23,7 +24,7 @@ export function ChatPanel(props: ChatPanelProps) {
   const isDesktop = useIsDesktop();
   if (!isDesktop) {
     return (
-      <Suspense fallback={null}>
+      <Suspense fallback={props.open ? <ChatLoading /> : null}>
         <ChatSheet {...props} />
       </Suspense>
     );
@@ -35,10 +36,15 @@ function ChatDock({ open, onOpenChange, launcherRef, waHref }: ChatPanelProps) {
   const dockRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
 
-  // Fokus kembali ke tombol saat panel ditutup (bukan saat pertama kali dipasang tertutup).
+  // Buka: fokus masuk ke panel (kotak tulis menyusul saat data siap), supaya Enter berikutnya tidak
+  // mengenai tombol pembuka. Tutup: fokus kembali ke tombol (bukan saat pertama dipasang tertutup).
   useEffect(() => {
-    if (open) wasOpen.current = true;
-    else if (wasOpen.current) launcherRef.current?.focus({ preventScroll: true });
+    if (open) {
+      wasOpen.current = true;
+      dockRef.current?.focus({ preventScroll: true });
+    } else if (wasOpen.current) {
+      launcherRef.current?.focus({ preventScroll: true });
+    }
   }, [open, launcherRef]);
 
   if (!open) return null;
@@ -49,13 +55,14 @@ function ChatDock({ open, onOpenChange, launcherRef, waHref }: ChatPanelProps) {
       aria-modal="false"
       aria-label={`Chat dengan ${BOT_NAME}`}
       data-testid="chat-panel"
+      tabIndex={-1}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.stopPropagation();
           onOpenChange(false);
         }
       }}
-      className="fixed right-6 bottom-24 z-50 flex h-[min(600px,calc(100dvh-8rem))] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-sheet bg-white text-ink shadow-raised ring-1 ring-line"
+      className="fixed right-6 bottom-24 z-50 flex h-[min(600px,calc(100dvh-8rem))] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-sheet bg-white text-ink shadow-raised ring-1 ring-line outline-none"
     >
       <ChatBody waHref={waHref} onClose={() => onOpenChange(false)} autoFocusInput />
     </div>

@@ -51,6 +51,9 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
   const [draft, setDraft] = useState("");
   const stateRef = useRef<ChatState>(createState());
   const timerRef = useRef<number | null>(null);
+  // Jawaban yang sudah dihitung tapi masih "berpikir": ikut disimpan ke sesi, supaya tidak hilang kalau
+  // panel ditutup selama jeda (pertanyaan tanpa jawaban di riwayat).
+  const pendingRef = useRef<StoredMessage | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const idx = useMemo<KnowledgeIndex | null>(() => (knowledge ? indexKnowledge(knowledge) : null), [knowledge]);
 
@@ -80,11 +83,19 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
   }, [attempt]);
 
   useEffect(() => {
-    if (messages.length) writeSession(messages, stateRef.current);
+    if (!messages.length) return;
+    const pending = pendingRef.current;
+    writeSession(pending ? [...messages, pending] : messages, stateRef.current);
   }, [messages]);
 
+  // Data siap: pindahkan fokus ke kotak tulis, hanya kalau fokus masih di panel ini (tamu tidak sedang
+  // berada di elemen lain di halaman).
   useEffect(() => {
-    if (autoFocusInput && knowledge) inputRef.current?.focus({ preventScroll: true });
+    const input = inputRef.current;
+    if (!autoFocusInput || !knowledge || !input) return;
+    const panel = input.closest('[role="dialog"]');
+    const active = document.activeElement;
+    if (!active || active === document.body || panel?.contains(active)) input.focus({ preventScroll: true });
   }, [autoFocusInput, knowledge]);
 
   useEffect(
@@ -99,6 +110,9 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
       const text = raw.replace(/\s+/g, " ").trim().slice(0, MAX_INPUT);
       if (!text || !knowledge || !idx || thinking) return;
       const turn = respond(text, stateRef.current, knowledge, idx);
+      const botMessage: StoredMessage = { id: newId(), role: "bot", reply: turn.reply, at: Date.now() };
+      stateRef.current = turn.state;
+      pendingRef.current = botMessage;
       setMessages((current) => [...current, { id: newId(), role: "user", text, at: Date.now() }]);
       setDraft("");
       setThinking(true);
@@ -109,18 +123,28 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
       });
       timerRef.current = window.setTimeout(() => {
         timerRef.current = null;
-        stateRef.current = turn.state;
-        setMessages((current) => [...current, { id: newId(), role: "bot", reply: turn.reply, at: Date.now() }]);
+        pendingRef.current = null;
+        setMessages((current) => [...current, botMessage]);
         setThinking(false);
       }, thinkDelay(text));
     },
     [knowledge, idx, thinking],
   );
 
+  /** Chip balasan cepat: chip yang diklik hilang selama "berpikir", jadi fokus dipindah ke kotak tulis (desktop). */
+  const sendChip = useCallback(
+    (text: string) => {
+      send(text);
+      if (autoFocusInput) inputRef.current?.focus({ preventScroll: true });
+    },
+    [send, autoFocusInput],
+  );
+
   function restart() {
     if (!knowledge || !idx) return;
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     timerRef.current = null;
+    pendingRef.current = null;
     clearSession();
     stateRef.current = createState();
     setThinking(false);
@@ -184,7 +208,7 @@ export function ChatBody({ waHref, onClose, onNavigate, autoFocusInput = false }
       ) : (
         <>
           <ChatMessages messages={messages} thinking={thinking} knowledge={knowledge} idx={idx} onNavigate={onNavigate} />
-          {lastReply && lastReply.chips.length && !thinking ? <QuickReplies chips={lastReply.chips} onSend={send} /> : null}
+          {lastReply && lastReply.chips.length > 0 && !thinking ? <QuickReplies chips={lastReply.chips} onSend={sendChip} /> : null}
         </>
       )}
 

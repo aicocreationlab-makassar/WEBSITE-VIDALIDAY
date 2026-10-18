@@ -173,6 +173,35 @@ describe("14 contoh pertanyaan", () => {
   });
 });
 
+describe("di luar data situs", () => {
+  it("layanan yang tidak tercatat diserahkan ke admin, bukan ditebak dari kata lain", () => {
+    const { reply, analysis } = ask("bisa antar jemput bandara jam 3 pagi?");
+    expect(analysis.intent).toBe("service");
+    expect(analysis.matched).toBe(false);
+    expect(textOf(reply)).toContain("Soal antar-jemput atau transportasi belum tercantum");
+    expect(reply.handoff?.text).toBe("Halo Admin VIDALIDAY, saya mau tanya: bisa antar jemput bandara jam 3 pagi?");
+    expect(ask("ada sarapan gak?").analysis.intent).toBe("service");
+    expect(ask("bisa refund kalau batal?").analysis.intent).toBe("service");
+    expect(ask("harga studio bisa nego?").analysis.intent).toBe("service");
+  });
+
+  it("FAQ yang menjawab tetap didahulukan, dan pertanyaan unit tetap dijawab", () => {
+    expect(ask("ada deposit?").analysis.intent).toBe("faq");
+    expect(ask("AT 26X bisa nego?").analysis.intent).toBe("unit_detail");
+  });
+
+  it("landmark yang ditanya tidak ada di daftar apartemen itu → bilang belum tercantum + WA", () => {
+    const { reply, analysis } = ask("jarak delft ke bandara berapa menit?");
+    expect(analysis.intent).toBe("landmarks");
+    expect(textOf(reply)).toContain("belum tercantum");
+    expect(textOf(reply)).toContain("Trans Studio Mall");
+    expect(reply.handoff).toBeTruthy();
+    const ok = ask("vida dekat bandara?");
+    expect(textOf(ok.reply)).toContain("Bandara Sultan Hasanuddin: 30 menit");
+    expect(ok.reply.handoff).toBeUndefined();
+  });
+});
+
 describe("percakapan", () => {
   it("sapaan, bantuan, terima kasih, dan reset", () => {
     expect(ask("halo").analysis.intent).toBe("greeting");

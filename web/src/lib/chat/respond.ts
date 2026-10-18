@@ -549,21 +549,42 @@ function replyFacilities({ slots, k, idx, analysis }: Ctx): BotReply {
   return { blocks, chips };
 }
 
-function replyLandmarks({ slots, k, idx, analysis }: Ctx): BotReply {
+function replyLandmarks({ slots, k, idx, analysis, input }: Ctx): BotReply {
   const locations = slots.apartment ? k.locations.filter((location) => location.slug === slots.apartment) : k.locations;
   const blocks: ReplyBlock[] = [];
+  let missingAsked = false;
   for (const location of locations) {
     const items = k.landmarks.filter((landmark) => landmark.locationId === location.id);
     if (!items.length) continue;
     const hits = items.filter((landmark) => analysis.entities.landmarks.includes(landmark.id));
+    // Kategori tempat yang ditanya (mis. bandara) tidak ada di daftar apartemen ini: katakan terus terang.
+    if (analysis.entities.landmarkAsked && !hits.length) {
+      missingAsked = true;
+      blocks.push(text(`Jarak dari ${location.shortName} ke tempat yang kamu tanyakan belum tercantum di situs. Yang tercantum:`));
+    } else {
+      blocks.push(text(hits.length ? `Yang dekat ${location.shortName}:` : `Tempat dekat ${location.shortName}:`));
+    }
     const ordered = [...hits, ...items.filter((landmark) => !hits.includes(landmark))].slice(0, MAX_LIST);
-    blocks.push(text(hits.length ? `Yang dekat ${location.shortName}:` : `Tempat dekat ${location.shortName}:`));
     blocks.push(list(ordered.map((landmark) => `${landmark.name}: ${landmark.distanceTime}${landmark.notes ? ` (${landmark.notes})` : ""}`)));
     if (items.length > ordered.length) blocks.push(link(apartmentPath(location.slug), `Semua tempat dekat ${location.shortName}`));
   }
   if (!blocks.length) blocks.push(text("Daftar tempat terdekat belum tercantum di situs. Admin bisa bantu arahkan."));
   const chips: Chip[] = [{ label: "Alamat lengkap", send: `Alamat ${placeLabel(slots, idx).replace(/^di /, "")} di mana?` }, { label: "Fasilitas gedung", send: `Fasilitas gedung ${placeLabel(slots, idx)} apa saja?` }];
+  if (missingAsked || !k.landmarks.length) {
+    return { blocks, chips: [handoffChip(input), ...chips], handoff: { text: handoffMessage(input, slots, k, idx) } };
+  }
   return { blocks, chips };
+}
+
+function replyService({ analysis, input, slots, k, idx }: Ctx): BotReply {
+  const topic = analysis.entities.service ?? "hal itu";
+  return {
+    blocks: [
+      text(`Soal ${topic} belum tercantum di data situs, jadi aku belum bisa memastikan. Admin bisa jawab langsung lewat WhatsApp:`),
+    ],
+    chips: helpChips(k).slice(0, 3),
+    handoff: { text: handoffMessage(input, slots, k, idx) },
+  };
 }
 
 function replyLocation({ slots, k, idx }: Ctx): BotReply {
@@ -695,7 +716,7 @@ function replyFallback({ input, slots, k, idx }: Ctx): BotReply {
 
 export function composeReply(intent: IntentName, analysis: Analysis, slots: Slots, input: string, k: ChatKnowledge, idx: KnowledgeIndex): BotReply {
   const ctx: Ctx = { analysis, slots, input, k, idx };
-  if (!k.units.length && !["greeting", "help", "thanks", "reset", "contact", "checkin", "house_rules", "booking_how", "faq", "fallback"].includes(intent)) {
+  if (!k.units.length && !["greeting", "help", "thanks", "reset", "contact", "checkin", "house_rules", "booking_how", "faq", "service", "fallback"].includes(intent)) {
     return {
       blocks: [text("Data unit belum bisa dibaca saat ini. Tanya admin langsung lewat WhatsApp ya.")],
       chips: [],
@@ -739,6 +760,8 @@ export function composeReply(intent: IntentName, analysis: Analysis, slots: Slot
       return replyBookingHow();
     case "faq":
       return replyFaq(ctx);
+    case "service":
+      return replyService(ctx);
     case "greeting":
       return replyGreeting(ctx);
     case "help":

@@ -40,9 +40,9 @@ export function UnitChipCard({ unit, idx, position, onNavigate }: Props) {
         <span className="block truncate font-bold text-ink">{unit.name}</span>
         <span className="block truncate text-caption text-muted">{place}</span>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="text-sm font-extrabold text-ink tabular-nums">
+          <span className="text-sm font-extrabold whitespace-nowrap text-ink tabular-nums">
             {formatRupiah(unit.p)}
-            <span className="font-medium text-muted"> /malam</span>
+            <span className="font-medium text-muted">/malam</span>
           </span>
           {unit.promo ? <span className="text-caption text-muted line-through tabular-nums">{formatRupiah(unit.np)}</span> : null}
         </span>

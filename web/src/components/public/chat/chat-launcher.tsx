@@ -5,9 +5,13 @@ import dynamic from "next/dynamic";
 import { MessageCircle, X } from "lucide-react";
 import { track } from "@/lib/analytics";
 import { preloadChat } from "@/lib/chat/load";
+import { ChatLoading } from "./chat-loading";
 
 // Panel (mesin jawaban, data, sheet) baru diunduh saat tombol disorot/difokus/disentuh atau ditekan.
-const ChatPanel = dynamic(() => import("./chat-panel").then((mod) => mod.ChatPanel), { ssr: false });
+const ChatPanel = dynamic(() => import("./chat-panel").then((mod) => mod.ChatPanel), {
+  ssr: false,
+  loading: () => <ChatLoading />,
+});
 
 /** Halaman untuk analitik (tanpa slug/parameter). */
 function pageKind(pathname: string): string {
@@ -43,7 +47,8 @@ export function ChatLauncher({ waHref }: { waHref: string }) {
         ref={launcherRef}
         type="button"
         data-testid="chat-launcher"
-        aria-label={open ? "Tutup chat" : "Buka chat bantuan"}
+        // Nama aksesibel memuat label yang terlihat di desktop ("Tanya kami"), WCAG 2.5.3.
+        aria-label={open ? "Tutup chat" : "Tanya kami, buka chat bantuan"}
         aria-haspopup="dialog"
         aria-expanded={open}
         onPointerEnter={preloadChat}

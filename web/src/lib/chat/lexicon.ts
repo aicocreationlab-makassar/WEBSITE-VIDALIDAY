@@ -297,8 +297,24 @@ export type IntentName =
   | "contact"
   | "booking_how"
   | "faq"
+  | "service"
   | "followup"
   | "fallback";
+
+/**
+ * Layanan yang tidak tercatat di data situs: bot tidak menebak, langsung menyerahkan ke admin
+ * (kecuali ada FAQ yang menjawabnya). Label dipakai di kalimat "Soal {label} belum tercantum".
+ */
+export const SERVICE_TOPICS: [RegExp, string][] = [
+  [/\b(antar\s*jemput|jemput|penjemputan|antar(kan)?\s+ke|shuttle|transportasi|sewa\s*mobil|rental\s*mobil|taksi|taxi|ojek)\b/, "antar-jemput atau transportasi"],
+  [/\b(sarapan|breakfast|makan\s*pagi|room\s*service|catering|katering)\b/, "makanan dan sarapan"],
+  [/\b(cleaning|housekeeping|bersih\s*bersih|dibersihkan|ganti\s*sprei|ganti\s*handuk|laundry\s*service)\b/, "layanan kebersihan selama menginap"],
+  [/\b(extra\s*bed|kasur\s*tambahan|tambah\s*kasur|tambahan\s*kasur)\b/, "kasur tambahan"],
+  [/\b(refund|pengembalian\s*dana|uang\s*kembali|reschedule|ganti\s*tanggal|ubah\s*tanggal|pindah\s*tanggal)\b/, "pembatalan, refund, atau ganti tanggal"],
+  [/\b(nego|negosiasi|tawar|ditawar|kurangin\s*harga|kurangi\s*harga|harga\s*teman|diskon\s*(lagi|tambahan))\b/, "penawaran harga khusus"],
+  [/\b(invoice|faktur|kwitansi|kuitansi|npwp|pajak)\b/, "invoice atau kwitansi"],
+  [/\b(jam\s*[0-9]{1,2}\s*(pagi|malam|subuh)|tengah\s*malam|dini\s*hari|subuh)\b/, "jam kedatangan di luar jam biasa"],
+];
 
 export type IntentCue = {
   /** Token pemicu → bobot (dicocokkan fuzzy). */
@@ -415,5 +431,5 @@ export const INTENT_PRIORITY: IntentName[] = [
 
 /** Intent yang tidak mengubah slot pencarian (kecuali apartemen yang disebut). */
 export const NON_SEARCH_INTENTS = new Set<IntentName>([
-  "greeting", "thanks", "help", "checkin", "house_rules", "contact", "booking_how", "faq", "location", "landmarks", "facilities",
+  "greeting", "thanks", "help", "checkin", "house_rules", "contact", "booking_how", "faq", "location", "landmarks", "facilities", "service",
 ]);

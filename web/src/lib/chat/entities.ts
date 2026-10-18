@@ -6,7 +6,7 @@ import { AMENITY_RULES, FACILITY_RULES, LANDMARK_RULES } from "@/lib/icon-rules"
 import type { IconName } from "@/lib/icons";
 import type { RoomCategory } from "@/types/domain";
 import { bestMatch, damerau, phraseSimilarity, tokenMatches } from "./fuzzy";
-import { APARTMENT_ALIASES, CATEGORY_ALIASES, GENERIC_NAME_WORDS } from "./lexicon";
+import { APARTMENT_ALIASES, CATEGORY_ALIASES, GENERIC_NAME_WORDS, SERVICE_TOPICS } from "./lexicon";
 import {
   contentTokens,
   mentionsDate,
@@ -39,6 +39,10 @@ export type Entities = {
   facilities: number[];
   landmarks: number[];
   faq: { id: number; score: number } | null;
+  /** Ada kata kategori tempat (bandara, mall, rumah sakit, ...) walau tempatnya tidak terdaftar. */
+  landmarkAsked: boolean;
+  /** Layanan di luar data situs yang ditanyakan (label), atau null. */
+  service: string | null;
   dateMentioned: boolean;
   /** Kata "semua apartemen"/"keduanya": kosongkan slot apartemen. */
   allApartments: boolean;
@@ -232,6 +236,8 @@ export function extractEntities(text: string, tokens: readonly Token[], k: ChatK
     facilities,
     landmarks,
     faq,
+    landmarkAsked: landmarkIcons.size > 0,
+    service: SERVICE_TOPICS.find(([pattern]) => pattern.test(text))?.[1] ?? null,
     dateMentioned: mentionsDate(text),
     allApartments: /\b(semua apartemen|dua duanya|keduanya|dua dua nya|kedua apartemen)\b/.test(text),
     anyBudget: /\b(tanpa budget|semua harga|berapa aja|berapa saja)\b/.test(text),
