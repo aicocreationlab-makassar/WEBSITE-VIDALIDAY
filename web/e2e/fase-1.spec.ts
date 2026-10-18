@@ -16,6 +16,7 @@ import {
   expectNoHorizontalOverflow,
   gotoOk,
   isMobile,
+  scrollPastHeroSearch,
   snap,
 } from "./helpers";
 
@@ -100,6 +101,11 @@ test.describe("Beranda", () => {
 
     // Gelembung chat menggantikan tombol WA mengambang (PRD 6.11).
     const launcher = page.getByTestId("chat-launcher");
+    if (isMobile(testInfo)) {
+      // Di HP gelembung menyingkir selama kotak pencarian hero terlihat (tidak menutupi tombol Cari unit).
+      await expect(launcher).toBeHidden();
+      await scrollPastHeroSearch(page);
+    }
     await expect(launcher).toBeVisible();
     await expect(launcher).toBeInViewport();
     await expect(launcher).toHaveAttribute("aria-label", "Tanya kami, buka chat bantuan");

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { clickUntilVisible, expectNoHorizontalOverflow, gotoOk, isMobile, snap } from "./helpers";
+import { clickUntilVisible, expectNoHorizontalOverflow, gotoOk, isMobile, scrollPastHeroSearch, snap } from "./helpers";
 
 // Bot chat "Asisten VIDALIDAY" (PRD 6.11): dibuka dari gelembung, menjawab dari data situs, typo
 // ditoleransi, tautan ke halaman unit, tombol WhatsApp bila tidak paham, riwayat di sessionStorage.
@@ -12,6 +12,8 @@ async function openChat(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const launcher = page.getByTestId(LAUNCHER);
   const dialog = page.getByRole("dialog", { name: DIALOG_NAME });
+  await scrollPastHeroSearch(page);
+  await expect(launcher).toBeVisible();
   await clickUntilVisible(launcher, dialog);
   // Data unit dimuat dulu; kotak tulis aktif setelah itu.
   const input = dialog.getByLabel("Tulis pertanyaan");

@@ -69,6 +69,17 @@ export async function snap(page: Page, testInfo: TestInfo, name: string): Promis
   return file;
 }
 
+/**
+ * Gulir sampai kotak pencarian hero (beranda) keluar dari layar. Di HP gelembung chat disembunyikan
+ * selama kotak itu terlihat; halaman tanpa hero tidak digulir.
+ */
+export async function scrollPastHeroSearch(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const hero = document.querySelector("[data-hero-search]");
+    if (hero) window.scrollTo(0, hero.getBoundingClientRect().bottom + window.scrollY + 1);
+  });
+}
+
 async function clickUntil(trigger: Locator, target: Locator, want: "visible" | "hidden"): Promise<void> {
   await expect(async () => {
     const visible = await target.isVisible();
