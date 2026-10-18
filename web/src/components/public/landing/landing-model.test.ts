@@ -5,6 +5,7 @@ import { makeUnit, sampleCatalog } from "@/lib/test-fixtures";
 import {
   buildLanding,
   findLandingType,
+  viewParts,
   landingCtaHref,
   landingFaqs,
   landingH1,
@@ -35,6 +36,17 @@ describe("buildLanding", () => {
     expect(data.floorRange).toEqual({ min: 26, max: 26 });
     expect(data.sizeRange).toBeNull();
     expect(data.commonAmenities.map((amenity) => amenity.name)).toEqual(["AC", "WiFi", "Smart TV"]);
+  });
+
+  it("view dipecah jadi unsur unik, maks. 4", () => {
+    expect(viewParts(["Kolam & Taman", "Kolam", "Taman & Kota", "Kota & Sunset", "Kota & Sunrise", "kolam & sunset", null])).toEqual([
+      "Kolam",
+      "Taman",
+      "Kota",
+      "Sunset",
+    ]);
+    expect(viewParts(["Laut, Kota", "Kota dan Gunung"])).toEqual(["Laut", "Kota", "Gunung"]);
+    expect(viewParts([])).toEqual([]);
   });
 
   it("semua penuh memakai harga semua unit", () => {
@@ -74,6 +86,10 @@ describe("buildLanding", () => {
     expect(first).toContain("Harga mulai Rp250.000/malam, untuk maksimal 3 tamu, di Tower Ashton, lantai 26, dengan view Kolam.");
     expect(second).toContain("PT Perdana Mega Trans: AC, WiFi dan Smart TV sudah termasuk.");
     expect(second).toContain("Check-in 14.00 WITA, check-out 12.00 WITA.");
+    expect(second).toContain("dilayani setiap hari 08.00–23.00 WITA.");
+    expect(landingIntro(data, { ...settings, officeHours: "Setiap Hari: 10.00 - 23.00 WITA" })[1]).toContain(
+      "dilayani setiap hari 10.00–23.00 WITA.",
+    );
     const summary = landingSummary(data, settings);
     expect(summary.map((row) => row.label)).toEqual([
       "Tipe kamar",

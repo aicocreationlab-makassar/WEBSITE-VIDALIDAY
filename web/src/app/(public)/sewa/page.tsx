@@ -18,7 +18,8 @@ import { parseSewaFilter } from "@/lib/validation/filters";
 /**
  * Canonical dan robots mengikuti filter (PRD 6.9): tanpa filter dan per apartemen diindeks;
  * apartemen + tipe mengarah ke landing tipe; kombinasi lain noindex,follow. Membaca searchParams
- * membuat metadata di-stream setelah kerangka statis (Cache Components), bot menunggu head lengkap.
+ * membuat metadata di-stream setelah kerangka statis (Cache Components); Googlebot, Bingbot, dan perayap
+ * lain di `htmlLimitedBots` (next.config.ts) menerima metadata di <head> lewat render blocking.
  */
 export async function generateMetadata({ searchParams }: PageProps<"/sewa">): Promise<Metadata> {
   const [filter, listed] = await Promise.all([parseSewaFilter(await searchParams), getListedLocations()]);

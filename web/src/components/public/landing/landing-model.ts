@@ -1,7 +1,7 @@
 // Model halaman landing tipe kamar per apartemen /apartemen/[slug]/[tipe] (SEO, AI Overview).
 // Semua teks dibentuk dari fakta data; fungsi murni, ada test.
 
-import { formatRupiah, formatRupiahShort, toDisplayLegalName } from "@/lib/format";
+import { formatOfficeHours, formatRupiah, formatRupiahShort, toDisplayLegalName } from "@/lib/format";
 import { sortUnits } from "@/lib/search";
 import { formatUnitSpot, roomTypeHref } from "@/lib/unit-display";
 import { sewaHref } from "@/lib/validation/filters";
@@ -34,6 +34,22 @@ export type LandingSettings = Pick<SiteSettings, "companyLegalName" | "checkinTi
 const MAX_TITLE = 60;
 const MAX_DESCRIPTION = 155;
 const MAX_COMMON = 12;
+const MAX_VIEWS = 4;
+
+/**
+ * View unit ("Kolam & Taman", "Kota & Sunset") → unsur unik tanpa pengulangan, maks. 4:
+ * ["Kolam", "Taman", "Kota", "Sunset"]. Urut kemunculan; huruf besar-kecil diabaikan saat membandingkan.
+ */
+export function viewParts(views: (string | null | undefined)[], max = MAX_VIEWS): string[] {
+  const seen = new Map<string, string>();
+  for (const view of views) {
+    for (const part of (view ?? "").split(/\s*(?:&|,|\/|\+|\bdan\b)\s*/i)) {
+      const clean = part.trim();
+      if (clean && !seen.has(clean.toLowerCase())) seen.set(clean.toLowerCase(), clean);
+    }
+  }
+  return [...seen.values()].slice(0, max);
+}
 
 export function findLandingType(location: LocationWithTypes, tipe: string): RoomTypeSummary | null {
   return location.roomTypes.find((type) => type.slug === tipe && type.unitCount > 0) ?? null;
@@ -87,7 +103,7 @@ export function buildLanding(location: LocationWithTypes, type: RoomTypeSummary,
     sizeRange: range(units.map((unit) => unit.sizeSqm ?? 0)),
     floorRange: range(units.map((unit) => unit.floorNumber ?? 0)),
     towers: [...new Set(units.map((unit) => unit.tower?.trim()).filter((tower): tower is string => Boolean(tower)))],
-    views: [...new Set(units.map((unit) => unit.viewType?.trim()).filter((view): view is string => Boolean(view)))],
+    views: viewParts(units.map((unit) => unit.viewType)),
     commonAmenities,
   };
 }
@@ -161,7 +177,8 @@ export function landingIntro(d: LandingData, s: LandingSettings): string[] {
     `Semua unit dikelola resmi${legal ? ` oleh ${legal}` : ""}${amenities.length ? `: ${joinNames(amenities)} sudah termasuk` : ""}.`,
   );
   if (s.checkinTime || s.checkoutTime) second.push(`Check-in ${s.checkinTime || "sesuai konfirmasi"}, check-out ${s.checkoutTime || "sesuai konfirmasi"}.`);
-  second.push(`Pesan lewat WhatsApp admin${s.officeHours ? `, dilayani ${s.officeHours}` : ""}.`);
+  const hours = formatOfficeHours(s.officeHours);
+  second.push(`Pesan lewat WhatsApp admin${hours ? `, dilayani setiap hari ${hours}` : ""}.`);
   return [first.join(" "), second.join(" ")];
 }
 

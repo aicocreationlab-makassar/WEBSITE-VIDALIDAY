@@ -81,7 +81,9 @@ export default async function RoomTypeLandingPage({ params }: PageProps<"/aparte
   const data = buildLanding(location, type, catalog);
   const nearby = landmarks.filter((landmark) => landmark.locationId === location.id);
   const buildingFacilities = facilities.filter((facility) => facility.locationId === location.id);
-  const faqs = [...landingFaqs(data, settings, nearby), ...globalFaqs.slice(0, MAX_GLOBAL_FAQS)];
+  // FAQPage hanya untuk tanya-jawab khusus tipe ini; FAQ umum sudah ditandai di beranda dan profil apartemen.
+  const typeFaqs = landingFaqs(data, settings, nearby);
+  const faqs = [...typeFaqs, ...globalFaqs.slice(0, MAX_GLOBAL_FAQS)];
   const otherTypes = roomTypeCards(location, catalog).filter((card) => card.id !== type.id);
   const summary = landingSummary(data, settings).map((row) =>
     row.label === "Alamat" ? { ...row, href: `${apartmentPath(location.slug)}#lokasi` } : row,
@@ -89,7 +91,7 @@ export default async function RoomTypeLandingPage({ params }: PageProps<"/aparte
 
   return (
     <>
-      <JsonLd data={buildLandingJsonLd({ data, siteUrl: getSiteUrl(), faqs })} />
+      <JsonLd data={buildLandingJsonLd({ data, siteUrl: getSiteUrl(), faqs: typeFaqs })} />
 
       <div className="mx-auto hidden w-full max-w-[1200px] px-4 pt-3 sm:px-6 md:block lg:px-8">
         <UnitBreadcrumb

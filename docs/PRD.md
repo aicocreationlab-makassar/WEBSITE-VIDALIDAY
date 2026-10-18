@@ -333,7 +333,7 @@ Foto gedung, nama, area, deskripsi singkat; daftar tipe kamar (kartu: nama, kapa
 - `generateMetadata` di semua halaman; default dari setting `seo_title` dan `seo_description`.
 - OG image default (foto hero + logo, dibuat dengan `next/og`) dan per unit (foto utama).
 - `sitemap.xml` (beranda, `/sewa`, `/apartemen/*`, `/unit/*` yang published, `/about`, `/kebijakan-privasi`) dan `robots.txt` (blok `/admin`).
-- JSON-LD: `LodgingBusiness` (beranda), `Apartment` + `Offer` (detail), `FAQPage` (beranda, apartemen), `BreadcrumbList`.
+- JSON-LD: `LodgingBusiness` (beranda), `Apartment` + `Offer` (detail), `FAQPage` (beranda, apartemen; landing tipe hanya untuk tanya-jawab khusus tipe itu, FAQ umum tidak ditandai ulang di unit dan landing), `BreadcrumbList`.
 - `lang="id"`, format angka dan tanggal `id-ID`.
 
 ### 6.10 Analitik

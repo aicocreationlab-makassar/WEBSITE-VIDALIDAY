@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { indexNowKey, indexNowUrls, submitIndexNow } from "./indexnow";
+import {
+  apartmentPaths,
+  indexNowKey,
+  indexNowUrls,
+  publicUnitSlugs,
+  shouldNotifyIndexNow,
+  submitIndexNow,
+} from "./indexnow";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -15,6 +22,43 @@ describe("IndexNow", () => {
       "https://vidaliday.com/unit/baru",
     ]);
     expect(indexNowUrls([{ kind: "settings" }], "https://vidaliday.com")).toContain("https://vidaliday.com/about");
+  });
+
+  it("unit draf tidak dilaporkan", async () => {
+    const targets = [{ kind: "unit" as const, slugs: ["tampil", "draf", null] }];
+    const publicSlugs = await publicUnitSlugs(targets, async (slugs) => slugs.filter((slug) => slug === "tampil"));
+    expect(indexNowUrls(targets, "https://vidaliday.com", { publicSlugs })).toEqual([
+      "https://vidaliday.com/",
+      "https://vidaliday.com/sewa",
+      "https://vidaliday.com/unit/tampil",
+    ]);
+    // Lookup gagal → tidak ada URL unit yang dilaporkan.
+    const none = await publicUnitSlugs(targets, async () => {
+      throw new Error("offline");
+    });
+    expect(indexNowUrls(targets, "https://vidaliday.com", { publicSlugs: none })).toHaveLength(2);
+  });
+
+  it("profil apartemen dan landing tipe ikut dilaporkan; hapus permintaan sewa saja tidak", () => {
+    const sitePaths = apartmentPaths([
+      {
+        slug: "vida-view",
+        roomTypes: [
+          { slug: "studio", unitCount: 3 },
+          { slug: "2br", unitCount: 0 },
+        ],
+      },
+    ]);
+    expect(sitePaths).toEqual(["/apartemen/vida-view", "/apartemen/vida-view/studio"]);
+    expect(indexNowUrls([{ kind: "facility" }], "https://vidaliday.com", { sitePaths })).toEqual([
+      "https://vidaliday.com/",
+      "https://vidaliday.com/sewa",
+      "https://vidaliday.com/apartemen/vida-view",
+      "https://vidaliday.com/apartemen/vida-view/studio",
+    ]);
+    expect(shouldNotifyIndexNow([{ kind: "lead" }])).toBe(false);
+    expect(indexNowUrls([{ kind: "lead" }], "https://vidaliday.com", { sitePaths })).toEqual([]);
+    expect(shouldNotifyIndexNow([{ kind: "lead" }, { kind: "units" }])).toBe(true);
   });
 
   it("tanpa kunci tidak mengirim apa pun", async () => {

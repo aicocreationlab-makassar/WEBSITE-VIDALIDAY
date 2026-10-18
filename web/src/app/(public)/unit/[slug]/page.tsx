@@ -119,7 +119,7 @@ export default async function UnitPage({ params }: PageProps<"/unit/[slug]">) {
       siteUrl={getSiteUrl()}
       largerUnitsHref={largerUnitsHref}
     >
-      <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl(), faqs: faqs.slice(0, MAX_FAQS) })} />
+      <JsonLd data={buildUnitJsonLd({ unit, siteUrl: getSiteUrl() })} />
       <RecordView unit={current} />
 
       {/* Ruang di bawah untuk bar CTA mobile (72px + safe area). */}

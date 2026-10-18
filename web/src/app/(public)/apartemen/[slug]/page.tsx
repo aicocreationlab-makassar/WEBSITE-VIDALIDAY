@@ -22,7 +22,6 @@ import { getSiteUrl } from "@/lib/env";
 import { formatOfficeHours, formatRupiah, formatWhatsappDisplay } from "@/lib/format";
 import { apartmentPath, buildApartmentPageJsonLd } from "@/lib/seo/apartment-jsonld";
 import { JsonLd } from "@/lib/seo/json-ld";
-import { roomTypeHref } from "@/lib/unit-display";
 
 const MAX_FAQS = 5;
 
@@ -88,7 +87,7 @@ export default async function ApartmentPage({ params }: PageProps<"/apartemen/[s
     summary.push({
       label: type.name,
       value: type.minPrice ? `${type.availableCount} tersedia, mulai ${formatRupiah(type.minPrice)}/malam` : `${type.unitCount} unit, sedang penuh`,
-      href: roomTypeHref(location.slug, types.length ? location.roomTypes.find((item) => item.id === type.id)?.slug ?? "" : ""),
+      href: type.href,
     });
   }
   if (settings.checkinTime || settings.checkoutTime) {

@@ -122,8 +122,9 @@ describe("unit JSON-LD", () => {
   });
 
   it("returns all nodes and serializes safely", () => {
-    const all = buildUnitJsonLd({ unit: detail({ name: "Unit </script>" }), siteUrl: SITE, faqs: [{ question: "Jam check-in?", answer: "14.00 WITA." }] });
-    expect(all.map((node) => node["@type"])).toEqual(["Apartment", "Offer", "FAQPage", "BreadcrumbList"]);
+    const all = buildUnitJsonLd({ unit: detail({ name: "Unit </script>" }), siteUrl: SITE });
+    // FAQ umum tidak ditandai FAQPage di halaman unit (sudah di beranda dan profil apartemen).
+    expect(all.map((node) => node["@type"])).toEqual(["Apartment", "Offer", "BreadcrumbList"]);
     expect(serializeJsonLd(all)).not.toContain("</script>");
     expect(buildUnitJsonLd({ unit: detail({ effectivePrice: 0 }), siteUrl: SITE })).toHaveLength(2);
     expect(unitPageUrl("https://vidaliday.com", "a b")).toBe("https://vidaliday.com/unit/a%20b");
