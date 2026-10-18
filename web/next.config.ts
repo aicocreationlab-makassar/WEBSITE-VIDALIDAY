@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import { HTML_LIMITED_BOT_UA_RE } from "next/dist/shared/lib/router/utils/html-bots";
+import { AI_CRAWLERS } from "./src/lib/seo/robots-model";
 
 type RemotePattern = NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]>[number];
 
@@ -36,10 +37,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   cacheComponents: true,
   // Metadata yang dihitung per permintaan (canonical/robots /sewa dari searchParams) di-stream ke <body>
-  // untuk perayap yang tidak ada di daftar bawaan Next, termasuk Googlebot. Google hanya memakai canonical
-  // di <head>, jadi Googlebot ditambahkan ke daftar bawaan: ia menerima head lengkap (render blocking; data
-  // tetap dari "use cache"). Pengunjung biasa tetap mendapat kerangka statis yang di-stream.
-  htmlLimitedBots: new RegExp(`${HTML_LIMITED_BOT_UA_RE.source}|Googlebot`),
+  // untuk perayap yang tidak ada di daftar bawaan Next, termasuk Googlebot dan perayap AI. Google hanya
+  // memakai canonical di <head>, dan perayap AI membaca HTML mentah, jadi keduanya ditambahkan ke daftar
+  // bawaan: mereka menerima head lengkap (render blocking; data tetap dari "use cache"). Pengunjung biasa
+  // tetap mendapat kerangka statis yang di-stream.
+  htmlLimitedBots: new RegExp(
+    [HTML_LIMITED_BOT_UA_RE.source, "Googlebot", ...AI_CRAWLERS.map((bot) => bot.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&"))].join("|"),
+  ),
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname),
   images: {

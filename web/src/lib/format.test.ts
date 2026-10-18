@@ -7,6 +7,7 @@ import {
   formatDateLong,
   formatDateTime,
   formatFileSize,
+  formatMeters,
   formatOfficeHours,
   formatRupiah,
   formatRupiahShort,
@@ -117,6 +118,12 @@ describe("text helpers", () => {
     expect(formatFileSize(2_300_000)).toBe("2,2 MB");
     expect(formatFileSize(3 * 1024 ** 3)).toBe("3 GB");
     expect(formatFileSize(Number.NaN)).toBe("0 B");
+  });
+
+  it("formats distances for admin notes", () => {
+    expect(formatMeters(143)).toBe("143 m");
+    expect(formatMeters(1250)).toBe("1,3 km");
+    expect(formatMeters(Number.NaN)).toBe("0 m");
   });
 
   it("strips markdown asterisks", () => {

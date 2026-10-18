@@ -1,5 +1,6 @@
 import "server-only";
 import { healthFlags } from "@/lib/admin/data-health";
+import { knownTowers } from "@/lib/admin/towers";
 import type { AdminUnitRow } from "@/lib/admin/unit-query";
 import type { AdminSession } from "@/lib/auth/require-admin";
 import { isStockPhoto, mediaUrl, parseGallery } from "@/lib/media";
@@ -18,6 +19,8 @@ export type AdminLocationOption = {
   isActive: boolean;
   /** false = satu gedung: field Tower disembunyikan dan nilainya dikosongkan saat simpan. */
   hasTowers: boolean;
+  /** Nama tower yang sudah dipakai unit di apartemen ini (ejaan terbanyak dulu), untuk saran di form. */
+  towers?: string[];
   sortOrder: number;
   roomTypes: {
     id: number;
@@ -40,7 +43,9 @@ export async function getAdminLookups(supabase: Supabase): Promise<{
   const [locations, amenities] = await Promise.all([
     supabase
       .from("locations")
-      .select("id, slug, name, short_name, is_active, has_towers, sort_order, room_types(id, name, slug, category, default_max_guests, is_active, sort_order)")
+      .select(
+        "id, slug, name, short_name, is_active, has_towers, sort_order, room_types(id, name, slug, category, default_max_guests, is_active, sort_order), units(tower)",
+      )
       .order("sort_order")
       .order("id"),
     supabase.from("amenities").select("id, name, icon, is_active, sort_order").order("sort_order").order("name"),
@@ -56,6 +61,7 @@ export async function getAdminLookups(supabase: Supabase): Promise<{
       shortName: l.short_name ?? l.name,
       isActive: l.is_active,
       hasTowers: l.has_towers !== false,
+      towers: knownTowers((l.units ?? []).map((u) => u.tower)),
       sortOrder: l.sort_order,
       roomTypes: [...(l.room_types ?? [])]
         .sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)

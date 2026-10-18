@@ -55,8 +55,10 @@ export function HeroSearch({ locations, index }: Props) {
   useEffect(() => {
     const form = formRef.current;
     if (!form || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) => {
-      document.body.toggleAttribute("data-hero-visible", entry.isIntersecting);
+    const observer = new IntersectionObserver((entries) => {
+      // Satu panggilan bisa membawa beberapa entri (lama → baru); yang berlaku entri terakhir.
+      const latest = entries[entries.length - 1];
+      if (latest) document.body.toggleAttribute("data-hero-visible", latest.isIntersecting);
     });
     observer.observe(form);
     return () => {

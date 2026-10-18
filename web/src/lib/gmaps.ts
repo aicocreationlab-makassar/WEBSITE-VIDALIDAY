@@ -12,10 +12,12 @@ function valid(lat: number, lng: number): LatLng | null {
 const NUM = "(-?\\d{1,3}(?:\\.\\d+)?)";
 
 /**
- * Pola yang dikenali: "!3d<lat>!4d<lng>" (pin persis), "@<lat>,<lng>" (pusat peta),
- * "q=<lat>,<lng>" / "query=" / "ll=" / "center=". Link pendek (maps.app.goo.gl) tidak bisa dibaca → null.
+ * Titik dari link Google Maps. `precise` = pin tempat ("!3d<lat>!4d<lng>") atau titik yang ditulis eksplisit
+ * ("q=" / "query=" / "destination="). "@<lat>,<lng>", "ll=", dan "center=" hanya titik TENGAH tampilan peta
+ * saat link disalin (bisa ratusan meter dari gedung, bahkan di laut) → `precise: false`.
+ * Link pendek (maps.app.goo.gl) tidak bisa dibaca → null.
  */
-export function parseGmapsCoordinates(url: string | null | undefined): LatLng | null {
+export function parseGmapsPoint(url: string | null | undefined): { point: LatLng; precise: boolean } | null {
   if (!url) return null;
   let text = url.trim();
   try {
@@ -23,19 +25,34 @@ export function parseGmapsCoordinates(url: string | null | undefined): LatLng | 
   } catch {
     // biarkan apa adanya
   }
-  const patterns = [
-    new RegExp(`!3d${NUM}!4d${NUM}`),
-    new RegExp(`@${NUM},${NUM}`),
-    new RegExp(`[?&](?:q|query|ll|center|destination)=${NUM}\\s*,\\s*${NUM}`),
+  const patterns: [RegExp, boolean][] = [
+    [new RegExp(`!3d${NUM}!4d${NUM}`), true],
+    [new RegExp(`[?&](?:q|query|destination)=${NUM}\\s*,\\s*${NUM}`), true],
+    [new RegExp(`@${NUM},${NUM}`), false],
+    [new RegExp(`[?&](?:ll|center)=${NUM}\\s*,\\s*${NUM}`), false],
   ];
-  for (const pattern of patterns) {
+  for (const [pattern, precise] of patterns) {
     const match = pattern.exec(text);
     if (match) {
       const point = valid(Number(match[1]), Number(match[2]));
-      if (point) return point;
+      if (point) return { point, precise };
     }
   }
   return null;
+}
+
+/** Koordinat terbaik dari link: pin kalau ada, kalau tidak titik tengah tampilan. */
+export function parseGmapsCoordinates(url: string | null | undefined): LatLng | null {
+  return parseGmapsPoint(url)?.point ?? null;
+}
+
+/** Jarak dua titik dalam meter (haversine). */
+export function distanceMeters(a: LatLng, b: LatLng): number {
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 export function isShortGmapsLink(url: string | null | undefined): boolean {

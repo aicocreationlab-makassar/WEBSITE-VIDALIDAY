@@ -2,6 +2,7 @@
 // answer engine. Semua angka dari data; tanpa markdown dari DB, tanpa emoji. Fungsi murni, ada test.
 
 import { formatOfficeHours, formatRupiah, formatWhatsappDisplay, stripMarkdown, toDisplayLegalName } from "@/lib/format";
+import { mapExternalUrl } from "@/lib/gmaps";
 import { apartmentPath } from "@/lib/seo/apartment-jsonld";
 import { absoluteUrl } from "@/lib/seo/home-jsonld";
 import { parseHouseRules } from "@/lib/unit-detail";
@@ -62,6 +63,10 @@ function sections(input: LlmsInput): string[] {
     out.push(`- ${parts.join(", ")}: ${location.availableCount} dari ${location.unitCount} unit tersedia${location.minPrice ? `, mulai ${formatRupiah(location.minPrice)}/malam` : ""}.`);
     if (facilities.length) out.push(`  - Fasilitas gedung: ${facilities.join(", ")}.`);
     if (nearby.length) out.push(`  - Dekat: ${nearby.join(", ")}.`);
+    // Pin lokasi gedung (koordinat + link Google Maps) untuk pertanyaan jarak/arah ke asisten AI.
+    if (location.latitude != null && location.longitude != null) {
+      out.push(`  - Titik peta: ${location.latitude}, ${location.longitude} ([Google Maps](${mapExternalUrl(location)})).`);
+    }
   }
 
   out.push("");

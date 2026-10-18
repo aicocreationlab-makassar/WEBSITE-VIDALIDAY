@@ -21,6 +21,12 @@ export const AI_CRAWLERS = [
   "CCBot",
   "Meta-ExternalAgent",
   "DuckAssistBot",
+  "GoogleOther",
+  "Google-CloudVertexBot",
+  "MistralAI-User",
+  "cohere-ai",
+  "YouBot",
+  "Bytespider",
 ];
 
 export const DISALLOWED_PATHS = ["/admin", "/chat-data"];

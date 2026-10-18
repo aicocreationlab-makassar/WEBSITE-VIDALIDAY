@@ -34,11 +34,13 @@ export function SummaryBox({ items, title = "Ringkasan", className, id = "ringka
             <dt className="shrink-0 text-sm font-semibold text-ink-2 sm:w-40">{item.label}</dt>
             <dd className="min-w-0 text-sm break-words text-ink">
               {item.href ? (
-                // Padding vertikal memperbesar area sentuh (44px) tanpa menambah tinggi baris.
+                // Padding vertikal memperbesar area sentuh tanpa menambah tinggi baris: 44px di HP (label di
+                // atas nilai, tautan tidak bertetangga); mulai sm baris bersebelahan dengan jarak 10px, jadi
+                // perluasan dibatasi 5px agar area sentuh tautan atas-bawah tidak bertumpuk (tetap ≥ 24px).
                 <a
                   href={item.href}
                   {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="-my-3 inline-block py-3 font-semibold text-brand-700 underline-offset-4 hover:underline"
+                  className="-my-3 inline-block py-3 font-semibold text-brand-700 underline-offset-4 hover:underline sm:-my-[5px] sm:py-[5px]"
                 >
                   {item.value}
                 </a>

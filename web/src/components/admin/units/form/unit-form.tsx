@@ -78,13 +78,16 @@ export function UnitForm({ mode, lookups, initial, legacyBadge = null, rentalPer
   );
   const [initialFlags] = useState(() => {
     if (mode !== "edit" || !initial) return [];
-    const type = findRoomType(findLocation(lookups.locations, defaults.locationId), defaults.roomTypeId);
+    const location = findLocation(lookups.locations, defaults.locationId);
+    const type = findRoomType(location, defaults.roomTypeId);
     return formHealthFlags(
       { ...defaults, isPromoActive: Boolean(defaults.isPromoActive) },
       {
         typeDefaultGuests: type?.defaultMaxGuests ?? null,
         promoBadge: legacyBadge ?? defaults.promoBadge ?? null,
         rentalPeriod,
+        // Sama dengan daftar unit: apartemen satu gedung (Delft) tidak menuntut tower.
+        hasTowers: location?.hasTowers,
       },
     );
   });

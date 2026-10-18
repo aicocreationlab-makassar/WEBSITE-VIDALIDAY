@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUploadSession } from "@/components/admin/settings/form-bits";
 import { discardLocationUploads, updateLocation } from "@/lib/actions/admin/locations";
+import { formatMeters } from "@/lib/format";
 import { mapEmbedUrl, mapExternalUrl } from "@/lib/gmaps";
 import { cn } from "@/lib/utils";
 import { locationSchema, type LocationInput } from "@/lib/validation/admin";
@@ -31,6 +32,7 @@ import {
   locationVisibility,
   mapPreviewPlace,
   parseNumberInput,
+  pinMismatch,
   suggestSlug,
   visibilityNote,
   type AdminLocationDetail,
@@ -98,6 +100,7 @@ export function LocationForm({ detail, roomTypes }: Props) {
     setError,
     setValue,
     getValues,
+    setFocus,
     reset,
     resetField,
     formState: { errors, isSubmitting, isDirty },
@@ -124,12 +127,20 @@ export function LocationForm({ detail, roomTypes }: Props) {
 
   // Data lama: link tersimpan berisi koordinat tapi latitude/longitude kosong → tawarkan isi sekali ketuk.
   const storedDecision = gmapsNote === "idle" && latitude == null && longitude == null ? gmapsDecision(gmapsUrl) : null;
+  // Koordinat terisi tapi jauh dari pin tempat di link (data lama menyimpan titik tengah tampilan peta).
+  const mismatch = gmapsNote === "idle" ? pinMismatch(gmapsUrl, latitude, longitude) : null;
   const noteKind: GmapsNoteKind =
-    gmapsNote !== "idle" ? gmapsNote : storedDecision?.kind === "filled" ? "can-fill" : (storedDecision?.kind ?? "idle");
+    gmapsNote !== "idle"
+      ? gmapsNote
+      : mismatch
+        ? "mismatch"
+        : storedDecision?.kind === "filled" || storedDecision?.kind === "filled-center"
+          ? "can-fill"
+          : (storedDecision?.kind ?? "idle");
 
   function fillCoordinates(decision: GmapsDecision) {
     setGmapsNote(decision.kind);
-    if (decision.kind !== "filled") return;
+    if (decision.kind !== "filled" && decision.kind !== "filled-center") return;
     setValue("latitude", decision.lat, { shouldDirty: true, shouldValidate: true });
     setValue("longitude", decision.lng, { shouldDirty: true, shouldValidate: true });
   }
@@ -267,7 +278,17 @@ export function LocationForm({ detail, roomTypes }: Props) {
             label="Link Google Maps"
             error={error("gmapsUrl")}
             className="md:col-span-2"
-            hint={<GmapsNote kind={noteKind} onFill={() => fillCoordinates(gmapsDecision(getValues("gmapsUrl")))} />}
+            hint={
+              <GmapsNote
+                kind={noteKind}
+                meters={mismatch?.meters ?? null}
+                onFill={() => {
+                  fillCoordinates(gmapsDecision(getValues("gmapsUrl")));
+                  // Tombol diganti pesan hasil: fokus ke isian link (pesan terbaca lewat aria-describedby).
+                  setFocus("gmapsUrl");
+                }}
+              />
+            }
           >
             <Input
               {...gmapsField}
@@ -383,10 +404,31 @@ export function LocationForm({ detail, roomTypes }: Props) {
   );
 }
 
-type GmapsNoteKind = GmapsDecision["kind"] | "can-fill";
+type GmapsNoteKind = GmapsDecision["kind"] | "can-fill" | "mismatch";
 
-function GmapsNote({ kind, onFill }: { kind: GmapsNoteKind; onFill: () => void }) {
+function GmapsNote({ kind, meters, onFill }: { kind: GmapsNoteKind; meters: number | null; onFill: () => void }) {
   if (kind === "idle") return <>Buka lokasi di Google Maps, lalu salin link lengkap dari address bar browser.</>;
+  if (kind === "mismatch") {
+    // Bukan role="status": teksnya berubah di tiap ketikan latitude/longitude; tetap terbaca lewat aria-describedby.
+    return (
+      <span className="flex flex-wrap items-center gap-x-2 font-medium text-[#b45309]">
+        <span className="flex items-start gap-1.5">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>
+            Latitude dan longitude berbeda sekitar {formatMeters(meters ?? 0)} dari pin lokasi di link ini. Peta situs memakai
+            latitude dan longitude.
+          </span>
+        </span>
+        <button
+          type="button"
+          onClick={onFill}
+          className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800"
+        >
+          Pakai pin dari link
+        </button>
+      </span>
+    );
+  }
   if (kind === "can-fill") {
     return (
       <span className="flex flex-wrap items-center gap-x-2">
@@ -402,7 +444,11 @@ function GmapsNote({ kind, onFill }: { kind: GmapsNoteKind; onFill: () => void }
     );
   }
   const tone =
-    kind === "filled" ? { icon: CircleCheck, className: "text-emerald-700" } : kind === "short" ? { icon: CircleAlert, className: "text-[#b45309]" } : { icon: Info, className: "text-ink-2" };
+    kind === "filled"
+      ? { icon: CircleCheck, className: "text-emerald-700" }
+      : kind === "short" || kind === "filled-center"
+        ? { icon: CircleAlert, className: "text-[#b45309]" }
+        : { icon: Info, className: "text-ink-2" };
   const IconComponent = tone.icon;
   return (
     <span role="status" className={cn("flex items-start gap-1.5 font-medium", tone.className)}>

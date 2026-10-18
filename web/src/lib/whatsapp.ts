@@ -36,7 +36,12 @@ function isEmpty(value: string | number | null | undefined): boolean {
  * Baris kosong berurutan diringkas jadi satu, dan baris kosong di awal/akhir dibuang.
  */
 export function fillTemplate(template: string, values: TemplateValues): string {
-  const lines = template.replace(/\r\n?/g, "\n").split("\n");
+  // Teks "\n" harfiah (garis miring + n, mis. dari SQL yang salah escape) juga dianggap ganti baris:
+  // template WhatsApp tidak pernah sengaja memuatnya, dan tanpa ini satu baris bisa memuat dua isian.
+  const lines = template
+    .replace(/\\r\\n|\\n/g, "\n")
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
   const kept: string[] = [];
 
   for (const line of lines) {

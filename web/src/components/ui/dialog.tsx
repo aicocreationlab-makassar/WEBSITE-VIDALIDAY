@@ -35,6 +35,19 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
 }
 
 /**
+ * Elemen tujuan fokus setelah dialog ditutup. Dialog yang dibuka dari item menu (mis. "Hapus permintaan"
+ * di menu aksi baris) mencatat item itu, padahal item hilang begitu menu tertutup; tujuan yang benar
+ * adalah tombol pembuka menu (Radix menautkannya lewat aria-labelledby pada role="menu").
+ */
+function returnFocusTarget(active: Element | null): HTMLElement | null {
+  if (!(active instanceof HTMLElement)) return null;
+  const menu = active.closest<HTMLElement>('[role="menu"]');
+  const triggerId = menu?.getAttribute("aria-labelledby");
+  const trigger = triggerId ? document.getElementById(triggerId) : null;
+  return trigger ?? active;
+}
+
+/**
  * Kembalikan fokus ke elemen yang aktif saat dialog/sheet dibuka. Radix hanya mengembalikan
  * fokus ke `Trigger`; dialog yang dibuka dari state (tanpa Trigger) kehilangan fokus tanpa ini.
  * Pemanggil yang memanggil `preventDefault()` di `onCloseAutoFocus` tetap menang.
@@ -46,7 +59,7 @@ function useReturnFocus(
   const returnTo = React.useRef<HTMLElement | null>(null);
   return {
     onOpenAutoFocus: (event: Event) => {
-      returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      returnTo.current = returnFocusTarget(document.activeElement);
       onOpenAutoFocus?.(event);
     },
     onCloseAutoFocus: (event: Event) => {

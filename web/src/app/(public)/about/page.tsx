@@ -8,9 +8,12 @@ import { Section, SectionHeading } from "@/components/public/shared/section-head
 import { Button } from "@/components/ui/button";
 import { getListedLocations } from "@/lib/data/locations";
 import { getSettings } from "@/lib/data/settings";
+import { getSiteUrl } from "@/lib/env";
 import { stripMarkdown, toDisplayLegalName } from "@/lib/format";
 import { Icon } from "@/lib/icons";
 import { mediaUrl } from "@/lib/media";
+import { buildAboutJsonLd } from "@/lib/seo/about-jsonld";
+import { JsonLd } from "@/lib/seo/json-ld";
 import { sewaHref } from "@/lib/validation/filters";
 import { waLink } from "@/lib/whatsapp";
 
@@ -32,6 +35,19 @@ export default async function AboutPage() {
 
   return (
     <>
+      {/* Entitas pengelola untuk mesin pencari dan asisten AI (sama dengan #organization di beranda). */}
+      <JsonLd
+        data={buildAboutJsonLd({
+          siteUrl: getSiteUrl(),
+          title: about.heroTitle,
+          description: paragraphs[0] ?? null,
+          legalName: settings.companyLegalName,
+          email: settings.contactEmail,
+          whatsappNumber: settings.whatsappNumber,
+          officeHours: settings.officeHours,
+          sameAs: [settings.instagramUrl, settings.facebookUrl, settings.tiktokUrl, settings.googleBusinessUrl],
+        })}
+      />
       <Section className="pb-6 md:pb-10">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold text-brand-700">Tentang VIDALIDAY</p>

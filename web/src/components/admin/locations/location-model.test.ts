@@ -5,6 +5,7 @@ import {
   categoryLabel,
   fieldMessage,
   gmapsDecision,
+  pinMismatch,
   guessRoomCategory,
   isLocationImagePath,
   locationDeleteState,
@@ -134,8 +135,9 @@ describe("nextSortOrder", () => {
 
 describe("gmapsDecision", () => {
   it("fills coordinates from @lat,lng and !3d!4d links", () => {
+    // Hanya "@" (titik tengah tampilan): tetap diisi, tapi ditandai perlu dicek.
     expect(gmapsDecision("https://www.google.com/maps/place/Vida+View/@-5.1476651,119.4327314,17z")).toEqual({
-      kind: "filled",
+      kind: "filled-center",
       lat: -5.1476651,
       lng: 119.4327314,
     });
@@ -143,6 +145,19 @@ describe("gmapsDecision", () => {
       gmapsDecision("https://www.google.com/maps/place/X/@-5.1,119.4,17z/data=!3m1!4b1!4m6!3m5!3d-5.1476651!4d119.4327314"),
     ).toEqual({ kind: "filled", lat: -5.1476651, lng: 119.4327314 });
     expect(gmapsDecision("https://maps.google.com/?q=-5.14,119.43")).toEqual({ kind: "filled", lat: -5.14, lng: 119.43 });
+  });
+
+  it("menandai koordinat yang jauh dari pin di link (data lama menyimpan titik tengah tampilan)", () => {
+    const vida =
+      "https://www.google.com/maps/place/Vida+View/@-5.1546322,119.4404006,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d-5.1547578!4d119.4416827";
+    expect(pinMismatch(vida, -5.1546322, 119.4404006)).toEqual({ lat: -5.1547578, lng: 119.4416827, meters: 143 });
+    expect(pinMismatch(vida, -5.1547578, 119.4416827)).toBeNull();
+    // Di bawah 50 m dianggap sama.
+    expect(pinMismatch(vida, -5.1548, 119.4417)).toBeNull();
+    // Koordinat kosong atau link tanpa pin: tidak ada perbandingan.
+    expect(pinMismatch(vida, null, null)).toBeNull();
+    expect(pinMismatch("https://www.google.com/maps/@-5.1,119.4,15z", -5.2, 119.5)).toBeNull();
+    expect(pinMismatch("https://maps.app.goo.gl/AbCdEf123", -5.2, 119.5)).toBeNull();
   });
 
   it("flags short links that cannot be read", () => {

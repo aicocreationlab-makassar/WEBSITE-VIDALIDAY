@@ -10,6 +10,8 @@ describe("robots", () => {
     expect(AI_CRAWLERS).toContain("GPTBot");
     expect(AI_CRAWLERS).toContain("ClaudeBot");
     expect(AI_CRAWLERS).toContain("PerplexityBot");
+    expect(AI_CRAWLERS).toContain("Google-Extended");
+    expect(new Set(AI_CRAWLERS).size).toBe(AI_CRAWLERS.length);
     expect(robots.sitemap).toBe("https://vidaliday.com/sitemap.xml");
     expect(robots.host).toBe("https://vidaliday.com");
   });
