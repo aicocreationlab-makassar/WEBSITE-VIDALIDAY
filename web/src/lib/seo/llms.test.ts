@@ -29,6 +29,7 @@ describe("llms.txt", () => {
     expect(text).toContain("WhatsApp admin: 0857-1169-6970");
     expect(text).toContain("Fasilitas gedung: Infinity Pool, Fitness Center, Parkir Luas.");
     expect(text).toContain("Dekat: Mall Panakkukang (5 menit), Bandara Sultan Hasanuddin (30 menit).");
+    expect(text).toMatch(/Titik peta: -?\d+\.\d+, \d+\.\d+ \(\[Google Maps\]\(https:\/\/[^)]+\)\)\./);
   });
 
   it("tanpa markdown dari DB, tanpa undefined, tanpa emoji", () => {
