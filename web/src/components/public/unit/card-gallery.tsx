@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { MediaImage } from "@/components/public/shared/media-image";
 import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ export function CardGallery({ photos, href, alt, sizes, dimmed, eager = false }:
             aria-hidden="true"
             className="relative block size-full shrink-0 snap-center"
           >
-            <Image
+            <MediaImage
               src={src}
               alt={`${alt}, foto ${i + 1}`}
               fill

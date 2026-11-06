@@ -46,11 +46,18 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
   const [uploading, setUploading] = useState<Uploading[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropActive, setDropActive] = useState(false);
-  // Nilai terbaru untuk unggahan paralel yang selesai belakangan (disinkronkan setelah render).
+  // Nilai terbaru untuk unggahan paralel yang selesai belakangan. Diperbarui langsung saat `emit`
+  // (dua unggahan yang selesai sebelum render berikutnya tidak saling menimpa) dan disinkronkan lagi
+  // setelah render, untuk perubahan dari luar (reset form).
   const latest = useRef(value);
   useEffect(() => {
     latest.current = value;
   }, [value]);
+
+  function emit(next: string[]) {
+    latest.current = next;
+    onChange(next);
+  }
 
   useEffect(() => {
     const target = pendingFocus.current;
@@ -66,14 +73,14 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
 
   function moveFocused(index: number, to: number, action: "left" | "right") {
     pendingFocus.current = { path: value[index], action };
-    onChange(move(value, index, to));
+    emit(move(value, index, to));
   }
 
   function removeFocused(index: number) {
     const remaining = value.filter((_, i) => i !== index);
     // Fokus ke tombol hapus foto berikutnya (atau sebelumnya), atau "Pilih foto" kalau daftar kosong.
     pendingFocus.current = { path: remaining[index] ?? remaining[index - 1] ?? null, action: "delete" };
-    onChange(remaining);
+    emit(remaining);
   }
 
   const busy = uploading.length > 0;
@@ -99,7 +106,7 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
           const result = await uploadImage(file, folder, (progress) =>
             setUploading((items) => items.map((item) => (item.key === key ? { ...item, progress } : item))),
           );
-          onChange([...latest.current, result.path]);
+          emit([...latest.current, result.path]);
         } catch (error) {
           toast.error(error instanceof UploadRejected || error instanceof Error ? error.message : "Gagal mengunggah foto.");
         } finally {
@@ -174,7 +181,7 @@ export function PhotoListUploader({ value, onChange, folder, max = 15, onUploadi
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
                   event.preventDefault();
-                  if (dragIndex !== null && dragIndex !== index) onChange(move(value, dragIndex, index));
+                  if (dragIndex !== null && dragIndex !== index) emit(move(value, dragIndex, index));
                   setDragIndex(null);
                 }}
                 onDragEnd={() => setDragIndex(null)}

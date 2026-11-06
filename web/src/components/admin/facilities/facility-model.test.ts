@@ -251,6 +251,8 @@ describe("reorder within the same apartment", () => {
 describe("photo rules", () => {
   it("recognises fresh uploads only", () => {
     expect(isFacilityUploadPath(`facilities/${UUID}.webp`)).toBe(true);
+    expect(isFacilityUploadPath(`facilities/${UUID}.jpg`)).toBe(true);
+    expect(isFacilityUploadPath(`facilities/${UUID}.png`)).toBe(false);
     expect(isFacilityUploadPath(`units/${UUID}.webp`)).toBe(false);
     expect(isFacilityUploadPath(`facilities/../${UUID}.webp`)).toBe(false);
     expect(isFacilityUploadPath("facilities/kolam.jpg")).toBe(false);

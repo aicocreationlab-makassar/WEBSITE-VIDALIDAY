@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BedDouble, MapPin } from "lucide-react";
+import { MediaImage } from "@/components/public/shared/media-image";
 import { PhotoPlaceholder } from "@/components/public/unit/photo-placeholder";
 import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function ApartmentCard({ location, sizes, className }: Props) {
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-surface-2">
         {location.imageUrl ? (
-          <Image
+          <MediaImage
             src={location.imageUrl}
             alt={`Gedung ${location.name}`}
             fill

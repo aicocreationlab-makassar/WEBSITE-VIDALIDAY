@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Images, Play } from "lucide-react";
+import { MediaImage } from "@/components/public/shared/media-image";
 import { PhotoPlaceholder } from "@/components/public/unit/photo-placeholder";
 import { track } from "@/lib/analytics";
 import { clampIndex, galleryLayout, isLetterboxed, type GalleryLayout } from "@/lib/unit-detail";
@@ -168,7 +169,7 @@ export function UnitGallery({ unitSlug, unitName, photos, youtubeId }: Props) {
                       framed && "md:relative md:inset-auto md:block md:aspect-[9/16] md:h-full",
                     )}
                   >
-                    <Image
+                    <MediaImage
                       src={src}
                       alt={`${unitName}, foto ${i + 1}`}
                       fill

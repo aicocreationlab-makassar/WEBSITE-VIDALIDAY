@@ -107,6 +107,7 @@ describe("changed fields", () => {
 describe("settings images", () => {
   it("recognises fresh uploads", () => {
     expect(isSettingsUploadPath(UPLOAD)).toBe(true);
+    expect(isSettingsUploadPath(UPLOAD.replace(/\.webp$/, ".jpg"))).toBe(true);
     expect(isSettingsUploadPath("settings/logo.png")).toBe(false);
     expect(isSettingsUploadPath("units/0b9c2f4e-1a2b-4c3d-8e9f-0123456789ab.webp")).toBe(false);
   });

@@ -39,7 +39,7 @@ vidaliday/                       ← folder kerja kamu (buka Claude Code di sini
 | Vercel | plan **Pro** (situs bisnis tidak boleh di plan Hobby) |
 | Akses DNS domain vidaliday.com | panel registrar atau cPanel hosting lama |
 
-Untuk produksi, Supabase sebaiknya di plan **Pro** (plan Free di-pause setelah seminggu tidak aktif dan storage-nya 1 GB).
+Untuk produksi, Supabase sebaiknya di plan **Pro** (plan Free di-pause setelah seminggu tidak aktif dan storage-nya 1 GB). Sejak 6 Nov 2026 situs **tidak memakai Vercel Image Optimization** (`images.unoptimized: true`): foto dimuat langsung dari Storage Supabase, jadi kuota optimasi gambar Vercel (plan Hobby: 5.000 transformasi per 30 hari, lewat itu foto dibalas 402) tidak lagi berpengaruh. Konsekuensinya ukuran file di Storage = ukuran yang diunduh tamu; unggah foto lewat admin (dikompres otomatis) dan kompres ulang foto lama yang besar dengan `web/scripts/compress-storage-images.mjs`.
 
 ---
 

@@ -257,9 +257,9 @@ export function pickFields<T extends object, K extends keyof T>(values: T, field
 // Foto (hero, logo) di folder settings/
 // ---------------------------------------------------------------------------
 
-const SETTINGS_UPLOAD = /^settings\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/i;
+const SETTINGS_UPLOAD = /^settings\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(webp|jpg)$/i;
 
-/** Hasil unggahan baru dari browser (`settings/<uuid>.webp`, lib/upload/upload.ts). */
+/** Hasil unggahan baru dari browser (`settings/<uuid>.webp` atau `.jpg`, lib/upload/upload.ts). */
 export function isSettingsUploadPath(value: string | null | undefined): value is string {
   return typeof value === "string" && SETTINGS_UPLOAD.test(value.trim());
 }

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BedDouble, LayoutGrid, MapPin } from "lucide-react";
+import { MediaImage } from "@/components/public/shared/media-image";
 import { PhotoPlaceholder } from "@/components/public/unit/photo-placeholder";
 import { UnitDescription } from "@/components/public/unit-detail/unit-description";
 import { Button } from "@/components/ui/button";
@@ -42,13 +42,14 @@ export function ApartmentHero({ location, typeCount }: Props) {
       >
         <div className="relative -mx-4 aspect-[4/3] max-h-[60svh] overflow-hidden bg-surface-2 sm:-mx-6 md:mx-0 md:max-h-none md:rounded-sheet">
           {location.imageUrl ? (
-            <Image
+            <MediaImage
               src={location.imageUrl}
               alt={`Gedung ${location.name}`}
               fill
               sizes="(max-width: 767px) 100vw, (max-width: 1199px) 52vw, 610px"
               loading="eager"
               fetchPriority="high"
+              fallbackLabel="Foto gedung tidak bisa dimuat"
               className="object-cover object-[50%_55%]"
             />
           ) : (

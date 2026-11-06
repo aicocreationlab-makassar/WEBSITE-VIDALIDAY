@@ -320,11 +320,11 @@ export async function deleteLocation(id: unknown): Promise<ActionResult> {
   }
 }
 
-const UPLOAD_PATH = /^locations\/[0-9a-f-]{36}\.webp$/;
+const UPLOAD_PATH = /^locations\/[0-9a-f-]{36}\.(webp|jpg)$/;
 
 /**
  * Buang foto gedung yang sudah diunggah dari form tapi tidak jadi disimpan. Hanya unggahan baru
- * `locations/<uuid>.webp` yang tidak dipakai apartemen atau fasilitas mana pun.
+ * `locations/<uuid>.webp|jpg` yang tidak dipakai apartemen atau fasilitas mana pun.
  */
 export async function discardLocationUploads(paths: unknown): Promise<ActionResult> {
   const auth = await guardAdmin();

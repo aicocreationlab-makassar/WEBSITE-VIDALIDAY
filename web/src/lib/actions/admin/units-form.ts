@@ -223,11 +223,11 @@ export async function updateUnit(id: unknown, input: unknown): Promise<ActionRes
   }
 }
 
-const UNIT_UPLOAD_PATH = /^units\/[0-9a-f-]{36}\.webp$/;
+const UNIT_UPLOAD_PATH = /^units\/[0-9a-f-]{36}\.(webp|jpg)$/;
 
 /**
  * Buang foto unit yang sudah diunggah dari form tapi tidak jadi disimpan (form ditinggal atau foto
- * dihapus lagi sebelum simpan). Hanya unggahan baru `units/<uuid>.webp` yang tidak dipakai unit mana pun.
+ * dihapus lagi sebelum simpan). Hanya unggahan baru `units/<uuid>.webp|jpg` yang tidak dipakai unit mana pun.
  */
 export async function discardUnitUploads(paths: unknown): Promise<ActionResult> {
   const auth = await guardAdmin();
