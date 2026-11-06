@@ -1,7 +1,8 @@
 "use client";
 
-// Unggah langsung dari browser ke Storage `media/<folder>/<uuid>.webp` dengan sesi admin
-// (RLS storage: hanya admin). Server Action hanya menerima path hasilnya.
+// Unggah langsung dari browser ke Storage `media/<folder>/<uuid>.webp` (atau `.jpg` di browser yang
+// tidak bisa meng-encode WebP) dengan sesi admin (RLS storage: hanya admin). Server Action hanya
+// menerima path hasilnya.
 
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { MEDIA_BUCKET } from "@/lib/media";
@@ -40,10 +41,10 @@ export async function uploadImage(
     console.error("[upload] gagal memproses foto", { name: (error as Error)?.name });
     throw new Error(`"${file.name}" tidak bisa diproses. Coba foto lain atau simpan ulang sebagai JPG.`);
   }
-  const path = `${folder}/${crypto.randomUUID()}.webp`;
+  const path = `${folder}/${crypto.randomUUID()}.${prepared.extension}`;
   const { error } = await getBrowserSupabase()
     .storage.from(MEDIA_BUCKET)
-    .upload(path, prepared.file, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
+    .upload(path, prepared.file, { contentType: prepared.type, cacheControl: "31536000", upsert: false });
   if (error) throw new Error(uploadErrorMessage(error.message));
   onProgress?.(100);
   return { path, width: prepared.width, height: prepared.height };

@@ -441,7 +441,7 @@ Ikon WhatsApp tidak ada di lucide: pakai SVG resmi WhatsApp (satu warna, `curren
 
 ## 7. Gambar
 
-- Selalu `next/image` dengan `sizes` yang tepat. `remotePatterns`: `<project>.supabase.co/storage/v1/object/public/media/**` dan `images.unsplash.com` (data lama).
+- Selalu `next/image` dengan `sizes` yang tepat. `images.unoptimized: true` (sejak 6 Nov 2026, kuota Vercel Image Optimization plan Hobby habis): gambar dimuat langsung dari Storage Supabase (`<project>.supabase.co/storage/v1/object/public/media/...`, URL dari `lib/media.ts`) dan `public/`, tanpa `/_next/image`; ukurannya dijaga kompresi saat unggah (1920 px, WebP/JPEG q0,8). `remotePatterns` tetap mendaftar host Storage dan `images.unsplash.com` (data lama, dianggap "tanpa foto"). Foto publik memakai `MediaImage` (placeholder kalau gagal dimuat).
 - Rasio: kartu 4:3 cover (`object-position 50% 55%`), galeri detail 4:5 (mobile, maks. 60svh) / grid (desktop), hero mobile ±340px tinggi, hero desktop ±520px.
 - Lightbox menampilkan foto utuh; foto dengan rasio lebar/tinggi < 0,5 (tangkapan layar video berbar hitam) dibingkai 9:16 supaya bar hitam terpotong.
 - Muat segera (`loading="eager"` + `fetchPriority="high"`; `priority` sudah usang di Next 16) hanya untuk foto hero dan foto pertama galeri.

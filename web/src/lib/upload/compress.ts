@@ -61,26 +61,107 @@ async function trimLetterbox(file: File): Promise<File> {
   }
 }
 
-export type PreparedImage = { file: File; width: number; height: number };
+export type OutputType = "image/webp" | "image/jpeg";
+export type PreparedImage = { file: File; type: OutputType; extension: "webp" | "jpg"; width: number; height: number };
 
-/** Validasi → potong bar hitam → kompres WebP 2000px q0,8. */
+/** Sisi terpanjang hasil kompresi. */
+export const MAX_SIDE = 1920;
+/** Ukuran hasil maksimal; di atas ini kualitas diturunkan bertahap oleh browser-image-compression. */
+const MAX_OUTPUT_MB = 1.5;
+/** File WebP/JPEG yang sudah lebih kecil dari ini dan tidak lebih besar dari MAX_SIDE diunggah apa adanya. */
+export const SKIP_COMPRESS_BYTES = 300 * 1024;
+
+let webpSupport: Promise<boolean> | null = null;
+
+/**
+ * Browser yang tidak bisa meng-encode WebP lewat canvas (Safari/iOS) diam-diam menghasilkan PNG walau
+ * diminta "image/webp": file jadi 2–4 MB. Dicek sekali per sesi lewat canvas 2×2 piksel.
+ */
+export function canEncodeWebp(): Promise<boolean> {
+  webpSupport ??= new Promise<boolean>((resolve) => {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 2;
+      canvas.height = 2;
+      canvas.toBlob((blob) => resolve(blob?.type === "image/webp"), "image/webp");
+    } catch {
+      resolve(false);
+    }
+  });
+  return webpSupport;
+}
+
+function extensionFor(type: OutputType): "webp" | "jpg" {
+  return type === "image/webp" ? "webp" : "jpg";
+}
+
+async function dimensions(file: Blob): Promise<{ width: number; height: number }> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    return { width: bitmap.width, height: bitmap.height };
+  } finally {
+    bitmap.close();
+  }
+}
+
+/** Sudah WebP/JPEG, kecil, dan tidak melebihi MAX_SIDE: tidak perlu dikompres ulang (kualitas tidak turun lagi). */
+export function isAlreadySmall(file: { type: string; size: number }, size: { width: number; height: number }): boolean {
+  return (
+    (file.type === "image/webp" || file.type === "image/jpeg") &&
+    file.size <= SKIP_COMPRESS_BYTES &&
+    Math.max(size.width, size.height) <= MAX_SIDE
+  );
+}
+
+async function encode(source: File, type: OutputType, onProgress?: (percent: number) => void): Promise<File> {
+  return imageCompression(source, {
+    maxSizeMB: MAX_OUTPUT_MB,
+    maxWidthOrHeight: MAX_SIDE,
+    initialQuality: 0.8,
+    fileType: type,
+    useWebWorker: true,
+    onProgress,
+  });
+}
+
+/**
+ * Validasi → (file kecil: lewati) → potong bar hitam → kompres sisi terpanjang 1920px q0,8 ke WebP,
+ * atau JPEG kalau browser tidak bisa meng-encode WebP. SVG/GIF ditolak di `checkFile` (bukan foto kamar).
+ */
 export async function prepareImage(file: File, onProgress?: (percent: number) => void): Promise<PreparedImage> {
   checkFile(file);
+
+  if (file.type === "image/webp" || file.type === "image/jpeg") {
+    try {
+      const size = await dimensions(file);
+      if (isAlreadySmall(file, size)) {
+        const type: OutputType = file.type;
+        onProgress?.(100);
+        return { file, type, extension: extensionFor(type), ...size };
+      }
+    } catch {
+      // Tidak terbaca sebagai gambar di sini: lanjut ke jalur kompresi, yang akan memberi pesan kalau memang rusak.
+    }
+  }
+
   let source = file;
   try {
     source = await trimLetterbox(file);
   } catch {
     source = file; // Browser lama tanpa OffscreenCanvas: lewati pemotongan.
   }
-  const compressed = await imageCompression(source, {
-    maxWidthOrHeight: 2000,
-    initialQuality: 0.8,
-    fileType: "image/webp",
-    useWebWorker: true,
-    onProgress,
-  });
-  const bitmap = await createImageBitmap(compressed);
-  const result = { file: new File([compressed], "foto.webp", { type: "image/webp" }), width: bitmap.width, height: bitmap.height };
-  bitmap.close();
-  return result;
+  let type: OutputType = (await canEncodeWebp()) ? "image/webp" : "image/jpeg";
+  let compressed = await encode(source, type, onProgress);
+  if (type === "image/webp" && compressed.type !== "image/webp") {
+    // Encoder WebP ternyata tidak tersedia (mis. di web worker): ulangi sebagai JPEG supaya tidak ada PNG besar.
+    type = "image/jpeg";
+    compressed = await encode(source, type, onProgress);
+  }
+  const extension = extensionFor(type);
+  return {
+    file: new File([compressed], `foto.${extension}`, { type }),
+    type,
+    extension,
+    ...(await dimensions(compressed)),
+  };
 }

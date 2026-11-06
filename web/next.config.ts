@@ -6,7 +6,8 @@ import { AI_CRAWLERS } from "./src/lib/seo/robots-model";
 type RemotePattern = NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]>[number];
 
 // Host Supabase diambil dari env. Kalau env belum diisi (mis. sebelum .env.local dibuat),
-// pola Storage dilewati supaya build tetap jalan; gambar Storage baru tampil setelah env ada.
+// pola Storage dilewati supaya build tetap jalan. Dengan `unoptimized: true` pola ini tidak
+// dipakai untuk memproses gambar; dipertahankan sebagai daftar host gambar yang diizinkan.
 function supabaseStoragePattern(): RemotePattern[] {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!raw) return [];
@@ -47,7 +48,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname),
   images: {
-    // 75 = bawaan; 50 hanya untuk foto hero (tertutup overlay gelap) supaya LCP mobile lebih ringan.
+    // Vercel Image Optimization dimatikan: kuota plan Hobby (5.000 transformasi/30 hari) habis dan setiap
+    // ukuran baru dibalas 402, sehingga foto tidak tampil. Gambar dimuat langsung dari Storage Supabase
+    // dan public/ (src apa adanya, tanpa /_next/image); ukuran dijaga oleh kompresi saat unggah
+    // (lib/upload/compress.ts). `sizes` tetap berguna sebagai dokumentasi dan kalau optimasi dinyalakan lagi.
+    unoptimized: true,
+    // 75 = bawaan; 50 hanya untuk foto hero (tertutup overlay gelap); tidak berpengaruh selama unoptimized.
     qualities: [50, 75],
     remotePatterns: [
       ...supabaseStoragePattern(),

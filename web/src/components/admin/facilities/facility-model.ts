@@ -296,9 +296,9 @@ export function nextFacilitySortOrder(
 // Foto
 // ---------------------------------------------------------------------------
 
-const UPLOAD_PATTERN = /^facilities\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/i;
+const UPLOAD_PATTERN = /^facilities\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(webp|jpg)$/i;
 
-/** Hasil unggahan baru dari browser (`facilities/<uuid>.webp`, lib/upload/upload.ts). */
+/** Hasil unggahan baru dari browser (`facilities/<uuid>.webp` atau `.jpg`, lib/upload/upload.ts). */
 export function isFacilityUploadPath(value: string | null | undefined): value is string {
   return typeof value === "string" && UPLOAD_PATTERN.test(value.trim());
 }

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BedDouble, MapPin, Users } from "lucide-react";
+import { MediaImage } from "@/components/public/shared/media-image";
 import { Icon } from "@/lib/icons";
 import { cardAmenities, formatUnitPlace, guestsLabel, unitHref } from "@/lib/unit-display";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ export function UnitCard({
         ) : layout === "grid" && unit.photos.length > 1 ? (
           <CardGallery photos={unit.photos} href={unitHref(unit.slug)} alt={alt} sizes={sizes} dimmed={dimmed} eager={eager} />
         ) : (
-          <Image
+          <MediaImage
             src={unit.photos[0]}
             alt={`${alt}, foto 1`}
             fill
